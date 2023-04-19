@@ -2,4 +2,4 @@
 
 -   cd minik8s
 -   make
--   /bin/kubeadm
+-   /bin/kubeadm version
