@@ -21,22 +21,26 @@ func NewCmdVersion(out io.Writer) *cobra.Command {
 }
 
 func RunVersion(out io.Writer, cmd *cobra.Command) error {
-	kind, _ := cmd.Flags().GetString("output")
+	kind, err := cmd.Flags().GetString("output")
+	if err != nil {
+		return err
+	}
 	switch kind {
 	case "":
 		{
 			fmt.Println("default version print")
-			fmt.Fprint(out, "minik8s version 1.0")
+			fmt.Fprint(out, "minik8s version 1.0\n")
 		}
 	case "yaml":
 		{
 			fmt.Println("yaml version print")
-			fmt.Fprint(out, "minik8s version 1.0")
+			fmt.Fprint(out, "minik8s version 1.0\n")
 		}
 	case "json":
 		{
 			fmt.Println("json version print")
-			fmt.Fprint(out, "minik8s version 1.0")
+			fmt.Fprint(out, "minik8s version 1.0\n")
 		}
 	}
+	return nil
 }
