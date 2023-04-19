@@ -2,12 +2,10 @@ package cmd
 
 import (
 	"io"
+
 	"github.com/lithammer/dedent"
 	"github.com/spf13/cobra"
-
-
 )
-
 
 // NewKubeadmCommand returns cobra.Command to run kubeadm command
 func NewKubeadmCommand(in io.Reader, out, err io.Writer) *cobra.Command {
@@ -51,7 +49,7 @@ func NewKubeadmCommand(in io.Reader, out, err io.Writer) *cobra.Command {
 	}
 
 	cmds.ResetFlags()
-	
+	cmds.AddCommand(NewCmdVersion(out))
 
 	return cmds
 }
