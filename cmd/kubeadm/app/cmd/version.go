@@ -28,17 +28,17 @@ func RunVersion(out io.Writer, cmd *cobra.Command) error {
 	switch kind {
 	case "":
 		{
-			fmt.Println("default version print")
+			fmt.Fprint(out,"default version print\n")
 			fmt.Fprint(out, "minik8s version 1.0\n")
 		}
 	case "yaml":
 		{
-			fmt.Println("yaml version print")
+			fmt.Fprint(out,"yaml version print\n")
 			fmt.Fprint(out, "minik8s version 1.0\n")
 		}
 	case "json":
 		{
-			fmt.Println("json version print")
+			fmt.Fprint(out,"json version print\n")
 			fmt.Fprint(out, "minik8s version 1.0\n")
 		}
 	}

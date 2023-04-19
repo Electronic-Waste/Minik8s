@@ -1,7 +1,8 @@
-.PHONY:all build clean help check
+.PHONY:all build clean help check test
 BIN=bin
 PATH=./cmd
 ADM=kubeadm
+CMD=app/cmd
 GO=$(shell which go)
 CLEAN=$(shell rm -rf ${BIN})
 FOLD=$(shell if [ -d "./bin/" ]; then echo "bin exits"; else mkdir bin;echo "make bin folder"; fi)
@@ -20,3 +21,5 @@ help:
 check:
 	$(GO) fmt $(PATH)/$(ADM)
 	$(GO) vet $(PATH)/$(ADM)
+test:
+	$(GO) test $(PATH)/$(ADM)/$(CMD)

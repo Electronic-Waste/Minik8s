@@ -19,7 +19,6 @@ func TestNewCmdVersion(t *testing.T) {
 
 func TestRunVersion(t *testing.T) {
 	var buf bytes.Buffer
-	iface := make(map[string]interface{})
 	flagNameOutput := "output"
 	cmd := NewCmdVersion(&buf)
 
