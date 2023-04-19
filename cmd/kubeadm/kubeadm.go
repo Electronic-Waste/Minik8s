@@ -1,9 +1,12 @@
 package main
 
 import (
-	"fmt"
+	"minik8s.io/cmd/kubeadm/app"
 )
 
 func main() {
-	fmt.Println("hello kubeadm")
+	err := app.Run()
+	if err != nil {
+		panic(err)
+	}
 }
