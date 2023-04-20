@@ -5,7 +5,7 @@ ADM=kubeadm
 CMD=app/cmd
 GO=$(shell which go)
 CLEAN=$(shell rm -rf ${BIN})
-FOLD=$(shell if [ -d "./bin/" ]; then echo "bin exits"; else mkdir bin;echo "make bin folder"; fi)
+FOLD=$(shell if [ -d "./$(BIN)/" ]; then echo "$(BIN) exits"; else mkdir $(BIN);echo "make $(BIN) folder"; fi)
 all: check build
 build:
 	@echo "$(FOLD)"
