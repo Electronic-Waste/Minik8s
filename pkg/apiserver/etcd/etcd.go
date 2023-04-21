@@ -11,7 +11,7 @@ import (
 var client *clientv3.Client
 
 const (
-	etcdTimeout =  20 * time.Second
+	etcdTimeout =  2 * time.Second
 )
 
 // Initialize a new etcd client
@@ -48,5 +48,16 @@ func Get(key string) (string, error) {
 func Del(key string) error {
 	_, err := client.KV.Delete(context.Background(), key)
 	return err
+}
+
+func Watch(key string) {
+	watchCh := client.Watch(context.Background(), key)
+	go func() {
+		for res := range watchCh {
+			key := res.Events[0].Kv.Key
+			value := string(res.Events[0].Kv.Value)
+			fmt.Printf("Watch key %s's value changed to %s\n", key, value)
+		}
+	}()
 }
 
