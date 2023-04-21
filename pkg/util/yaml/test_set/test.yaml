@@ -1,0 +1,36 @@
+app:
+  name: vmeet1  
+cache:
+  enable : false
+  list : [redis, memcache]
+mysql:
+  user : root
+  password : mypassword
+  host : 192.168.2.1
+  port : 3306
+  dbname : db1
+---
+app:
+  name: vmeet2
+cache:
+  enable : false
+  list : [redis, memcache]
+mysql:
+  user : root
+  password : mypassword
+  host : 192.168.2.2
+  port : 3306
+  dbname : db1
+---
+app:
+  name: vmeet3  
+cache:
+  enable : false
+  list : [redis, memcache]
+mysql:
+  user : root
+  password : mypassword
+  host : 192.168.2.3
+  port : 3306
+  dbname : mysql
+
