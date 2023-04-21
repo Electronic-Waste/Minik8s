@@ -50,6 +50,7 @@ func Del(key string) error {
 	return err
 }
 
+// Watch invoke a handler function on the change of a given key
 func Watch(key string) {
 	watchCh := client.Watch(context.Background(), key)
 	go func() {
