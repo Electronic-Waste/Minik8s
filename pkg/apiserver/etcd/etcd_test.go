@@ -10,14 +10,15 @@ func EtcdTest() {
 	Watch("vmeet")
 	/* Test for put */
 	Put("vmeet", "3")
-	value, _ := Get("vmeet")
+	var value string
+	Get("vmeet", &value)
 	fmt.Printf("Key: %s -> Value: %s\n", "vmeet", value)
 	/* Test for put & watch */
 	Put("vmeet", "4")
-	value, _ = Get("vmeet")
+	Get("vmeet", &value)
 	fmt.Printf("Key: %s -> Value: %s\n", "vmeet", value)
 	/* Test for del */
 	Del("vmeet")
-	value, _ = Get("vmeet")
+	Get("vmeet", &value)
 	fmt.Printf("Key: %s -> Value: %s\n", "vmeet", value)
 }

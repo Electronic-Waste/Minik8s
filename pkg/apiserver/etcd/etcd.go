@@ -4,6 +4,8 @@ import (
 	"time"
 	"context"
 	"fmt"
+	"errors"
+	"encoding/json"
 
 	clientv3 "go.etcd.io/etcd/client/v3"
 )
@@ -21,27 +23,33 @@ func InitializeEtcdKVStore() error {
 		DialTimeout: etcdTimeout,
 	})
 	client = cli
+	// TODO(Shao Wang): Close this client.
 	return err
 }
 
 // Put write a single key value pair to etcd.
-func Put(key, value string) error {
-	_, err := client.KV.Put(context.Background(), key, value)
-	return err
+func Put(key string, value interface{}) error {
+	jsonVal, _ := json.Marshal(value)
+	_, err := client.KV.Put(context.Background(), key, string(jsonVal))
+	if err != nil {
+		fmt.Println(err)
+		return err
+	}
+	return nil
 }
 
 // Get reads a single value for a given key.
-func Get(key string) (string, error) {
+// key: string type; val: a pointer of the type you desire
+func Get(key string, val interface{}) error {
 	getResp, err := client.KV.Get(context.Background(), key)
 	if err != nil {
-		return "", err
+		fmt.Println(err)
+		return err
 	}
-	kvs := getResp.Kvs
-	if len(kvs) != 1 {
-		return "", fmt.Errorf("expected exactly on value for key %s but got %d", key, len(kvs))
+	if len(getResp.Kvs) != 1 {
+		return errors.New("Should and should only get one value")
 	}
-
-	return string(kvs[0].Value), nil
+	return json.Unmarshal(getResp.Kvs[0].Value, val)
 }
 
 // Del delete a key value pair for a given key.
@@ -53,6 +61,7 @@ func Del(key string) error {
 // Watch invoke a handler function on the change of a given key
 func Watch(key string) {
 	watchCh := client.Watch(context.Background(), key)
+	// TODO(Shao Wang): Replace the following handler function.
 	go func() {
 		for res := range watchCh {
 			key := res.Events[0].Kv.Key
