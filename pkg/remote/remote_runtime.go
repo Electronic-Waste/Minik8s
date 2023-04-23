@@ -11,7 +11,7 @@ import (
 	"google.golang.org/grpc/credentials/insecure"
 	runtime "k8s.io/cri-api/pkg/apis/runtime/v1"
 
-	jsonutil "k8s.io/pkg/tools/json"
+	jsonutil "minik8s.io/pkg/util/json"
 )
 
 const uri = "unix:///var/run/containerd/containerd.sock"
