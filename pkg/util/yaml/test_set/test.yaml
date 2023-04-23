@@ -9,6 +9,7 @@ mysql:
   host : 192.168.2.1
   port : 3306
   dbname : db1
+kind: node
 ---
 app:
   name: vmeet2
@@ -21,6 +22,7 @@ mysql:
   host : 192.168.2.2
   port : 3306
   dbname : db1
+kind: master
 ---
 app:
   name: vmeet3  
@@ -33,4 +35,4 @@ mysql:
   host : 192.168.2.3
   port : 3306
   dbname : mysql
-
+kind: node
