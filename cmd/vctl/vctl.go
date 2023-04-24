@@ -45,6 +45,6 @@ func main() {
 		remote.RemoveContainer(os.Args[2])
 	} else if strings.Compare("runp", os.Args[1]) == 0 {
 		fmt.Printf("try to run a new Pod in the machine\n")
-
+		remote.RunPodSandbox(os.Args[2])
 	}
 }
