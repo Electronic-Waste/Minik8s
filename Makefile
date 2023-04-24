@@ -1,6 +1,6 @@
 .PHONY:all build clean help check test
 PWD=$(shell pwd)
-BIN=build
+BIN=bin
 PATH=cmd
 SERVER=apiserver
 GO=$(shell which go)
