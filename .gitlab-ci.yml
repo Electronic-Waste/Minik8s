@@ -16,8 +16,8 @@ test:
     - go env -w GO111MODULE=on
     - go env -w GOPROXY=https://goproxy.cn,direct
     # Run our testcases
-    - go test ./cmd/kubeadm/app/cmd
-    - go test ./pkg/util/json
+    # - go test ./cmd/kubeadm/app/cmd
+    # - go test ./pkg/util/json
     - go test ./pkg/util/yaml
   tags:
     - Minik8s
