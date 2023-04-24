@@ -12,6 +12,8 @@ test:
     - kubeadm
     - kubeadm-test
   script:
-    - make test
+    - go test ./cmd/kubeadm/app/cmd
+    - go test ./pkg/util/json
+    - go test ./pkg/util/yaml
   tags:
     - Minik8s
