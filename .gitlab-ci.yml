@@ -1,0 +1,17 @@
+stages:
+  - test
+
+cache:
+  key: ${CI_BUILD_REF_NAME}
+  paths:
+    - bin/
+
+test:
+  stage: test
+  only:
+    - kubeadm
+    - kubeadm-test
+  script:
+    - make test
+  tags:
+    - test
