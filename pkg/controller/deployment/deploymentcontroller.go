@@ -4,8 +4,10 @@ import (
 	"context"
 	"k8s/utils/concurrentmap"
 	"k8s/utils/queue"
+	"time"
 )
 
+// wait for deployment to be finished
 // since client and listwatch are not completed yet, this file simply shows the workflow of controller
 // this controller relate to listwatch less but to etcd storage more, so the previous non-usable only-for-test version is deleted
 
@@ -40,7 +42,23 @@ func NewDeploymentController(ctx context.Context) (*DeploymentController, error)
 }
 
 func (dc *DeploymentController) Run(ctx context.Context) {
-	<-ctx.Done()
+	go dc.worker(ctx)
+}
+
+func (dc *DeploymentController) worker(ctx context.Context) {
+	for {
+		if !dc.queue.Empty() {
+			key := dc.queue.Front()
+			dc.queue.Dequeue()
+			dc.syncDeployment(ctx, key.(string))
+		} else {
+			time.Sleep(time.Second)
+		}
+	}
+}
+
+func (dc *DeploymentController) syncDeployment(ctx context.Context, key string) {
+	return nil
 }
 
 // add deployment to etcd

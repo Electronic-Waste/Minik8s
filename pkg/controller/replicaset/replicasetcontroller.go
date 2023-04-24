@@ -7,6 +7,7 @@ import (
 	"time"
 )
 
+// wait for replicaset and pod to be finished
 // since client and listwatch are not completed yet, this file simply shows the workflow of controller
 // all stuct and func related with listwatch are deleted since they are only for test
 
