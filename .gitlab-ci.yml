@@ -12,6 +12,10 @@ test:
     - kubeadm
     - kubeadm-test
   script:
+    # Set proxy for go
+    - go env -w GO111MODULE=on
+    - go env -w GOPROXY=https://goproxy.cn
+    # Run our testcases
     - go test ./cmd/kubeadm/app/cmd
     - go test ./pkg/util/json
     - go test ./pkg/util/yaml
