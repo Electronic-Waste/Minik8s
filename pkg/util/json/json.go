@@ -20,10 +20,8 @@ func ParseContainerConfig(file_path string, config *runtime.ContainerConfig, wri
 	defer jsonFile.Close()
 
 	byteValue, _ := ioutil.ReadAll(jsonFile)
-	var res runtime.ContainerConfig
-	json.Unmarshal(byteValue, &res)
-	fmt.Fprintf(writer, "get the config of container is \n%s\n", res.String())
-	config = &res
+	json.Unmarshal(byteValue, config)
+	fmt.Fprintf(writer, "get the config of container is \n%s\n", config.String())
 	return
 }
 
@@ -35,9 +33,7 @@ func ParseSandBoxConfig(file_path string, config *runtime.PodSandboxConfig, writ
 	defer jsonFile.Close()
 
 	byteValue, _ := ioutil.ReadAll(jsonFile)
-	var res runtime.PodSandboxConfig
-	json.Unmarshal(byteValue, &res)
-	fmt.Fprintf(writer, "get the config of container is \n%s\n", res.String())
-	config = &res
+	json.Unmarshal(byteValue, config)
+	fmt.Fprintf(writer, "get the config of container is \n%s\n", config.String())
 	return
 }
