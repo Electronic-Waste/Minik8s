@@ -2,7 +2,7 @@ package app
 
 import (
 	"fmt"
-	"net/http"
+	"vmeet.io/minik8s/pkg/apiserver"
 	// "encoding/json"
 
 	"github.com/spf13/cobra"
@@ -17,7 +17,7 @@ others. The API Server services REST operations and provides the frontend to the
 cluster's shared state through which all other components interact.`,
 		Run: func(cmd *cobra.Command, args []string){
 			fmt.Println("Minik8s's apiserver starts!")
-			Run()
+			apiserver.Run()
 		},
 		Args: func(cmd *cobra.Command, args []string) error {
 			for _, arg := range args {
@@ -33,21 +33,21 @@ cluster's shared state through which all other components interact.`,
 	return cmd
 }
 
-func Run() {
-	http.HandleFunc("/etcd/put", HandleEtcdPut)
-	http.HandleFunc("/etcd/get", HandleEtcdGet)
-	http.HandleFunc("/etcd/del", HandleEtcdDel)
-	http.ListenAndServe(":8080", nil)
-}
+// func Run() {
+// 	http.HandleFunc("/etcd/put", HandleEtcdPut)
+// 	http.HandleFunc("/etcd/get", HandleEtcdGet)
+// 	http.HandleFunc("/etcd/del", HandleEtcdDel)
+// 	http.ListenAndServe(":8080", nil)
+// }
 
-func HandleEtcdPut(w http.ResponseWriter, r *http.Request) {
-	fmt.Println("Receive etcd put request!")
-}
+// func HandleEtcdPut(w http.ResponseWriter, r *http.Request) {
+// 	fmt.Println("Receive etcd put request!")
+// }
 
-func HandleEtcdGet(w http.ResponseWriter, r *http.Request) {
-	fmt.Println("Receive etcd get request!")
-}
+// func HandleEtcdGet(w http.ResponseWriter, r *http.Request) {
+// 	fmt.Println("Receive etcd get request!")
+// }
 
-func HandleEtcdDel(w http.ResponseWriter, r *http.Request) {
-	fmt.Println("Receive etcd del request")
-}
+// func HandleEtcdDel(w http.ResponseWriter, r *http.Request) {
+// 	fmt.Println("Receive etcd del request")
+// }
