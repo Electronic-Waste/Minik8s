@@ -58,16 +58,16 @@ func Del(key string) error {
 	return err
 }
 
-// Watch invoke a handler function on the change of a given key
-func Watch(key string) {
-	watchCh := client.Watch(context.Background(), key)
-	// TODO(Shao Wang): Replace the following handler function.
-	go func() {
-		for res := range watchCh {
-			key := res.Events[0].Kv.Key
-			value := string(res.Events[0].Kv.Value)
-			fmt.Printf("Watch key %s's value changed to %s\n", key, value)
-		}
-	}()
-}
+// // Watch invoke a handler function on the change of a given key
+// func Watch(key string) {
+// 	watchCh := client.Watch(context.Background(), key)
+// 	// TODO(Shao Wang): Replace the following handler function.
+// 	go func() {
+// 		for res := range watchCh {
+// 			key := res.Events[0].Kv.Key
+// 			value := string(res.Events[0].Kv.Value)
+// 			fmt.Printf("Watch key %s's value changed to %s\n", key, value)
+// 		}
+// 	}()
+// }
 

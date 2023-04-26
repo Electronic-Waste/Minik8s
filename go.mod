@@ -3,14 +3,17 @@ module vmeet.io/minik8s
 go 1.20
 
 require (
+	github.com/go-redis/redis/v8 v8.11.5
 	github.com/spf13/cobra v1.7.0
 	go.etcd.io/etcd/client/v3 v3.5.7
 	k8s.io/apimachinery v0.27.1
 )
 
 require (
+	github.com/cespare/xxhash/v2 v2.1.2 // indirect
 	github.com/coreos/go-semver v0.3.0 // indirect
 	github.com/coreos/go-systemd/v22 v22.4.0 // indirect
+	github.com/dgryski/go-rendezvous v0.0.0-20200823014737-9f7001d12a5f // indirect
 	github.com/go-logr/logr v1.2.3 // indirect
 	github.com/gogo/protobuf v1.3.2 // indirect
 	github.com/golang/protobuf v1.5.3 // indirect
