@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	runtime "k8s.io/cri-api/pkg/apis/runtime/v1"
+	runtime "minik8s.io/cri-api/pkg/apis/runtime/v1"
 )
 
 const container_path = "./tests/container-config.json"

@@ -9,7 +9,7 @@ import (
 	"io/ioutil"
 	"os"
 
-	runtime "k8s.io/cri-api/pkg/apis/runtime/v1"
+	runtime "minik8s.io/cri-api/pkg/apis/runtime/v1"
 )
 
 func ParseContainerConfig(file_path string, config *runtime.ContainerConfig, writer io.Writer) {

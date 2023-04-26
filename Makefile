@@ -1,7 +1,8 @@
-.PHONY:all build clean help check test
+.PHONY:all build clean help check test vctl kubeadm
 BIN=bin
 PATH=./cmd
 ADM=kubeadm
+VCTL=vctl
 CMD=app/cmd
 GO=$(shell which go)
 CLEAN=$(shell rm -rf ${BIN})
@@ -10,6 +11,7 @@ all: check build
 build:
 	@echo "$(FOLD)"
 	$(GO) build -o "${BIN}/${ADM}" "${PATH}/${ADM}/${ADM}.go"
+	$(GO) build -o "${BIN}/${VCTL}" "${PATH}/${VCTL}/${VCTL}.go"
 clean:
 	$(GO) clean
 	$(CLEAN)
@@ -21,6 +23,15 @@ help:
 	@echo "make test  -- test for some go function code" 
 check:
 	$(GO) fmt $(PATH)/$(ADM)
+	$(GO) fmt $(PATH)/$(VCTL)
 	$(GO) vet $(PATH)/$(ADM)
+	$(GO) vet $(PATH)/$(VCTL)
+
 test:
 	$(GO) test $(PATH)/$(ADM)/$(CMD)
+kubeadm:
+	@echo "$(FOLD)"
+	$(GO) build -o "${BIN}/${ADM}" "${PATH}/${ADM}/${ADM}.go"
+vctl:
+	@echo "$(FOLD)"
+	$(GO) build -o "${BIN}/${VCTL}" "${PATH}/${VCTL}/${VCTL}.go"
