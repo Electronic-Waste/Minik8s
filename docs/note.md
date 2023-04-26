@@ -104,3 +104,19 @@
                 ```
             -   2，由于驱动出错的原因：修改Containerd的SystemCGroup配置为false
             -   3，还有可能是由于containerd的配置文件没有配置加速器（如阿里云的镜像地址作为备用地址），导致至关重要的pause镜像拉不下来
+-   Kubelet源码解读
+    -   学习创建Pod的过程
+        -   整体概述：在 Kubernetes 集群中，每个 Node 节点上都会启动一个 Kubelet 服务进程，该进程用于处理 Master 下发到本节点的 Pod 并管理其生命周期。换句话说，Pod 的创建、删除、更新等操作，都是由 kubelet 进行管理的，它将处理 Pod 与 Container Runtime 之间所有的转换逻辑，包括挂载卷、容器日志、垃圾回收等。
+        -   kubelet 可以通过以下几种方式获取本节点上需要管理的 Pod 的信息：
+            -   file：kubelet启动参数“--config”指定的配置文件目录下的文件(默认目录为“/etc/kubernetes/manifests/”)。
+            -   http：通过“--manifest-url”参数设置。
+            -   api server：kubelet通过API Server监听etcd目录，同步Pod列表。
+        -   对于Pod的学习
+            -   Mirror Pod相当于Static Pod(系统级别的Pod,如api-server等等)，这些Pod仅仅受到kubelet的管理，所以需要Mirror Pod来保证通过kubectl访问api-server可以找到对应system级别的Pod的消息
+            -   学习第一层调用链：
+                ```
+                func (kl *Kubelet) Run(updates <-chan kubetypes.PodUpdate)
+                ```
+                这里面会初始化一个filesystem的http server，作为系统的log输出位置
+        -   配置生成方法的位置：
+            -   首先，如何根据解析的Pod对象(`v1.Pod`)得到对应的SandBox对象（kuberuntime_sandbox.go）
