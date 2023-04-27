@@ -1,8 +1,9 @@
-.PHONY:all build clean help check test vctl kubeadm
+.PHONY:all build clean help check test vctl kubeadm nervctl
 BIN=bin
 PATH=./cmd
 ADM=kubeadm
 VCTL=vctl
+NCTL=nervctl
 CMD=app/cmd
 GO=$(shell which go)
 CLEAN=$(shell rm -rf ${BIN})
@@ -12,6 +13,7 @@ build:
 	@echo "$(FOLD)"
 	$(GO) build -o "${BIN}/${ADM}" "${PATH}/${ADM}/${ADM}.go"
 	$(GO) build -o "${BIN}/${VCTL}" "${PATH}/${VCTL}/${VCTL}.go"
+	$(GO) build -o "${BIN}/${NCTL}" "${PATH}/${NCTL}/${NCTL}.go"
 clean:
 	$(GO) clean
 	$(CLEAN)
@@ -35,3 +37,6 @@ kubeadm:
 vctl:
 	@echo "$(FOLD)"
 	$(GO) build -o "${BIN}/${VCTL}" "${PATH}/${VCTL}/${VCTL}.go"
+nervctl:
+	@echo "$(FOLD)"
+	$(GO) build -o "${BIN}/${NCTL}" "${PATH}/${NCTL}/${NCTL}.go"

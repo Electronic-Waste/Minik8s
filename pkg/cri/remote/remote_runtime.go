@@ -1,5 +1,9 @@
 package remote
 
+// this package use the cri to implement container operation
+// however, this method is too hard, so we decide to use simple
+// cli tools to implement this package
+
 import (
 	"context"
 	"fmt"
@@ -10,9 +14,10 @@ import (
 	"google.golang.org/grpc/credentials/insecure"
 	internalapi "minik8s.io/cri-api/pkg/apis"
 	runtime "minik8s.io/cri-api/pkg/apis/runtime/v1"
+	constant "minik8s.io/pkg/const"
 )
 
-const uri = "unix:///var/run/containerd/containerd.sock"
+var uri = constant.Cri_uri
 
 // remoteRuntimeService is a gRPC implementation of internalapi.RuntimeService.
 type remoteRuntimeService struct {
