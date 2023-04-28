@@ -120,3 +120,6 @@
                 这里面会初始化一个filesystem的http server，作为系统的log输出位置
         -   配置生成方法的位置：
             -   首先，如何根据解析的Pod对象(`v1.Pod`)得到对应的SandBox对象（kuberuntime_sandbox.go）
+-   学习nerdctl的源码（学习对于containerd的操作）
+    -   1，这是一个命令行工具，构建方法和kubeadm类似，都是比较基础的，下面将分成文档要求的几个功能逐一实现
+        -   1，cmd功能：ENTRYPOINT参数会覆盖image默认的启动指令，而正常的command只能有一条。而entrypoint指定的command可以有多条（相当于后面的每个command作为entry point的参数）。ps.被cobra当作（父或者子）指令的参数不会再出现在其args里面,!!!!!遇到一个让人崩溃的bug，cni插件的版本竟然仅仅支持1.1.1，用1.2.0和1.0.0都不行
