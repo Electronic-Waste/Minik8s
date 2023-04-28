@@ -3,10 +3,10 @@ package remote_cli
 import (
 	"context"
 	"fmt"
+	"log"
 	"time"
 
 	"github.com/containerd/containerd"
-	"github.com/containerd/containerd/namespaces"
 	constant "minik8s.io/pkg/const"
 )
 
@@ -36,17 +36,28 @@ func NewRemoteImageService(connectionTimeout time.Duration) (*remoteImageService
 	}, nil
 }
 
-func (cli *remoteImageService) PullImage(image string) (string, error) {
-	// use a trick namespace to test for namespace isolation
-	// this ctx will in the specific namespace
-	// which can be seen by ctr ns ls
-	// ps. we will get our image in the minik8s.io namespace in release
-	// and put the test case in test namespace
-	ctx := namespaces.WithNamespace(context.Background(), "test")
+func NewRemoteImageServiceByRunTime(cli *remoteRuntimeService) *remoteImageService {
+	return &remoteImageService{
+		timeout:     cli.timeout,
+		imageClient: cli.runtimeClient,
+	}
+}
+
+func (cli *remoteImageService) PullImage(ctx context.Context, image string) (string, error) {
 	fmt.Printf("want to pull image %s\n", image)
 	image_getted, err := cli.imageClient.Pull(ctx, image, containerd.WithPullUnpack)
 	if err != nil {
 		return "", err
 	}
 	return image_getted.Name(), nil
+}
+
+func (cli *remoteImageService) GetImage(ctx context.Context, image string) (containerd.Image, error) {
+	log.Printf("try to find image %s\n", image)
+	// get the image if the image exist and create a new image if not
+	image_getted, err := cli.imageClient.GetImage(ctx, image)
+	if err != nil {
+		return nil, err
+	}
+	return image_getted, nil
 }

@@ -27,6 +27,22 @@ func NewRemoteRuntimeService(connectionTimeout time.Duration) (*remoteRuntimeSer
 	}, nil
 }
 
+func NewRemoteImageServiceByImageService(cli *remoteImageService) *remoteRuntimeService {
+	return &remoteRuntimeService{
+		timeout:       cli.timeout,
+		runtimeClient: cli.imageClient,
+	}
+}
+
+// set filter to nil and list all containers
+func (cli *remoteRuntimeService) ListContainers(ctx context.Context, filters ...string) ([]containerd.Container, error) {
+	res, err := cli.runtimeClient.Containers(ctx)
+	if err != nil {
+		return nil, err
+	}
+	return res, nil
+}
+
 func (cli *remoteRuntimeService) StartContainer(ctx context.Context, containerID string) error {
 	return nil
 }
