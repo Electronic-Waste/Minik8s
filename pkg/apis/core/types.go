@@ -1,6 +1,11 @@
 package core
 
-import "strings"
+import (
+	"errors"
+	"net"
+	"strconv"
+	"strings"
+)
 
 // Protocol defines network protocols supported for things like container ports.
 // +enum
@@ -79,6 +84,7 @@ type Container struct {
 	// +listType=map
 	// +listMapKey=containerPort
 	// +listMapKey=protocol
+	// -p/--publish=127.0.0.1:80:8080/tcp ... but in nervctl version : only 127.0.0.1:80:8080/tcp
 	Ports []ContainerPort `json:"ports,omitempty" patchStrategy:"merge" patchMergeKey:"containerPort" protobuf:"bytes,6,rep,name=ports"`
 
 	// !!!add functional function step by step(such as volume and network and so on .......)
@@ -92,4 +98,79 @@ func (c *Container) String() string {
 	str += "Command " + strings.Join(c.Command, " ") + "\n"
 	str += "Args " + strings.Join(c.Args, " ") + "\n"
 	return str
+}
+
+func ConstructPort(str string) (ContainerPort, error) {
+	// default protocol
+	var protocol Protocol = "TCP"
+	// 127.0.0.1:80:8080/tcp
+	// split to get protocol first
+	strSlice := strings.Split(str, "/")
+	if len(strSlice) > 1 {
+		if len(strSlice) > 2 {
+			return ContainerPort{}, errors.New("wrong format of port")
+		}
+		protocol = Protocol(strSlice[1])
+	}
+
+	// parse ip and hostport and containerport
+
+	leftSlice := strings.Split(strSlice[0], ":")
+	switch len(leftSlice) {
+	case 1:
+		{
+			// we see it as a random port case
+			return ContainerPort{}, errors.New("we have not develop random port assignment\n")
+		}
+	case 2:
+		{
+			// format : 80:8080
+			return ContainerPort{
+				HostPort: func(i int, _ error) int32 {
+					return int32(i)
+				}(strconv.Atoi(leftSlice[0])),
+				ContainerPort: func(i int, _ error) int32 {
+					return int32(i)
+				}(strconv.Atoi(leftSlice[1])),
+				Protocol: protocol,
+				HostIP:   "0.0.0.0",
+			}, nil
+		}
+	case 3:
+		{
+			if err := net.ParseIP(leftSlice[0]); err != nil {
+				return ContainerPort{}, errors.New("ip format error")
+			}
+			// format : 127.0.0.1:80:8080
+			return ContainerPort{
+				HostIP: leftSlice[0],
+				HostPort: func(i int, _ error) int32 {
+					return int32(i)
+				}(strconv.Atoi(leftSlice[1])),
+				ContainerPort: func(i int, _ error) int32 {
+					return int32(i)
+				}(strconv.Atoi(leftSlice[2])),
+				Protocol: protocol,
+			}, nil
+		}
+	default:
+		{
+			return ContainerPort{}, errors.New("more num")
+		}
+	}
+}
+
+func ConstructPorts(str string) ([]ContainerPort, error) {
+	// format : 127.0.0.1:80:8080/tcp,127.0.0.1:1000:8000/tcp
+	// split by ','
+	port_slice := strings.Split(str, ",")
+	res := []ContainerPort{}
+	for _, port_str := range port_slice {
+		p, err := ConstructPort(port_str)
+		if err != nil {
+			return []ContainerPort{}, err
+		}
+		res = append(res, p)
+	}
+	return res, nil
 }
