@@ -3,8 +3,11 @@ package core
 import (
 	"errors"
 	"net"
+	"path/filepath"
 	"strconv"
 	"strings"
+
+	"github.com/opencontainers/runtime-spec/specs-go"
 )
 
 // Protocol defines network protocols supported for things like container ports.
@@ -43,6 +46,14 @@ type ContainerPort struct {
 	// What host IP to bind the external port to.
 	// +optional
 	HostIP string `json:"hostIP,omitempty" protobuf:"bytes,5,opt,name=hostIP"`
+}
+
+type Mount struct {
+	// host file path
+	SourcePath string
+
+	// container file path
+	DestinationPath string
 }
 
 // Container represents a single container that is expected to be run on the host.
@@ -87,6 +98,7 @@ type Container struct {
 	// -p/--publish=127.0.0.1:80:8080/tcp ... but in nervctl version : only 127.0.0.1:80:8080/tcp
 	Ports []ContainerPort `json:"ports,omitempty" patchStrategy:"merge" patchMergeKey:"containerPort" protobuf:"bytes,6,rep,name=ports"`
 
+	Mounts []Mount
 	// !!!add functional function step by step(such as volume and network and so on .......)
 }
 
@@ -173,4 +185,65 @@ func ConstructPorts(str string) ([]ContainerPort, error) {
 		res = append(res, p)
 	}
 	return res, nil
+}
+
+func ConstructMount(str string) (Mount, error) {
+	get_slice := strings.Split(str, ":")
+	switch len(get_slice) {
+	case 1:
+		{
+			if !filepath.IsAbs(get_slice[0]) {
+				return Mount{}, errors.New("only support abs file path")
+			}
+			return Mount{
+				DestinationPath: get_slice[0],
+			}, nil
+		}
+	case 2:
+		{
+			if !filepath.IsAbs(get_slice[0]) || !filepath.IsAbs(get_slice[1]) {
+				return Mount{}, errors.New("only support abs file path")
+			}
+			return Mount{
+				SourcePath:      get_slice[0],
+				DestinationPath: get_slice[1],
+			}, nil
+		}
+	default:
+		{
+			return Mount{}, errors.New("error format of mount")
+		}
+
+	}
+}
+
+func ConstructMounts(str string) ([]Mount, error) {
+	// we design the format of mount is mount1|mount2|mount3
+	res := []Mount{}
+	mount_strs := strings.Split(str, "|")
+	for _, mount_str := range mount_strs {
+		m, err := ConstructMount(mount_str)
+		if err != nil {
+			return []Mount{}, err
+		}
+		res = append(res, m)
+	}
+	return res, nil
+}
+
+func ConvertMount(mount Mount) specs.Mount {
+	return specs.Mount{
+		Source:      mount.SourcePath,
+		Destination: mount.DestinationPath,
+		Type:        "bind",
+		Options:     []string{"bind"},
+	}
+}
+
+func ConvertMounts(mounts []Mount) []specs.Mount {
+	res := []specs.Mount{}
+	for _, mount := range mounts {
+		res = append(res, ConvertMount(mount))
+	}
+	return res
 }

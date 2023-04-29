@@ -58,8 +58,8 @@ func main() {
 		fmt.Printf("the image name is %s\n", res.Name())
 	} else if strings.Compare("run", os.Args[1]) == 0 {
 		// finish port map first and port random assign after that
-		// format : nervctl run image name  port-map command arg...
-		//            arg0  arg1 arg2 arg3     arg4   arg5   arg...
+		// format : nervctl run image name  port-map path:path command arg...
+		//            arg0  arg1 arg2 arg3     arg4    arg5      arg6  arg...
 		// construct the Container Object
 		Container := core.Container{}
 		if strings.Contains(os.Args[2], "registry.aliyuncs.com") || strings.Contains(os.Args[2], "docker.io/library") {
@@ -72,12 +72,16 @@ func main() {
 		if err != nil {
 			panic(err)
 		}
-		if len(os.Args) < 6 {
+		Container.Mounts, err = core.ConstructMounts(os.Args[5])
+		if err != nil {
+			panic(err)
+		}
+		if len(os.Args) < 7 {
 
 		} else {
-			Container.Command = append(Container.Command, os.Args[5])
+			Container.Command = append(Container.Command, os.Args[6])
 			for i, arg := range os.Args {
-				if i < 6 {
+				if i < 7 {
 					continue
 				}
 				Container.Args = append(Container.Args, arg)

@@ -4,11 +4,12 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"time"
+
 	"github.com/containerd/containerd/cio"
 	"github.com/containerd/containerd/containers"
 	"github.com/containerd/containerd/oci"
 	"minik8s.io/pkg/apis/core"
-	"time"
 
 	"github.com/containerd/containerd"
 	constant "minik8s.io/pkg/const"
@@ -101,8 +102,10 @@ func (cli *remoteRuntimeService) StartContainer(ctx context.Context, containerMe
 	} else {
 		opts = append(opts,
 			oci.WithDefaultSpec(),
+			oci.WithDefaultPathEnv,
 			oci.WithImageConfig(image_getted),
 			oci.WithProcessArgs(processArgs...),
+			oci.WithMounts(core.ConvertMounts(containerMeta.Mounts)),
 			propagateContainerdLabelsToOCIAnnotations(),
 		)
 
