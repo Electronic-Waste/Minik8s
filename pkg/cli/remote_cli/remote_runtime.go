@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"minik8s.io/pkg/network"
 	"time"
 
 	"github.com/containerd/containerd/cio"
@@ -89,6 +90,14 @@ func (cli *remoteRuntimeService) StartContainer(ctx context.Context, containerMe
 		portMap["ports"] = string(portsJSON)
 	}
 
+	network_manager := network.ConstructNetworkManager(*(network.New()), network.DefaultNetOpt())
+
+	netOpts, netNewContainerOpts, err := network_manager.ContainerNetworkingOpts(ctx, containerMeta.Name)
+	if err != nil {
+		fmt.Println("err in network setting")
+		panic(err)
+	}
+	fmt.Printf("the length of NetOpts is %d\n", len(netOpts))
 	if flag {
 		//opts = append(opts,
 		//	oci.WithDefaultSpec(),
@@ -98,6 +107,8 @@ func (cli *remoteRuntimeService) StartContainer(ctx context.Context, containerMe
 		cOpts = append(cOpts, containerd.WithImage(image_getted))
 		cOpts = append(cOpts, containerd.WithNewSnapshot(containerMeta.Name+"-snapshot", image_getted))
 		cOpts = append(cOpts, containerd.WithNewSpec(oci.WithImageConfig(image_getted)))
+		opts = append(opts, netOpts...)
+		cOpts = append(cOpts, netNewContainerOpts...)
 
 	} else {
 		opts = append(opts,
@@ -107,6 +118,7 @@ func (cli *remoteRuntimeService) StartContainer(ctx context.Context, containerMe
 			oci.WithMounts(core.ConvertMounts(containerMeta.Mounts)),
 			propagateContainerdLabelsToOCIAnnotations(),
 		)
+		opts = append(opts, netOpts...)
 
 		cOpts = append(cOpts, containerd.WithImage(image_getted))
 		cOpts = append(cOpts, containerd.WithNewSnapshot(containerMeta.Name+"-snapshot", image_getted))

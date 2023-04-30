@@ -2,6 +2,7 @@ package core
 
 import (
 	"errors"
+	gocni "github.com/containerd/go-cni"
 	"net"
 	"path/filepath"
 	"strconv"
@@ -246,4 +247,37 @@ func ConvertMounts(mounts []Mount) []specs.Mount {
 		res = append(res, ConvertMount(mount))
 	}
 	return res
+}
+
+// Struct defining networking-related options.
+type NetworkOptions struct {
+	// --net/--network=<net name> ...
+	NetworkSlice []string
+
+	// --mac-address=<MAC>
+	MACAddress string
+
+	// --ip=<container static IP>
+	IPAddress string
+
+	// -h/--hostname=<container Hostname>
+	Hostname string
+
+	// --dns=<DNS host> ...
+	DNSServers []string
+
+	// --dns-opt/--dns-option=<resolv.conf line> ...
+	DNSResolvConfOptions []string
+
+	// --dns-search=<domain name> ...
+	DNSSearchDomains []string
+
+	// --add-host=<host:IP> ...
+	AddHost []string
+
+	// --uts=<Unix Time Sharing namespace>
+	UTSNamespace string
+
+	// -p/--publish=127.0.0.1:80:8080/tcp ...
+	PortMappings []gocni.PortMapping
 }
