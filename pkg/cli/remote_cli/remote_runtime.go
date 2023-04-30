@@ -103,14 +103,14 @@ func (cli *remoteRuntimeService) StartContainer(ctx context.Context, containerMe
 		opts = append(opts,
 			oci.WithDefaultSpec(),
 			oci.WithImageConfig(image_getted),
-			// oci.WithProcessArgs(processArgs...),
-			// oci.WithMounts(core.ConvertMounts(containerMeta.Mounts)),
-			// propagateContainerdLabelsToOCIAnnotations(),
+			oci.WithProcessArgs(processArgs...),
+			oci.WithMounts(core.ConvertMounts(containerMeta.Mounts)),
+			propagateContainerdLabelsToOCIAnnotations(),
 		)
 
 		cOpts = append(cOpts, containerd.WithImage(image_getted))
 		cOpts = append(cOpts, containerd.WithNewSnapshot(containerMeta.Name+"-snapshot", image_getted))
-		// cOpts = append(cOpts, containerd.WithAdditionalContainerLabels(portMap))
+		cOpts = append(cOpts, containerd.WithAdditionalContainerLabels(portMap))
 		cOpts = append(cOpts, containerd.WithNewSpec(opts...))
 	}
 	container, err := cli.runtimeClient.NewContainer(
