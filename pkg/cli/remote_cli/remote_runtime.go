@@ -2,12 +2,15 @@ package remote_cli
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
-	"github.com/containerd/containerd/cio"
-	"github.com/containerd/containerd/oci"
-	"github.com/opencontainers/runtime-spec/specs-go"
-	"minik8s.io/pkg/apis/core"
+	"minik8s.io/pkg/network"
 	"time"
+
+	"github.com/containerd/containerd/cio"
+	"github.com/containerd/containerd/containers"
+	"github.com/containerd/containerd/oci"
+	"minik8s.io/pkg/apis/core"
 
 	"github.com/containerd/containerd"
 	constant "minik8s.io/pkg/const"
@@ -48,6 +51,12 @@ func (cli *remoteRuntimeService) ListContainers(ctx context.Context, filters ...
 	return res, nil
 }
 
+func propagateContainerdLabelsToOCIAnnotations() oci.SpecOpts {
+	return func(ctx context.Context, oc oci.Client, c *containers.Container, s *oci.Spec) error {
+		return oci.WithAnnotations(c.Labels)(ctx, oc, c, s)
+	}
+}
+
 // we use a Container Object to start a container with our purpose
 func (cli *remoteRuntimeService) StartContainer(ctx context.Context, containerMeta core.Container) error {
 	// get image object first and construct the container
@@ -61,25 +70,65 @@ func (cli *remoteRuntimeService) StartContainer(ctx context.Context, containerMe
 	}
 	// create a container
 	var processArgs []string
+	flag := len(containerMeta.Command) == 0
 	for _, cmd := range containerMeta.Command {
 		processArgs = append(processArgs, cmd)
 	}
 	for _, arg := range containerMeta.Args {
 		processArgs = append(processArgs, arg)
 	}
-	var s specs.Spec
 	var opts []oci.SpecOpts
-	opts = append(opts,
-		oci.WithDefaultSpec(),
-		oci.WithProcessArgs(processArgs...),
-	)
+	var cOpts []containerd.NewContainerOpts
+
+	// the code to prepare the port map
+	portMap := make(map[string]string)
+	if len(containerMeta.Ports) > 0 {
+		portsJSON, err := json.Marshal(containerMeta.Ports)
+		if err != nil {
+			return err
+		}
+		portMap["ports"] = string(portsJSON)
+	}
+
+	network_manager := network.ConstructNetworkManager(*(network.New()), network.DefaultNetOpt())
+
+	netOpts, netNewContainerOpts, err := network_manager.ContainerNetworkingOpts(ctx, containerMeta.Name)
+	if err != nil {
+		fmt.Println("err in network setting")
+		panic(err)
+	}
+	fmt.Printf("the length of NetOpts is %d\n", len(netOpts))
+	if flag {
+		//opts = append(opts,
+		//	oci.WithDefaultSpec(),
+		//	propagateContainerdLabelsToOCIAnnotations(),
+		//)
+
+		cOpts = append(cOpts, containerd.WithImage(image_getted))
+		cOpts = append(cOpts, containerd.WithNewSnapshot(containerMeta.Name+"-snapshot", image_getted))
+		cOpts = append(cOpts, containerd.WithNewSpec(oci.WithImageConfig(image_getted)))
+		opts = append(opts, netOpts...)
+		cOpts = append(cOpts, netNewContainerOpts...)
+
+	} else {
+		opts = append(opts,
+			oci.WithDefaultSpec(),
+			oci.WithImageConfig(image_getted),
+			oci.WithProcessArgs(processArgs...),
+			oci.WithMounts(core.ConvertMounts(containerMeta.Mounts)),
+			propagateContainerdLabelsToOCIAnnotations(),
+		)
+		opts = append(opts, netOpts...)
+
+		cOpts = append(cOpts, containerd.WithImage(image_getted))
+		cOpts = append(cOpts, containerd.WithNewSnapshot(containerMeta.Name+"-snapshot", image_getted))
+		cOpts = append(cOpts, containerd.WithAdditionalContainerLabels(portMap))
+		cOpts = append(cOpts, containerd.WithNewSpec(opts...))
+	}
 	container, err := cli.runtimeClient.NewContainer(
 		ctx,
 		containerMeta.Name,
-		containerd.WithImage(image_getted),
-		containerd.WithNewSnapshot(containerMeta.Name+"-snapshot", image_getted),
-		containerd.WithNewSpec(oci.WithImageConfig(image_getted)),
-		containerd.WithSpec(&s, opts...),
+		cOpts...,
 	)
 	if err != nil {
 		return err
