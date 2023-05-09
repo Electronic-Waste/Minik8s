@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/containerd/containerd"
-	constant "minik8s.io/pkg/const"
+	"minik8s.io/pkg/constant"
 )
 
 // remoteImageService is a gRPC implementation of internalapi.ImageManagerService.

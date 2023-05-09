@@ -6,9 +6,10 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
-	"minik8s.io/pkg/network"
 	"os/exec"
 	"time"
+
+	"minik8s.io/pkg/network"
 
 	"github.com/containerd/containerd/cio"
 	"github.com/containerd/containerd/containers"
@@ -16,7 +17,7 @@ import (
 	"minik8s.io/pkg/apis/core"
 
 	"github.com/containerd/containerd"
-	constant "minik8s.io/pkg/const"
+	"minik8s.io/pkg/constant"
 )
 
 // remoteRuntimeService is a gRPC implementation of internalapi.RuntimeService.
@@ -63,10 +64,6 @@ func propagateContainerdLabelsToOCIAnnotations() oci.SpecOpts {
 // we use a Container Object to start a container with our purpose
 func (cli *remoteRuntimeService) StartContainer(ctx context.Context, containerMeta core.Container) error {
 	// get image object first and construct the container
-	// image_getted, err := cli.runtimeClient.GetImage(ctx, image)
-	// if err != nil {
-	// 	return nil, err
-	// }
 	image_getted, err := cli.runtimeClient.GetImage(ctx, containerMeta.Image)
 	if err != nil {
 		return err
