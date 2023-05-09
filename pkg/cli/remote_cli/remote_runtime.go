@@ -1,10 +1,13 @@
 package remote_cli
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
+	"log"
 	"minik8s.io/pkg/network"
+	"os/exec"
 	"time"
 
 	"github.com/containerd/containerd/cio"
@@ -161,8 +164,21 @@ func (cli *remoteRuntimeService) StartContainer(ctx context.Context, containerMe
 	return nil
 }
 
-func (cli *remoteRuntimeService) RunSandBox() error {
+// input the name of RunSandBox
+func (cli *remoteRuntimeService) RunSandBox(name string) error {
 	// use cmd to build a pause container
-	// run cmd : nerdctl run -d -p 8888:80     --name fake_k8s_pod_pause   registry.aliyuncs.com/google_containers/pause:3.9
-	//cmd := exec.Command("nerdctl", "run", "-d", "--name",)
+	// run cmd : nerdctl run -d  --name fake_k8s_pod_pause   registry.aliyuncs.com/google_containers/pause:3.9
+	cmd := exec.Command("nerdctl", "run", "-d", "--name", name, constant.SandBox_Image)
+	fmt.Println("finish the init of cmd")
+	var stdout, stderr bytes.Buffer
+	cmd.Stdout = &stdout
+	cmd.Stderr = &stderr
+	err := cmd.Run()
+	outStr, errStr := string(stdout.Bytes()), string(stderr.Bytes())
+	fmt.Printf("out:\n%s\nerr:\n%s\n", outStr, errStr)
+	if err != nil {
+		log.Fatalf("cmd.Run() failed with %s\n", err)
+		return err
+	}
+	return nil
 }
