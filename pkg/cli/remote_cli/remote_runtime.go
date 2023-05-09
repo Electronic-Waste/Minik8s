@@ -160,3 +160,9 @@ func (cli *remoteRuntimeService) StartContainer(ctx context.Context, containerMe
 
 	return nil
 }
+
+func (cli *remoteRuntimeService) RunSandBox() error {
+	// use cmd to build a pause container
+	// run cmd : nerdctl run -d -p 8888:80     --name fake_k8s_pod_pause   registry.aliyuncs.com/google_containers/pause:3.9
+	//cmd := exec.Command("nerdctl", "run", "-d", "--name",)
+}
