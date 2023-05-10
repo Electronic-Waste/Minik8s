@@ -2,6 +2,7 @@ package apiserver
 
 import(
 	"net/http"
+	"vmeet.io/minik8s/pkg/apiserver/util/url"
 )
 
 type HttpHandler func(http.ResponseWriter, *http.Request)
@@ -39,5 +40,5 @@ func Run() {
 	bindWatchHandler()
 
 	// Start Server
-	http.ListenAndServe(":8080", nil)
+	http.ListenAndServe(url.Port, nil)
 }
