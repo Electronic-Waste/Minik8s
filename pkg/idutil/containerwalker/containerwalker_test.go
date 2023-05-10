@@ -50,6 +50,8 @@ func TestNewWalker(t *testing.T) {
 			return nil
 		},
 	}
+
+	// !!! : need to specify the namespace of finding container
 	ctx := namespaces.WithNamespace(context.Background(), "default")
 	n, err := walker.Walk(ctx, "test")
 	if err != nil {

@@ -3,9 +3,10 @@ package main
 import (
 	"context"
 	"fmt"
-	"minik8s.io/pkg/apis/core"
 	"os"
 	"strings"
+
+	"minik8s.io/pkg/apis/core"
 
 	"github.com/containerd/containerd/namespaces"
 	"minik8s.io/pkg/cli/remote_cli"
@@ -58,8 +59,8 @@ func main() {
 		fmt.Printf("the image name is %s\n", res.Name())
 	} else if strings.Compare("run", os.Args[1]) == 0 {
 		// finish port map first and port random assign after that
-		// format : nervctl run image name  port-map path:path command arg...
-		//            arg0  arg1 arg2 arg3     arg4    arg5      arg6  arg...
+		// format : nervctl run image name  port-map path:path netnamespace command arg...
+		//            arg0  arg1 arg2 arg3     arg4    arg5      arg6         arg7  arg...
 		// construct the Container Object
 		Container := core.Container{}
 		if strings.Contains(os.Args[2], "registry.aliyuncs.com") || strings.Contains(os.Args[2], "docker.io/library") {
@@ -76,10 +77,11 @@ func main() {
 		if err != nil {
 			panic(err)
 		}
-		if len(os.Args) < 7 {
+		NetNameSpace := os.Args[6]
+		if len(os.Args) < 8 {
 
 		} else {
-			Container.Command = append(Container.Command, os.Args[6])
+			Container.Command = append(Container.Command, os.Args[7])
 			for i, arg := range os.Args {
 				if i < 7 {
 					continue
@@ -88,7 +90,7 @@ func main() {
 			}
 		}
 		fmt.Printf("get the cmd is \n %s \n", Container.String())
-		err := runtime_manager.StartContainer(ctx, Container)
+		err := runtime_manager.StartContainer(ctx, Container, NetNameSpace)
 		if err != nil {
 			fmt.Println("start a container failed")
 			panic(err)

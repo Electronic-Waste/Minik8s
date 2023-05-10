@@ -62,7 +62,7 @@ func propagateContainerdLabelsToOCIAnnotations() oci.SpecOpts {
 }
 
 // we use a Container Object to start a container with our purpose
-func (cli *remoteRuntimeService) StartContainer(ctx context.Context, containerMeta core.Container) error {
+func (cli *remoteRuntimeService) StartContainer(ctx context.Context, containerMeta core.Container, Namespace string) error {
 	// get image object first and construct the container
 	image_getted, err := cli.runtimeClient.GetImage(ctx, containerMeta.Image)
 	if err != nil {
@@ -90,7 +90,14 @@ func (cli *remoteRuntimeService) StartContainer(ctx context.Context, containerMe
 		portMap["ports"] = string(portsJSON)
 	}
 
-	network_manager := network.ConstructNetworkManager(*(network.New()), network.DefaultNetOpt())
+	netConfig := network.DefaultNetOpt()
+	if Namespace != "" {
+		// with shared network namespace
+		// format container:<containerid>
+		// TODO : add the checking logic here to check for the format
+		netConfig.NetworkSlice = append(netConfig.NetworkSlice, Namespace)
+	}
+	network_manager := network.ConstructNetworkManager(*(network.New()), netConfig)
 
 	netOpts, netNewContainerOpts, err := network_manager.ContainerNetworkingOpts(ctx, containerMeta.Name)
 	if err != nil {
@@ -142,7 +149,8 @@ func (cli *remoteRuntimeService) StartContainer(ctx context.Context, containerMe
 	defer task.Delete(ctx)
 
 	// make sure we wait before calling start
-	exitStatusC, err := task.Wait(ctx)
+	// exitStatusC, err := task.Wait(ctx)
+	_, err = task.Wait(ctx)
 	if err != nil {
 		fmt.Println(err)
 	}
@@ -151,12 +159,13 @@ func (cli *remoteRuntimeService) StartContainer(ctx context.Context, containerMe
 	if err := task.Start(ctx); err != nil {
 		return err
 	}
-	status := <-exitStatusC
-	code, _, err := status.Result()
-	if err != nil {
-		return err
-	}
-	fmt.Printf("%s exited with status: %d\n", containerMeta.Name, code)
+
+	// status := <-exitStatusC
+	// code, _, err := status.Result()
+	// if err != nil {
+	// 	return err
+	// }
+	// fmt.Printf("%s exited with status: %d\n", containerMeta.Name, code)
 
 	return nil
 }

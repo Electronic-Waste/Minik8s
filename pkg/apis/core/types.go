@@ -2,12 +2,13 @@ package core
 
 import (
 	"errors"
-	gocni "github.com/containerd/go-cni"
-	"minik8s.io/pkg/apis/meta"
 	"net"
 	"path/filepath"
 	"strconv"
 	"strings"
+
+	gocni "github.com/containerd/go-cni"
+	"minik8s.io/pkg/apis/meta"
 
 	"github.com/opencontainers/runtime-spec/specs-go"
 )
@@ -125,7 +126,7 @@ type Container struct {
 	Ports []ContainerPort `json:"ports,omitempty" patchStrategy:"merge" patchMergeKey:"containerPort" protobuf:"bytes,6,rep,name=ports"`
 
 	Mounts []Mount
-	// !!!add functional function step by step(such as volume and network and so on .......)
+	// TODO(wjl) : add functional function step by step(such as volume and network and so on .......)
 }
 
 type PodStatus struct {

@@ -24,6 +24,7 @@ import (
 	"minik8s.io/pkg/clientutil"
 	"minik8s.io/pkg/constant"
 	"minik8s.io/pkg/idutil/containerwalker"
+	"minik8s.io/pkg/network/nettype"
 	"minik8s.io/pkg/resolvconf"
 )
 
@@ -75,7 +76,7 @@ type NetworkOptionsManager interface {
 	// that the NetworkOptionsManager was initially instantiated with.
 	// E.g: in container networking mode, the label will be normalized to an ID:
 	// `--net=container:myContainer` => `--net=container:<ID of myContainer>`.
-	InternalNetworkingOptionLabels(context.Context) (core.NetworkOptions, error)
+	// InternalNetworkingOptionLabels(context.Context) (core.NetworkOptions, error)
 
 	// Returns a slice of `oci.SpecOpts` and `containerd.NewContainerOpts` which represent
 	// the network specs which need to be applied to the container with the given ID.
@@ -136,13 +137,14 @@ func CgroupManager() string {
 // without interpolating CLI flags, env vars, and toml.
 func New() *GlobalCommandOptions {
 	return &GlobalCommandOptions{
-		Debug:            false,
-		DebugFull:        false,
-		Address:          defaults.DefaultAddress,
-		Namespace:        namespaces.Default,
-		Snapshotter:      containerd.DefaultSnapshotter,
-		CNIPath:          gocni.DefaultCNIDir,
-		CNINetConfPath:   gocni.DefaultNetDir,
+		Debug:          false,
+		DebugFull:      false,
+		Address:        defaults.DefaultAddress,
+		Namespace:      namespaces.Default,
+		Snapshotter:    containerd.DefaultSnapshotter,
+		CNIPath:        gocni.DefaultCNIDir,
+		CNINetConfPath: gocni.DefaultNetDir,
+		// this config is different in the nerdctl source code config
 		DataRoot:         "/var/lib/minik8s",
 		CgroupManager:    CgroupManager(),
 		InsecureRegistry: false,
@@ -176,12 +178,24 @@ func DefaultNetOpt() core.NetworkOptions {
 }
 
 // TODO : add the logic to determine use which mode
-func ConstructNetworkManager(options GlobalCommandOptions, networkOptions core.NetworkOptions) CniNetworkManager {
-	return CniNetworkManager{
-		options,
-		networkOptions,
-		nil,
+func ConstructNetworkManager(options GlobalCommandOptions, networkOptions core.NetworkOptions) NetworkOptionsManager {
+	netype, _ := nettype.Detect(networkOptions.NetworkSlice)
+	var manager NetworkOptionsManager
+	switch netype {
+	case nettype.Container:
+		manager = &containerNetworkManager{
+			globalOptions: options,
+			netOpts:       networkOptions,
+		}
+	case nettype.CNI:
+		manager = &CniNetworkManager{
+			globalOptions: options,
+			netOpts:       networkOptions,
+			netNs:         nil,
+		}
 	}
+
+	return manager
 }
 
 // Returns the path to the Nerdctl-managed state directory for the container with the given ID.
@@ -321,7 +335,7 @@ func (m *containerNetworkManager) ContainerNetworkingOpts(ctx context.Context, _
 		return nil, nil, err
 	}
 	containerID := container.ID()
-
+	fmt.Printf("get the container id is %d\n", containerID)
 	s, err := container.Spec(ctx)
 	if err != nil {
 		return nil, nil, err
@@ -360,6 +374,7 @@ func (m *containerNetworkManager) getNetworkingContainerForArgument(ctx context.
 	}
 	containerName := netItems[1]
 
+	// Namespace is "default" (default value) and Address is "/run/containerd/containerd.sock" (default value)
 	client, ctxt, cancel, err := clientutil.NewClient(ctx, m.globalOptions.Namespace, m.globalOptions.Address)
 	if err != nil {
 		return nil, err
