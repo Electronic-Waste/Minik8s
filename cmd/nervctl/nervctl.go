@@ -95,5 +95,12 @@ func main() {
 			fmt.Println("start a container failed")
 			panic(err)
 		}
+	} else if strings.Compare("runp", os.Args[1]) == 0 {
+		// this cmd just start a simple SandBox
+		res, err := runtime_manager.RunSandBox(os.Args[2])
+		if err != nil {
+			panic(err)
+		}
+		fmt.Println("start a new SandBox")
 	}
 }
