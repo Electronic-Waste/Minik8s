@@ -95,7 +95,7 @@ func (cli *remoteRuntimeService) StartContainer(ctx context.Context, containerMe
 		// with shared network namespace
 		// format container:<containerid>
 		// TODO : add the checking logic here to check for the format
-		netConfig.NetworkSlice = append(netConfig.NetworkSlice, Namespace)
+		netConfig.NetworkSlice = []string{Namespace}
 	}
 	network_manager := network.ConstructNetworkManager(*(network.New()), netConfig)
 

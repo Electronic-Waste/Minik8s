@@ -329,7 +329,7 @@ func ContainerNetNSPath(ctx context.Context, c containerd.Container) (string, er
 func (m *containerNetworkManager) ContainerNetworkingOpts(ctx context.Context, _ string) ([]oci.SpecOpts, []containerd.NewContainerOpts, error) {
 	opts := []oci.SpecOpts{}
 	cOpts := []containerd.NewContainerOpts{}
-
+	fmt.Printf("can reach here and netSlice is %s\n", &m.netOpts.NetworkSlice[0])
 	container, err := m.getNetworkingContainerForArgument(ctx, m.netOpts.NetworkSlice[0])
 	if err != nil {
 		return nil, nil, err

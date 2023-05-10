@@ -83,7 +83,7 @@ func main() {
 		} else {
 			Container.Command = append(Container.Command, os.Args[7])
 			for i, arg := range os.Args {
-				if i < 7 {
+				if i < 8 {
 					continue
 				}
 				Container.Args = append(Container.Args, arg)
@@ -97,7 +97,7 @@ func main() {
 		}
 	} else if strings.Compare("runp", os.Args[1]) == 0 {
 		// this cmd just start a simple SandBox
-		res, err := runtime_manager.RunSandBox(os.Args[2])
+		err := runtime_manager.RunSandBox(os.Args[2])
 		if err != nil {
 			panic(err)
 		}

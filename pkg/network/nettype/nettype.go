@@ -27,6 +27,7 @@ func Detect(names []string) (Type, error) {
 
 		// In case of using --network=container:<container> to share the network namespace
 		networkName := strings.SplitN(name, ":", 2)[0]
+		fmt.Printf("parse str is %s\n", name)
 		switch networkName {
 		case "container":
 			tmp = Container
@@ -38,7 +39,6 @@ func Detect(names []string) (Type, error) {
 		}
 		res = tmp
 	}
-
 	// defaults to CNI
 	if res == Invalid {
 		res = CNI
