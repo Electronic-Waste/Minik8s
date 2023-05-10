@@ -1,0 +1,11 @@
+{
+    "metadata": {
+      "name": "nginx-sandbox-too",
+      "namespace": "default",
+      "attempt": 1,
+      "uid": "hdishd83djaidwnduwk28bcsb"
+    },
+    "log_directory": "./pod_dir",
+    "linux": {
+    }
+  }

@@ -2,7 +2,7 @@ package app
 
 import (
 	"fmt"
-	"vmeet.io/minik8s/pkg/apiserver"
+	"minik8s.io/pkg/apiserver"
 	// "encoding/json"
 
 	"github.com/spf13/cobra"
