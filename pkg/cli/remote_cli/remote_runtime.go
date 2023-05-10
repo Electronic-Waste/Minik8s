@@ -1,11 +1,15 @@
 package remote_cli
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
-	"minik8s.io/pkg/network"
+	"log"
+	"os/exec"
 	"time"
+
+	"minik8s.io/pkg/network"
 
 	"github.com/containerd/containerd/cio"
 	"github.com/containerd/containerd/containers"
@@ -13,7 +17,7 @@ import (
 	"minik8s.io/pkg/apis/core"
 
 	"github.com/containerd/containerd"
-	constant "minik8s.io/pkg/const"
+	"minik8s.io/pkg/constant"
 )
 
 // remoteRuntimeService is a gRPC implementation of internalapi.RuntimeService.
@@ -58,12 +62,8 @@ func propagateContainerdLabelsToOCIAnnotations() oci.SpecOpts {
 }
 
 // we use a Container Object to start a container with our purpose
-func (cli *remoteRuntimeService) StartContainer(ctx context.Context, containerMeta core.Container) error {
+func (cli *remoteRuntimeService) StartContainer(ctx context.Context, containerMeta core.Container, Namespace string) error {
 	// get image object first and construct the container
-	// image_getted, err := cli.runtimeClient.GetImage(ctx, image)
-	// if err != nil {
-	// 	return nil, err
-	// }
 	image_getted, err := cli.runtimeClient.GetImage(ctx, containerMeta.Image)
 	if err != nil {
 		return err
@@ -90,7 +90,14 @@ func (cli *remoteRuntimeService) StartContainer(ctx context.Context, containerMe
 		portMap["ports"] = string(portsJSON)
 	}
 
-	network_manager := network.ConstructNetworkManager(*(network.New()), network.DefaultNetOpt())
+	netConfig := network.DefaultNetOpt()
+	if Namespace != "" {
+		// with shared network namespace
+		// format container:<containerid>
+		// TODO : add the checking logic here to check for the format
+		netConfig.NetworkSlice = []string{Namespace}
+	}
+	network_manager := network.ConstructNetworkManager(*(network.New()), netConfig)
 
 	netOpts, netNewContainerOpts, err := network_manager.ContainerNetworkingOpts(ctx, containerMeta.Name)
 	if err != nil {
@@ -142,7 +149,8 @@ func (cli *remoteRuntimeService) StartContainer(ctx context.Context, containerMe
 	defer task.Delete(ctx)
 
 	// make sure we wait before calling start
-	exitStatusC, err := task.Wait(ctx)
+	// exitStatusC, err := task.Wait(ctx)
+	_, err = task.Wait(ctx)
 	if err != nil {
 		fmt.Println(err)
 	}
@@ -151,12 +159,32 @@ func (cli *remoteRuntimeService) StartContainer(ctx context.Context, containerMe
 	if err := task.Start(ctx); err != nil {
 		return err
 	}
-	status := <-exitStatusC
-	code, _, err := status.Result()
+
+	// status := <-exitStatusC
+	// code, _, err := status.Result()
+	// if err != nil {
+	// 	return err
+	// }
+	// fmt.Printf("%s exited with status: %d\n", containerMeta.Name, code)
+
+	return nil
+}
+
+// input the name of RunSandBox
+func (cli *remoteRuntimeService) RunSandBox(name string) error {
+	// use cmd to build a pause container
+	// run cmd : nerdctl run -d  --name fake_k8s_pod_pause   registry.aliyuncs.com/google_containers/pause:3.9
+	cmd := exec.Command("nerdctl", "run", "-d", "--name", name, constant.SandBox_Image)
+	fmt.Println("finish the init of cmd")
+	var stdout, stderr bytes.Buffer
+	cmd.Stdout = &stdout
+	cmd.Stderr = &stderr
+	err := cmd.Run()
+	outStr, errStr := string(stdout.Bytes()), string(stderr.Bytes())
+	fmt.Printf("out:\n%s\nerr:\n%s\n", outStr, errStr)
 	if err != nil {
+		log.Fatalf("cmd.Run() failed with %s\n", err)
 		return err
 	}
-	fmt.Printf("%s exited with status: %d\n", containerMeta.Name, code)
-
 	return nil
 }
