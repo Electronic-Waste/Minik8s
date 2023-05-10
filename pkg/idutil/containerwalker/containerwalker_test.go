@@ -10,12 +10,14 @@ import (
 	"testing"
 
 	"github.com/containerd/containerd"
+	"github.com/containerd/containerd/defaults"
+	"github.com/containerd/containerd/namespaces"
 	"minik8s.io/pkg/constant"
 )
 
-func TestNewCmdVersion(t *testing.T) {
+func TestNewWalker(t *testing.T) {
 	// construct a new pause container
-	client, err := containerd.New(constant.Cri_uri)
+	client, err := containerd.New(defaults.DefaultAddress)
 	if err != nil {
 		t.Error(err)
 	}
@@ -48,8 +50,8 @@ func TestNewCmdVersion(t *testing.T) {
 			return nil
 		},
 	}
-
-	n, err := walker.Walk(context.Background(), "test")
+	ctx := namespaces.WithNamespace(context.Background(), "default")
+	n, err := walker.Walk(ctx, "test")
 	if err != nil {
 		t.Error(err)
 	}
