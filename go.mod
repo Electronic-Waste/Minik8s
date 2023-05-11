@@ -5,7 +5,7 @@ go 1.20
 require (
 	github.com/go-redis/redis/v8 v8.11.5
 	github.com/spf13/cobra v1.7.0
-	go.etcd.io/etcd/client/v3 v3.5.7
+	go.etcd.io/etcd/client/v3 v3.5.8
 	k8s.io/apimachinery v0.27.1
 )
 
