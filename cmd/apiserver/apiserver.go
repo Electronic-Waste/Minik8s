@@ -2,7 +2,7 @@ package main
 
 import (
 
-	"vmeet.io/minik8s/cmd/apiserver/app"
+	"minik8s.io/cmd/apiserver/app"
 )
 
 func main() {
