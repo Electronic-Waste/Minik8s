@@ -175,7 +175,6 @@ func (cli *remoteRuntimeService) RunSandBox(name string) error {
 	// use cmd to build a pause container
 	// run cmd : nerdctl run -d  --name fake_k8s_pod_pause   registry.aliyuncs.com/google_containers/pause:3.9
 	cmd := exec.Command("nerdctl", "run", "-d", "--name", name, constant.SandBox_Image)
-	fmt.Println("finish the init of cmd")
 	var stdout, stderr bytes.Buffer
 	cmd.Stdout = &stdout
 	cmd.Stderr = &stderr
