@@ -80,6 +80,9 @@ func (dc *DeploymentController) syncDeployment(ctx context.Context, watchres etc
 		actiontype int
 		objecttype string
 	)
+	//format: pod: deployment-rsuid-poduid
+	//expample:	deployment-123456-789456
+
 	actiontype = watchres.ActionType
 	objecttype = watchres.ObjectType
 	switch objecttype {

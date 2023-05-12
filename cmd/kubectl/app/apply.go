@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+	"minik8s.io/pkg/apis/core"
 	"minik8s.io/pkg/apps"
 	"os"
 	"path/filepath"
@@ -53,7 +54,7 @@ func ApplyHandler(path string) error {
 		objectKind := viper.GetString("kind")
 		switch objectKind {
 		case "Deployment":
-			deployment := apps.Deployment{}
+			deployment := core.Deployment{}
 			err := viper.Unmarshal(&deployment)
 			if err != nil {
 				return err
