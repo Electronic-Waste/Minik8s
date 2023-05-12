@@ -84,4 +84,6 @@ func (dc *DeploymentController) syncDeployment(ctx context.Context, deployment a
 	//TODO: check the deployment status and do actions accordingly
 }
 
-func (dc *DeploymentController) putDeployment(ctx context.Context)
+func (dc *DeploymentController) putDeployment(ctx context.Context) {
+
+}
