@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+	"minik8s.io/pkg/apps"
 	"os"
 	"path/filepath"
 	"strings"
@@ -28,7 +29,7 @@ var (
 
 // ApplyHandler parse the filepath, read the file and analyze it
 func ApplyHandler(path string) error {
-	if strings.HasSuffix(path, ".yml") {
+	if strings.HasSuffix(path, ".yaml") {
 		//get yaml file content
 		fmt.Println("apply a yaml file")
 		viper.SetConfigType("yaml")
@@ -49,12 +50,24 @@ func ApplyHandler(path string) error {
 		}
 		//apply to k8s according to yaml
 		//...
-		//objectKind = viper.Get("objkind")
-		//switch(objectKind)
-		//case : handler...
+		objectKind := viper.GetString("kind")
+		switch objectKind {
+		case "Deployment":
+			deployment := apps.Deployment{}
+			err := viper.Unmarshal(&deployment)
+			if err != nil {
+				return err
+			}
+			err = applyDeployment(deployment)
+		}
 		return nil
 	}
 	return errors.New("not a yaml file")
+}
+
+func applyDeployment(apps.Deployment) error {
+
+	return nil
 }
 
 func init() {

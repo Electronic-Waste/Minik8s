@@ -1,11 +1,11 @@
 package etcd
 
 import (
-	"time"
 	"context"
-	"fmt"
-	"errors"
 	"encoding/json"
+	"errors"
+	"fmt"
+	"time"
 
 	clientv3 "go.etcd.io/etcd/client/v3"
 )
@@ -13,13 +13,13 @@ import (
 var client *clientv3.Client
 
 const (
-	etcdTimeout =  2 * time.Second
+	etcdTimeout = 2 * time.Second
 )
 
 // Initialize a new etcd client
 func InitializeEtcdKVStore() error {
 	cli, err := clientv3.New(clientv3.Config{
-		Endpoints: []string{"127.0.0.1:2379"},
+		Endpoints:   []string{"127.0.0.1:2379"},
 		DialTimeout: etcdTimeout,
 	})
 	client = cli
@@ -71,3 +71,8 @@ func Del(key string) error {
 // 	}()
 // }
 
+type WatchResult struct {
+	ObjectType string
+	ActionType int //0 for apply, 1 for modify, 2 for delete
+	Payload    []byte
+}

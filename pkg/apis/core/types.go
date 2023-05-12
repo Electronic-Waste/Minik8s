@@ -350,3 +350,30 @@ type NetworkOptions struct {
 	// -p/--publish=127.0.0.1:80:8080/tcp ...
 	PortMappings []gocni.PortMapping
 }
+
+type MetaData struct {
+	Name      string
+	Label     string
+	Namespace string
+	//……
+}
+type Deployment struct {
+	Metadata meta.ObjectMeta
+	Spec     DeploymentSpec
+	Status   DeploymentStatus
+}
+
+type DeploymentSpec struct {
+	Replicas int
+	Template Pod
+	Selector string //must match .spec.template.metadata.labels
+	//strategy	DeploymentStrategy
+}
+
+type DeploymentStatus struct {
+	ObservedGeneration int
+	AvailableReplicas  int
+	//for later use
+	UpdatedReplicas int
+	ReadyReplicas   int
+}
