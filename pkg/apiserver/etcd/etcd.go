@@ -9,7 +9,7 @@ import (
 	clientv3 "go.etcd.io/etcd/client/v3"
 )
 
-var client *clientv3.Client
+var client *clientv3.Client = nil
 
 const (
 	etcdTimeout =  2 * time.Second
@@ -17,6 +17,10 @@ const (
 
 // Initialize a new etcd client
 func InitializeEtcdKVStore() error {
+	if client != nil {
+		fmt.Println("etcd client has already existed!")
+		return nil
+	}
 	cli, err := clientv3.New(clientv3.Config{
 		Endpoints: []string{"127.0.0.1:2379"},
 		DialTimeout: etcdTimeout,

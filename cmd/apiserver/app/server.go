@@ -32,22 +32,3 @@ cluster's shared state through which all other components interact.`,
 
 	return cmd
 }
-
-// func Run() {
-// 	http.HandleFunc("/etcd/put", HandleEtcdPut)
-// 	http.HandleFunc("/etcd/get", HandleEtcdGet)
-// 	http.HandleFunc("/etcd/del", HandleEtcdDel)
-// 	http.ListenAndServe(":8080", nil)
-// }
-
-// func HandleEtcdPut(w http.ResponseWriter, r *http.Request) {
-// 	fmt.Println("Receive etcd put request!")
-// }
-
-// func HandleEtcdGet(w http.ResponseWriter, r *http.Request) {
-// 	fmt.Println("Receive etcd get request!")
-// }
-
-// func HandleEtcdDel(w http.ResponseWriter, r *http.Request) {
-// 	fmt.Println("Receive etcd del request")
-// }
