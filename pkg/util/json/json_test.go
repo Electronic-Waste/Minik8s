@@ -35,3 +35,23 @@ func TestSandBoxConfig(t *testing.T) {
 
 	fmt.Printf("ge the json is \n%s\n", res.String())
 }
+
+func TestStructAndJSONStringConvert(t *testing.T) {
+	res, err := StructToJSONString("3")
+	if err != nil {
+		t.Error(err.Error())
+	}
+	t.Log("result: ", res)
+	var ret string
+	var interface_val interface{}
+	interface_val, err = JSONStringToStruct(res, ret)
+	if err != nil {
+		t.Error(err.Error())
+	}
+	ret = interface_val.(string)
+	t.Log("result: ", ret)
+	if ret != "3" {
+		t.Error("test failed!")
+	}
+
+}

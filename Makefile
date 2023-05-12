@@ -2,6 +2,7 @@
 BIN=bin
 PATH=./cmd
 ADM=kubeadm
+SERVER=apiserver
 VCTL=vctl
 NCTL=nervctl
 CMD=app/cmd
@@ -14,6 +15,7 @@ build:
 	$(GO) build -o "${BIN}/${ADM}" "${PATH}/${ADM}/${ADM}.go"
 	$(GO) build -o "${BIN}/${VCTL}" "${PATH}/${VCTL}/${VCTL}.go"
 	$(GO) build -o "${BIN}/${NCTL}" "${PATH}/${NCTL}/${NCTL}.go"
+	$(GO) build -o "${BIN}/${SERVER}" "${PATH}/${SERVER}/${SERVER}.go"
 clean:
 	$(GO) clean
 	$(CLEAN)

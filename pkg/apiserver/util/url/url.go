@@ -7,5 +7,4 @@ const (
 
 	Prefix string = HttpScheme + HostURL + Port
 
-
 )

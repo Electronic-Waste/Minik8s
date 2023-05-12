@@ -5,10 +5,8 @@ import (
 	"context"
 	"fmt"
 	"errors"
-	"encoding/json"
 
 	clientv3 "go.etcd.io/etcd/client/v3"
-	"minik8s.io/pkg/apis/core"
 )
 
 var client *clientv3.Client
@@ -29,9 +27,8 @@ func InitializeEtcdKVStore() error {
 }
 
 // Put write a single key value pair to etcd.
-func Put(key string, value interface{}) error {
-	jsonVal, _ := json.Marshal(value)
-	_, err := client.KV.Put(context.Background(), key, string(jsonVal))
+func Put(key, value string) error {
+	_, err := client.KV.Put(context.Background(), key, value)
 	if err != nil {
 		fmt.Println(err)
 		return err
@@ -40,59 +37,32 @@ func Put(key string, value interface{}) error {
 }
 
 // Get reads a single value for a given key.
-// key: string type; val: a pointer of the type you desire
-func Get(key string, val interface{}) (interface{}, error) {
+// key: string type
+func Get(key string) (string, error) {
 	getResp, err := client.KV.Get(context.Background(), key)
 	if err != nil {
 		fmt.Println(err)
-		return nil, err
+		return "", err
 	}
 	if len(getResp.Kvs) != 1 {
-		return nil, errors.New("Should and should only get one value")
+		return "", errors.New("Should and should only get one value")
 	}
-	switch val.(type) {
-	case core.Pod:
-		var retVal core.Pod
-		json.Unmarshal(getResp.Kvs[0].Value, &retVal)
-		return retVal, nil
-	case string:
-		var retVal string
-		json.Unmarshal(getResp.Kvs[0].Value, &retVal)
-		return retVal, nil
-	default:
-		return nil, errors.New("etcd: Unsupported type!")
-	}
-	
+	return string(getResp.Kvs[0].Value), nil
 }
 
 // GetWithPrefix reads all value of which key starts with keyPrefix
 // key: string type; val: a pointer of the type you desire
-func GetWithPrefix(keyPrefix string, val interface{}) ([]interface{}, error) {
+func GetWithPrefix(keyPrefix string) ([]string, error) {
 	getResp, err := client.KV.Get(context.Background(), keyPrefix, clientv3.WithPrefix())
 	if err != nil {
 		fmt.Println(err)
 		return nil, err
 	}
-	retVals := make([]interface{}, getResp.Count)
-	switch val.(type) {
-	case []core.Pod:
-		var value core.Pod
-		for _, kv := range getResp.Kvs {
-			json.Unmarshal(kv.Value, &value)
-			_ = append(retVals, value)
-		}
-		return retVals, nil
-	
-	case []string:
-		var value string
-		for _, kv := range getResp.Kvs {
-			json.Unmarshal(kv.Value, &value)
-			_ = append(retVals, value)
-		}
-		return retVals, nil
-	default:
-		return nil, errors.New("etcd: Unsupported type!")
+	retVals := make([]string, getResp.Count)
+	for _, kv := range getResp.Kvs {
+		retVals = append(retVals, string(kv.Value))
 	}
+	return retVals, nil
 }
 
 // Del delete a key value pair for a given key.
