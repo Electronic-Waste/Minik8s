@@ -43,8 +43,8 @@ func (dc *DeploymentController) Run(ctx context.Context) {
 }
 
 func (dc *DeploymentController) register() {
-	dc.channel = util.Subscribe("pod")
-	util.Watch("pod change", dc.listener)
+	//dc.channel = util.Subscribe("/api/v1/deployment/status")
+	util.Watch("/api/v1/deployment/status", dc.listener)
 }
 
 func (dc *DeploymentController) listener(msg *redis.Message) {
@@ -138,14 +138,14 @@ func (dc *DeploymentController) syncDeployment(ctx context.Context, watchres etc
 			bytes, _ := json.Marshal(deployment)
 			msg := new(redis.Message)
 			msg.Payload = string(bytes)
-			util.Publish("add pod", msg)
+			//client.addpod
 		}
 
 		if deployment.Status.AvailableReplicas > deployment.Spec.Replicas {
 			bytes, _ := json.Marshal(deployment)
 			msg := new(redis.Message)
 			msg.Payload = string(bytes)
-			util.Publish("delete pod", msg)
+			//client
 		}
 	}
 	//TODO: check the deployment status and do actions accordingly
