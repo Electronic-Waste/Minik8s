@@ -6,7 +6,6 @@ import (
 	"github.com/google/uuid"
 	"golang.org/x/net/context"
 	"minik8s.io/pkg/apis/core"
-	"minik8s.io/pkg/apis/meta"
 	"minik8s.io/pkg/apiserver/etcd"
 	util "minik8s.io/pkg/util/listwatch"
 	"minik8s.io/pkg/util/tools/queue"
@@ -105,18 +104,13 @@ func (dc *DeploymentController) syncDeployment(ctx context.Context, watchres etc
 			for i := 0; i < replicas; i++ {
 				pid := uuid.New()
 				podname := prefix + "-" + pid.String()
-				metadata := meta.ObjectMeta{
-					Name:   podname,
-					Labels: label,
-				}
+				print(podname)
 				pod := core.Pod{
-					Name:   podname,
-					Labels: label,
 					Kind:   "Pod",
 					Spec:   core.PodSpec{},
 					Status: core.PodStatus{},
 				}
-				//client.addPod(pod)
+				AddPod(pod)
 			}
 		case modify:
 		case delete:
@@ -124,6 +118,7 @@ func (dc *DeploymentController) syncDeployment(ctx context.Context, watchres etc
 
 		}
 	case "Pod":
+		//seems only delete pod will invoke controller
 		pod := core.Pod{}
 		err = json.Unmarshal(watchres.Payload, &pod)
 		if err != nil {
@@ -132,13 +127,14 @@ func (dc *DeploymentController) syncDeployment(ctx context.Context, watchres etc
 		name := pod.Name
 		namearr := strings.Split(name, "-")
 		deploymentname := namearr[0] + "-" + namearr[1]
-		//deployment = client.getDeployment(deploymentname)
-		deployment = core.Deployment{}
+		deployment = GetDeployment(deploymentname)
 		if deployment.Status.AvailableReplicas < deployment.Spec.Replicas {
-			bytes, _ := json.Marshal(deployment)
-			msg := new(redis.Message)
-			msg.Payload = string(bytes)
-			//client.addpod
+			num := deployment.Spec.Replicas - deployment.Status.AvailableReplicas
+			for i := 0; i < num; i++ {
+				pod := core.Pod{}
+				pod = deployment.Spec.Template
+				AddPod(pod)
+			}
 		}
 
 		if deployment.Status.AvailableReplicas > deployment.Spec.Replicas {
@@ -154,4 +150,13 @@ func (dc *DeploymentController) syncDeployment(ctx context.Context, watchres etc
 
 func (dc *DeploymentController) putDeployment(ctx context.Context) {
 
+}
+
+// just for test
+func AddPod(pod core.Pod) {
+
+}
+
+func GetDeployment(name string) core.Deployment {
+	return core.Deployment{}
 }
