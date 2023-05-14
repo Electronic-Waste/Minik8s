@@ -9,9 +9,9 @@ const (
 	
 	APIV1 string = "/api/v1"
 
-	PodURL string = APIV1 + "/pod"
-	PodStatusGetURL string = PodURL + "/status/get"
-	PodStatusGetAllURL string = PodURL + "/status/getall"
-	PodStatusDelURL string = PodURL + "/status/del"
-	PodStatusPutURL string = PodURL + "/status/put"
+	PodStatus string = "/pods/status"
+	PodStatusGetURL string = APIV1 + PodStatus + "/get"
+	PodStatusGetAllURL string = APIV1 + PodStatus + "/getall"
+	PodStatusDelURL string = APIV1 + PodStatus + "/del"
+	PodStatusPutURL string = APIV1 + PodStatus + "/put"
 )

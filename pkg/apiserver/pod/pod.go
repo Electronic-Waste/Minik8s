@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"path"
 	"io/ioutil"
+	// "github.com/go-redis/redis/v8"
 
 	"minik8s.io/pkg/util/listwatch"
 	"minik8s.io/pkg/apiserver/etcd"
@@ -24,7 +25,7 @@ func HandleGetPodStatus(resp http.ResponseWriter, req *http.Request) {
 		resp.Write([]byte("Name is missing"))
 		return
 	}
-	etcdKey := path.Join(url.PodStatusGetURL, namespace, podName)
+	etcdKey := path.Join(url.PodStatus, namespace, podName)
 	PodStatus, err := etcd.Get(etcdKey)
 	// Error occur in etcd: return error to client
 	if err != nil {
@@ -41,7 +42,7 @@ func HandleGetPodStatus(resp http.ResponseWriter, req *http.Request) {
 // Return all pods' statuses
 // uri: /api/v1/pod/status/getall
 func HandleGetAllPodStatus(resp http.ResponseWriter, req *http.Request) {
-	etcdPrefix := url.PodURL
+	etcdPrefix := url.PodStatus
 	var podStatusArr []string
 	podStatusArr, err := etcd.GetWithPrefix(etcdPrefix)
 	// Error occur in etcd: return error to client
@@ -79,7 +80,7 @@ func HandlePutPodStatus(resp http.ResponseWriter, req *http.Request) {
 		resp.Write([]byte("Name is missing"))
 		return
 	}
-	etcdURL := path.Join(url.PodStatusPutURL, namespace, podName)
+	etcdURL := path.Join(url.PodStatus, namespace, podName)
 	err := etcd.Put(etcdURL, string(body))
 	// Error occur in etcd: return error to client
 	if err != nil {
@@ -88,7 +89,8 @@ func HandlePutPodStatus(resp http.ResponseWriter, req *http.Request) {
 		return
 	}
 	// Success!
-	listwatch.Publish(etcdURL, string(body))	// TODO(shaowang): Normalize listwatch msg
+	pubURL := path.Join(url.PodStatus, "get", namespace, podName)
+	listwatch.Publish(pubURL, string(body))	
 	resp.WriteHeader(http.StatusOK)
 }
 
@@ -105,7 +107,7 @@ func HandleDelPodStatus(resp http.ResponseWriter, req *http.Request) {
 		resp.Write([]byte("Name is missing"))
 		return
 	}
-	etcdURL := path.Join(url.PodStatusPutURL, namespace, podName)
+	etcdURL := path.Join(url.PodStatus, namespace, podName)
 	err := etcd.Del(etcdURL)
 	// Error occur in etcd: return error to client
 	if err != nil {
@@ -114,10 +116,8 @@ func HandleDelPodStatus(resp http.ResponseWriter, req *http.Request) {
 		return
 	}
 	// Success!
-	listwatch.Publish(etcdURL, "type: del")	// TODO(shaowang): Normalize listwatch msg
+	pubURL := path.Join(url.PodStatus, "del", namespace, podName)
+	listwatch.Publish(pubURL, "")	
 	resp.WriteHeader(http.StatusOK)
 }
 
-// func HandleWatchPodStatus(msg *redis.Message) {
-	
-// }
