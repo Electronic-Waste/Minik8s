@@ -124,5 +124,16 @@
     -   1，这是一个命令行工具，构建方法和kubeadm类似，都是比较基础的，下面将分成文档要求的几个功能逐一实现
         -   1，cmd功能：ENTRYPOINT参数会覆盖image默认的启动指令，而正常的command只能有一条。而entrypoint指定的command可以有多条（相当于后面的每个command作为entry point的参数）。ps.被cobra当作（父或者子）指令的参数不会再出现在其args里面,!!!!!遇到一个让人崩溃的bug，cni插件的版本竟然仅仅支持1.1.1，用1.2.0和1.0.0都不行
         -   2，Port功能：nerdctl中通过public参数实现了端口映射的功能，格式：`--public=80:80,1000:500`，很迷的方法在于，他直接设置了Label，这样如何确保最后可以有端口映射呢,第一步，先把最基础的网络配置好（能访问localhost(finish)：遇到的bug，这个opt的apply的顺序是很重要的，如果不讲究顺序就可能导致出错，比如mount不上去），这里我们采用了把主机的网络配置Mount到容器中的方法实现了DNS的配置。
+            ```
+            cni插件的使用--flannel
+            1，安装nerdctl（用于启动pause镜像）
+                mkdir -p nerdctl
+                cd nerdctl
+                wget https://github.com/containerd/nerdctl/releases/download/v1.0.0/nerdctl-1.0.0-linux-amd64.tar.gz
+                tar -xf nerdctl-1.0.0-linux-amd64.tar.gz
+                ls
+
+                cp nerdctl /usr/local/bin/
+                后面的内容见cni.md
+            ```
         -   3，volume功能：格式：`-v hostFile:containerFile`,底层很巧妙的采用两套思想，一种是在底层手动建立对应的持久化文件（相当于只是指定了映射的文件，但是主机的文件没有指定，这时候nerdctl会自己帮忙建立对应的映射）,getImageConfig很重要，可以通过这个接口拿到Image的配置，包括初始化的volume等等。很重要的一点在于Mount的设置，type要设置成`bind`，options也要有`bind`,这样才能挂载成功
-    ```
