@@ -65,6 +65,7 @@ func HandleGetAllPodStatus(resp http.ResponseWriter, req *http.Request) {
 	// return
 }
 
+// TODO(shaowang): Distinguish create & update operation
 // Update a pod's status in etcd
 // uri: /api/v1/pod/status/put?namespace=...&name=...
 // @namespace: namespace requested; @name: pod name
