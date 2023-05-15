@@ -42,4 +42,6 @@ vctl:
 nervctl:
 	@echo "$(FOLD)"
 	$(GO) build -o "${BIN}/${NCTL}" "${PATH}/${NCTL}/${NCTL}.go"
-
+apiserver:
+	@echo "$(FOLD)"
+	$(GO) build -o "${BIN}/${SERVER}" "${PATH}/${SERVER}/${SERVER}.go"

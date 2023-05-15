@@ -48,8 +48,8 @@ func Get(key string) (string, error) {
 		fmt.Println(err)
 		return "", err
 	}
-	if len(getResp.Kvs) != 1 {
-		return "", errors.New("Should and should only get one value")
+	if len(getResp.Kvs) == 0 {
+		return "", errors.New("No value for this key is stored yet!")
 	}
 	return string(getResp.Kvs[0].Value), nil
 }

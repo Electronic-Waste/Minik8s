@@ -1,0 +1,164 @@
+{
+	"info": {
+		"_postman_id": "c1c8e1d7-7c53-4bbe-aba0-491311264243",
+		"name": "Minik8s",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "20944191"
+	},
+	"item": [
+		{
+			"name": "Apiserver",
+			"item": [
+				{
+					"name": "PodStatusPut",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"type\": \"test\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "10.119.11.109:8080/api/v1/pods/status/put?namespace=test&name=pod-test-1",
+							"host": [
+								"10",
+								"119",
+								"11",
+								"109"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"v1",
+								"pods",
+								"status",
+								"put"
+							],
+							"query": [
+								{
+									"key": "namespace",
+									"value": "test"
+								},
+								{
+									"key": "name",
+									"value": "pod-test-1"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "PodStatusGet",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "10.119.11.109:8080/api/v1/pods/status/get?namespace=test&name=pod-test-1",
+							"host": [
+								"10",
+								"119",
+								"11",
+								"109"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"v1",
+								"pods",
+								"status",
+								"get"
+							],
+							"query": [
+								{
+									"key": "namespace",
+									"value": "test"
+								},
+								{
+									"key": "name",
+									"value": "pod-test-1"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "PodStatusGetAll",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "10.119.11.109:8080/api/v1/pods/status/getall?namespace=test&name=pod-test-1",
+							"host": [
+								"10",
+								"119",
+								"11",
+								"109"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"v1",
+								"pods",
+								"status",
+								"getall"
+							],
+							"query": [
+								{
+									"key": "namespace",
+									"value": "test"
+								},
+								{
+									"key": "name",
+									"value": "pod-test-1"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "PodStatusDel",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "10.119.11.109:8080/api/v1/pods/status/del?namespace=test&name=pod-test-1",
+							"host": [
+								"10",
+								"119",
+								"11",
+								"109"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"v1",
+								"pods",
+								"status",
+								"del"
+							],
+							"query": [
+								{
+									"key": "namespace",
+									"value": "test"
+								},
+								{
+									"key": "name",
+									"value": "pod-test-1"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	]
+}

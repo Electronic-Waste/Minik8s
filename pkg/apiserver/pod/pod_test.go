@@ -21,3 +21,6 @@ func TestStringArrToBytes(t *testing.T) {
 	}
 	t.Log(newArr)
 }	
+
+// Addtional test is done by postman, of which the testcase is named as test_postman.json,
+// and stored under /testcases folder. You can download it to your local desktop and import it to your postman.
