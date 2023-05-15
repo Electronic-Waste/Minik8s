@@ -3,6 +3,7 @@ package config
 import "minik8s.io/pkg/kubelet/types"
 
 type PodConfig struct {
+	// that is the last channel used to hold all Pod message
 	update chan types.PodUpdate
 }
 
