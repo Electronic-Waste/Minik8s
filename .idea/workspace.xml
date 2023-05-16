@@ -6,15 +6,7 @@
   <component name="ChangeListManager">
     <list default="true" id="6b741420-6361-4886-82c6-cfb6b02bd918" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/cmd/kube-controller-manager/app/apps.go" beforeDir="false" afterPath="$PROJECT_DIR$/cmd/kube-controller-manager/app/apps.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/cmd/kube-controller-manager/app/controllermanager.go" beforeDir="false" afterPath="$PROJECT_DIR$/cmd/kube-controller-manager/app/controllermanager.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/cmd/kube-controller-manager/kube-controller-manager.go" beforeDir="false" afterPath="$PROJECT_DIR$/cmd/kube-controller-manager/kube-controller-manager.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/go.mod" beforeDir="false" afterPath="$PROJECT_DIR$/go.mod" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/go.sum" beforeDir="false" afterPath="$PROJECT_DIR$/go.sum" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pkg/apiserver/etcd/etcd.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/apiserver/etcd/etcd.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pkg/controller/deployment_test.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/controller/deployment_test.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pkg/controller/deploymentcontroller.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/controller/deploymentcontroller.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pkg/util/listwatch/listwatch.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/util/listwatch/listwatch.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/cmd/kubectl/app/apply.go" beforeDir="false" afterPath="$PROJECT_DIR$/cmd/kubectl/app/apply.go" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
