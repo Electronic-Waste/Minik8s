@@ -4,9 +4,11 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log"
 	"os/exec"
+	"strings"
 	"time"
 
 	"minik8s.io/pkg/network"
@@ -26,9 +28,13 @@ type remoteRuntimeService struct {
 	runtimeClient *containerd.Client
 }
 
+func (r *remoteRuntimeService) Client() *containerd.Client {
+	return r.runtimeClient
+}
+
 func NewRemoteRuntimeService(connectionTimeout time.Duration) (*remoteRuntimeService, error) {
 	// build a new cri client
-	client, err := containerd.New(constant.Cri_uri)
+	client, err := containerd.New(constant.Cli_uri)
 	// need to call client.Close() to gc this object
 	if err != nil {
 		return nil, err
@@ -71,12 +77,15 @@ func (cli *remoteRuntimeService) StartContainer(ctx context.Context, containerMe
 	// create a container
 	var processArgs []string
 	flag := len(containerMeta.Command) == 0
+
+	// init the command and core args
 	for _, cmd := range containerMeta.Command {
 		processArgs = append(processArgs, cmd)
 	}
 	for _, arg := range containerMeta.Args {
 		processArgs = append(processArgs, arg)
 	}
+
 	var opts []oci.SpecOpts
 	var cOpts []containerd.NewContainerOpts
 
@@ -91,11 +100,20 @@ func (cli *remoteRuntimeService) StartContainer(ctx context.Context, containerMe
 	}
 
 	netConfig := network.DefaultNetOpt()
+	nameMap := make(map[string]string)
 	if Namespace != "" {
 		// with shared network namespace
 		// format container:<containerid>
 		// TODO : add the checking logic here to check for the format
 		netConfig.NetworkSlice = []string{Namespace}
+
+		// init the label to use namespace to find all container
+		// parse the Name here
+		arr := strings.Split(Namespace, ":")
+		if len(arr) < 2 {
+			return errors.New("wrong namespace format")
+		}
+		nameMap["minik8s/podName"] = arr[1]
 	}
 	network_manager := network.ConstructNetworkManager(*(network.New()), netConfig)
 

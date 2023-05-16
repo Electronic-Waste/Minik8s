@@ -1,0 +1,55 @@
+package podmanager
+
+import (
+	"context"
+	"fmt"
+	"github.com/containerd/containerd/namespaces"
+	"minik8s.io/pkg/apis/core"
+	"minik8s.io/pkg/cli/remote_cli"
+	"minik8s.io/pkg/idutil/containerwalker"
+)
+
+// here just finish some operation need by pod running and deleting
+
+// need the image need by the Pod have been pull
+func RunPod(pod *core.Pod) error {
+	cli, err := remote_cli.NewRemoteRuntimeService(remote_cli.IdenticalErrorDelay)
+	if err != nil {
+		return err
+	}
+	err = cli.RunSandBox(pod.Name)
+	//time.Sleep(time.Second * 10)
+	if err != nil {
+		return err
+	}
+	// run core pod's container
+	ctx := namespaces.WithNamespace(context.Background(), "default")
+	for _, con := range pod.Spec.Containers {
+		err = cli.StartContainer(ctx, con, "container:"+pod.Name)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func DelPod(name string) error {
+	// find all container labeled with the 'name'
+	cli, err := remote_cli.NewRemoteRuntimeService(remote_cli.IdenticalErrorDelay)
+	if err != nil {
+		return err
+	}
+	walker := &containerwalker.ContainerWalker{
+		Client: cli.Client(),
+		OnFound: func(ctx context.Context, found containerwalker.Found) error {
+			fmt.Println(found.Container)
+			return nil
+		},
+	}
+
+	// !!! : need to specify the namespace of finding container
+	ctx := namespaces.WithNamespace(context.Background(), "default")
+	n, err := walker.WalkPod(ctx, name)
+	fmt.Printf("find %d container in the pod %s\n", n, name)
+	return nil
+}

@@ -75,6 +75,38 @@ func (w *ContainerWalker) Walk(ctx context.Context, req string) (int, error) {
 	return matchCount, nil
 }
 
+// Walk walks containers and calls w.OnFound .
+// Req is namespace of container in the pod(don't contain pause container).
+// Returns the number of the found entries.
+func (w *ContainerWalker) WalkPod(ctx context.Context, req string) (int, error) {
+	if strings.HasPrefix(req, "k8s://") {
+		return -1, fmt.Errorf("specifying \"k8s://...\" form is not supported (Hint: specify ID instead): %q", req)
+	}
+	filters := []string{
+		// TODO : maybe we can fix this hard code of label to fit our implementation
+		fmt.Sprintf("labels.%q==%s", "minik8s/podName", req),
+	}
+
+	containers, err := w.Client.Containers(ctx, filters...)
+	if err != nil {
+		return -1, err
+	}
+
+	matchCount := len(containers)
+	for i, c := range containers {
+		f := Found{
+			Container:  c,
+			Req:        req,
+			MatchIndex: i,
+			MatchCount: matchCount,
+		}
+		if e := w.OnFound(ctx, f); e != nil {
+			return -1, e
+		}
+	}
+	return matchCount, nil
+}
+
 // WalkAll calls `Walk` for each req in `reqs`.
 //
 // It can be used when the matchCount is not important (e.g., only care if there
