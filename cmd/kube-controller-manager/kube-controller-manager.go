@@ -1,4 +1,4 @@
-package kube_controller_manager
+package main
 
 import (
 	"minik8s.io/cmd/kube-controller-manager/app"
@@ -7,5 +7,7 @@ import (
 func main() {
 	command := app.NewControllerManagerCommand()
 	err := command.Execute()
-	panic(err)
+	if err != nil {
+		panic(err)
+	}
 }

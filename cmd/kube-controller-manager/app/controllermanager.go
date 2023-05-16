@@ -15,6 +15,7 @@ func NewControllerManagerCommand() *cobra.Command {
 			Run(context.Background())
 		},
 	}
+	print("new controller manager\n")
 	return cmd
 }
 

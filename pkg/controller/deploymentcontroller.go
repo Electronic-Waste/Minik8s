@@ -33,20 +33,26 @@ func NewDeploymentController(ctx context.Context) (*DeploymentController, error)
 	dc := &DeploymentController{
 		queue: new(queue.Queue),
 	}
+	print("new deployment controller\n")
 	return dc, nil
 }
 
 func (dc *DeploymentController) Run(ctx context.Context) {
-	dc.register()
+	go dc.register()
 	go dc.worker(ctx)
+	print("deployment controller running\n")
 }
 
 func (dc *DeploymentController) register() {
+	print("register\n")
 	//dc.channel = util.Subscribe("/api/v1/deployment/status")
 	util.Watch("/api/v1/deployment/status", dc.listener)
+	//not reach here
+	print("registered\n")
 }
 
 func (dc *DeploymentController) listener(msg *redis.Message) {
+	print("listening\n")
 	bytes := []byte(msg.Payload)
 	watchres := etcd.WatchResult{}
 	err := json.Unmarshal(bytes, &watchres)
@@ -57,10 +63,14 @@ func (dc *DeploymentController) listener(msg *redis.Message) {
 }
 
 func (dc *DeploymentController) worker(ctx context.Context) {
+	print("working\n")
 	for {
 		if !dc.queue.Empty() {
+			print("receive msg!\n")
+			//dc.queue.Dequeue()
 			dc.processNextWorkItem(ctx)
 		} else {
+			//print("worker pending\n")
 			time.Sleep(time.Second)
 		}
 	}
@@ -154,7 +164,7 @@ func (dc *DeploymentController) putDeployment(ctx context.Context) {
 
 // just for test
 func AddPod(pod core.Pod) {
-
+	print("add pod\n")
 }
 
 func GetDeployment(name string) core.Deployment {

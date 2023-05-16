@@ -2,17 +2,10 @@ package etcd
 
 import (
 	"context"
-<<<<<<< HEAD
-	"encoding/json"
 	"errors"
 	"fmt"
-	"time"
-=======
-	"fmt"
-	"errors"
->>>>>>> apiserver
-
 	clientv3 "go.etcd.io/etcd/client/v3"
+	"time"
 )
 
 var client *clientv3.Client = nil
@@ -91,6 +84,7 @@ func DelWithPrefix(keyPrefix string) error {
 func DelAll() error {
 	return DelWithPrefix("")
 }
+
 // // Watch invoke a handler function on the change of a given key
 // func Watch(key string) {
 // 	watchCh := client.Watch(context.Background(), key)
