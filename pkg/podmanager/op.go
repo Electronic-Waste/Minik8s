@@ -1,12 +1,15 @@
 package podmanager
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"github.com/containerd/containerd/namespaces"
+	"log"
 	"minik8s.io/pkg/apis/core"
 	"minik8s.io/pkg/cli/remote_cli"
 	"minik8s.io/pkg/idutil/containerwalker"
+	"os/exec"
 )
 
 // here just finish some operation need by pod running and deleting
@@ -42,7 +45,9 @@ func DelPod(name string) error {
 	walker := &containerwalker.ContainerWalker{
 		Client: cli.Client(),
 		OnFound: func(ctx context.Context, found containerwalker.Found) error {
-			fmt.Println(found.Container)
+			fmt.Println(found.Container.ID())
+			stopContainer(found.Container.ID())
+			delContainer(found.Container.ID())
 			return nil
 		},
 	}
@@ -50,6 +55,46 @@ func DelPod(name string) error {
 	// !!! : need to specify the namespace of finding container
 	ctx := namespaces.WithNamespace(context.Background(), "default")
 	n, err := walker.WalkPod(ctx, name)
-	fmt.Printf("find %d container in the pod %s\n", n, name)
+	if err != nil {
+		return err
+	}
+
+	// delete pause container
+	stopContainer(name)
+	delContainer(name)
+	return nil
+}
+
+func stopContainer(id string) error {
+	// use cmd to build a pause container
+	// run cmd : nerdctl run -d  --name fake_k8s_pod_pause   registry.aliyuncs.com/google_containers/pause:3.9
+	cmd := exec.Command("nerdctl", "stop", id)
+	var stdout, stderr bytes.Buffer
+	cmd.Stdout = &stdout
+	cmd.Stderr = &stderr
+	err := cmd.Run()
+	outStr, errStr := string(stdout.Bytes()), string(stderr.Bytes())
+	fmt.Printf("out:\n%s\nerr:\n%s\n", outStr, errStr)
+	if err != nil {
+		log.Fatalf("cmd.Run() failed with %s\n", err)
+		return err
+	}
+	return nil
+}
+
+func delContainer(id string) error {
+	// use cmd to build a pause container
+	// run cmd : nerdctl run -d  --name fake_k8s_pod_pause   registry.aliyuncs.com/google_containers/pause:3.9
+	cmd := exec.Command("nerdctl", "rm", id)
+	var stdout, stderr bytes.Buffer
+	cmd.Stdout = &stdout
+	cmd.Stderr = &stderr
+	err := cmd.Run()
+	outStr, errStr := string(stdout.Bytes()), string(stderr.Bytes())
+	fmt.Printf("out:\n%s\nerr:\n%s\n", outStr, errStr)
+	if err != nil {
+		log.Fatalf("cmd.Run() failed with %s\n", err)
+		return err
+	}
 	return nil
 }

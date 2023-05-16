@@ -148,6 +148,8 @@ func (cli *remoteRuntimeService) StartContainer(ctx context.Context, containerMe
 		cOpts = append(cOpts, containerd.WithImage(image_getted))
 		cOpts = append(cOpts, containerd.WithNewSnapshot(containerMeta.Name+"-snapshot", image_getted))
 		cOpts = append(cOpts, containerd.WithAdditionalContainerLabels(portMap))
+		// add label to make it can be find by the containerwalker
+		cOpts = append(cOpts, containerd.WithAdditionalContainerLabels(nameMap))
 		cOpts = append(cOpts, containerd.WithNewSpec(opts...))
 	}
 	container, err := cli.runtimeClient.NewContainer(
@@ -164,6 +166,8 @@ func (cli *remoteRuntimeService) StartContainer(ctx context.Context, containerMe
 		return err
 	}
 
+	fmt.Println("create task is")
+	fmt.Println(task)
 	defer task.Delete(ctx)
 
 	// make sure we wait before calling start

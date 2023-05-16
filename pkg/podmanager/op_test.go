@@ -50,10 +50,13 @@ func TestAllProcess(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-	fmt.Println("try to start a new pod")
 	err = RunPod(&pod)
 	if err != nil {
 		t.Error(err)
 	}
 	fmt.Println("have start a new pod")
+	err = DelPod(pod.Name)
+	if err != nil {
+		t.Error(err)
+	}
 }
