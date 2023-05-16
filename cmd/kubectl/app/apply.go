@@ -6,7 +6,6 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"minik8s.io/pkg/apis/core"
-	"minik8s.io/pkg/apps"
 	"os"
 	"path/filepath"
 	"strings"
@@ -66,7 +65,7 @@ func ApplyHandler(path string) error {
 	return errors.New("not a yaml file")
 }
 
-func applyDeployment(apps.Deployment) error {
+func applyDeployment(core.Deployment) error {
 
 	return nil
 }
