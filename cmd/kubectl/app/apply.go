@@ -16,7 +16,7 @@ var (
 		Use:     "apply <pathname>",
 		Short:   "apply a yaml file to minik8s",
 		Long:    `apply a yaml file to minik8s`,
-		Example: "apply ./cmd/config/xxx/yml",
+		Example: "apply ./cmd/config/test.yaml",
 		Run: func(cmd *cobra.Command, args []string) {
 			fmt.Println("apply called")
 			//fmt.Println(args[0])
