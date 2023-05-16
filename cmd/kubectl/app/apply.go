@@ -62,7 +62,40 @@ func ApplyHandler(path string) error {
 		}
 		return nil
 	}
-	return errors.New("not a yaml file")
+	if strings.HasSuffix(path, ".json") {
+		//get yaml file content
+		fmt.Println("apply a json file")
+		viper.SetConfigType("json")
+
+		workDir, err := os.Getwd()
+		if err != nil {
+			return err
+		}
+		dir, file := filepath.Split(path)
+		workDir += dir[1:len(dir)]
+		//fmt.Println(workDir)
+		viper.SetConfigFile(file)
+		viper.AddConfigPath(workDir)
+		err = viper.ReadInConfig()
+		if err != nil {
+			//fmt.Println("error reading file, please use relative path\n for example: apply ./cmd/config/xxx.json")
+			return err
+		}
+		//apply to k8s according to yaml
+		//...
+		objectKind := viper.GetString("kind")
+		switch objectKind {
+		case "Deployment":
+			deployment := core.Deployment{}
+			err := viper.Unmarshal(&deployment)
+			if err != nil {
+				return err
+			}
+			err = applyDeployment(deployment)
+		}
+		return nil
+	}
+	return errors.New("not a yaml or json file")
 }
 
 func applyDeployment(core.Deployment) error {
