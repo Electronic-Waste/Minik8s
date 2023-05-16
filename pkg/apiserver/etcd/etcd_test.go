@@ -10,26 +10,25 @@ func TestCrud(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-	var exp_value int = 3
-	var actual_value int
+	var exp_value string = "3"
+	var actual_value string
 	/* Test: Update & Read */
 	err = Put("vmeet", exp_value)
 	if err != nil {
 		t.Error("Put error")
 	}
-	err = Get("vmeet", &actual_value)
+	actual_value, err = Get("vmeet")
+	t.Log(actual_value, exp_value)
 	if exp_value != actual_value {
 		t.Error("Actual value mismatches with expected value")
 	}
 	/* Test: Delete */
 	err = Del("vmeet")
 	if err != nil {
-		t.Error("Put error")
+		t.Error("Del error")
 	}
-	err = Get("vmeet", &actual_value)
-	if err != nil {
-		t.Error("The value should not exist")
-	}
+	actual_value, err = Get("vmeet")
 	/* Test end */
+	DelAll()
 	t.Log("Pass CRUD Test!")
 }

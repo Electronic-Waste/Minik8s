@@ -2,8 +2,10 @@
 BIN=bin
 PATH=./cmd
 ADM=kubeadm
+SERVER=apiserver
 VCTL=vctl
 NCTL=nervctl
+CTLM=kube-controller-manager
 CMD=app/cmd
 GO=$(shell which go)
 CLEAN=$(shell rm -rf ${BIN})
@@ -14,6 +16,8 @@ build:
 	$(GO) build -o "${BIN}/${ADM}" "${PATH}/${ADM}/${ADM}.go"
 	$(GO) build -o "${BIN}/${VCTL}" "${PATH}/${VCTL}/${VCTL}.go"
 	$(GO) build -o "${BIN}/${NCTL}" "${PATH}/${NCTL}/${NCTL}.go"
+	$(GO) build -o "${BIN}/${SERVER}" "${PATH}/${SERVER}/${SERVER}.go"
+	$(GO) build -o "${BIN}/${CTLM}" "${PATH}/${CTLM}/${CTLM}.go"
 clean:
 	$(GO) clean
 	$(CLEAN)
@@ -40,4 +44,9 @@ vctl:
 nervctl:
 	@echo "$(FOLD)"
 	$(GO) build -o "${BIN}/${NCTL}" "${PATH}/${NCTL}/${NCTL}.go"
-
+apiserver:
+	@echo "$(FOLD)"
+	$(GO) build -o "${BIN}/${SERVER}" "${PATH}/${SERVER}/${SERVER}.go"
+kube-controller-manager:
+	@echo "$(FOLD)"
+	$(GO) build -o "${BIN}/${CTLM}" "${PATH}/${CTLM}/${CTLM}.go"

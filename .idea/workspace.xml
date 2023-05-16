@@ -5,7 +5,23 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="6b741420-6361-4886-82c6-cfb6b02bd918" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/docs/Apiserver的list-watch机制.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/pkg/apiserver/pod/pod_test.go" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/pkg/apiserver/util/url/url.go" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/pkg/controller/deployment_test.go" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/testcases/test_postman.json" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Makefile" beforeDir="false" afterPath="$PROJECT_DIR$/Makefile" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/cmd/apiserver/app/server.go" beforeDir="false" afterPath="$PROJECT_DIR$/cmd/apiserver/app/server.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/cmd/kube-controller-manager/controller-manager.go" beforeDir="false" afterPath="$PROJECT_DIR$/cmd/kube-controller-manager/kube-controller-manager.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pkg/apiserver/etcd/etcd.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/apiserver/etcd/etcd.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pkg/apiserver/etcd/etcd_test.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/apiserver/etcd/etcd_test.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pkg/apiserver/pod/pod.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/apiserver/pod/pod.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pkg/apiserver/run.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/apiserver/run.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pkg/util/json/json.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/util/json/json.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pkg/util/json/json_test.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/util/json/json_test.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pkg/util/listwatch/listwatch.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/util/listwatch/listwatch.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pkg/util/url/url.go" beforeDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />

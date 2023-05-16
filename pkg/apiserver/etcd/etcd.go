@@ -2,15 +2,20 @@ package etcd
 
 import (
 	"context"
+<<<<<<< HEAD
 	"encoding/json"
 	"errors"
 	"fmt"
 	"time"
+=======
+	"fmt"
+	"errors"
+>>>>>>> apiserver
 
 	clientv3 "go.etcd.io/etcd/client/v3"
 )
 
-var client *clientv3.Client
+var client *clientv3.Client = nil
 
 const (
 	etcdTimeout = 2 * time.Second
@@ -18,6 +23,10 @@ const (
 
 // Initialize a new etcd client
 func InitializeEtcdKVStore() error {
+	if client != nil {
+		fmt.Println("etcd client has already existed!")
+		return nil
+	}
 	cli, err := clientv3.New(clientv3.Config{
 		Endpoints:   []string{"127.0.0.1:2379"},
 		DialTimeout: etcdTimeout,
@@ -28,9 +37,8 @@ func InitializeEtcdKVStore() error {
 }
 
 // Put write a single key value pair to etcd.
-func Put(key string, value interface{}) error {
-	jsonVal, _ := json.Marshal(value)
-	_, err := client.KV.Put(context.Background(), key, string(jsonVal))
+func Put(key, value string) error {
+	_, err := client.KV.Put(context.Background(), key, value)
 	if err != nil {
 		fmt.Println(err)
 		return err
@@ -39,17 +47,32 @@ func Put(key string, value interface{}) error {
 }
 
 // Get reads a single value for a given key.
-// key: string type; val: a pointer of the type you desire
-func Get(key string, val interface{}) error {
+// key: string type
+func Get(key string) (string, error) {
 	getResp, err := client.KV.Get(context.Background(), key)
 	if err != nil {
 		fmt.Println(err)
-		return err
+		return "", err
 	}
-	if len(getResp.Kvs) != 1 {
-		return errors.New("Should and should only get one value")
+	if len(getResp.Kvs) == 0 {
+		return "", errors.New("No value for this key is stored yet!")
 	}
-	return json.Unmarshal(getResp.Kvs[0].Value, val)
+	return string(getResp.Kvs[0].Value), nil
+}
+
+// GetWithPrefix reads all value of which key starts with keyPrefix
+// key: string type; val: a pointer of the type you desire
+func GetWithPrefix(keyPrefix string) ([]string, error) {
+	getResp, err := client.KV.Get(context.Background(), keyPrefix, clientv3.WithPrefix())
+	if err != nil {
+		fmt.Println(err)
+		return nil, err
+	}
+	retVals := make([]string, getResp.Count)
+	for _, kv := range getResp.Kvs {
+		retVals = append(retVals, string(kv.Value))
+	}
+	return retVals, nil
 }
 
 // Del delete a key value pair for a given key.
@@ -58,6 +81,16 @@ func Del(key string) error {
 	return err
 }
 
+// Delete k-v pairs of which key starts with string keyPrefix
+func DelWithPrefix(keyPrefix string) error {
+	_, err := client.KV.Delete(context.Background(), keyPrefix, clientv3.WithPrefix())
+	return err
+}
+
+// Delete all records
+func DelAll() error {
+	return DelWithPrefix("")
+}
 // // Watch invoke a handler function on the change of a given key
 // func Watch(key string) {
 // 	watchCh := client.Watch(context.Background(), key)
