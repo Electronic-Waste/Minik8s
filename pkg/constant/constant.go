@@ -6,3 +6,6 @@ const SandBox_Image = "registry.aliyuncs.com/google_containers/pause:3.9"
 
 // for the reason we use nerdctl tools to set up the pause container, so we need to init this path
 const NerdctlDataRoot = "/var/lib/nerdctl"
+
+// that is the directory which put the pod config file
+const SysPodDir = "/root/minik8s/minik8s/data"
