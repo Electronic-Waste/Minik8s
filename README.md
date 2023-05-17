@@ -13,7 +13,7 @@
     -   ./bin/nervctl run golang:latest go2 8000:8000 /root/test_vo:/go/src container:test bash
 -   after the above step, we can find that this two container shared vloume and network (can use localhost to communicate)
 
-## CNI
+## CNI TEST
 -   First, run a pod using nervctl and check its ipaddress
     ```
     nerdctl inspect -f '{{.NetworkSettings.IPAddress}}' test
