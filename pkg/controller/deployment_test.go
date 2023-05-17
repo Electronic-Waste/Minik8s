@@ -16,7 +16,7 @@ func TestDeployment(t *testing.T) {
 	ctx := context.Background()
 	deploymentController, _ := NewDeploymentController(ctx)
 	go deploymentController.Run(ctx)
-	time.Sleep(1000)
+	time.Sleep(10000)
 
 	msg := redis.Message{}
 
@@ -37,6 +37,7 @@ func TestDeployment(t *testing.T) {
 	msg.Payload = string(bytes)
 
 	util.Publish("/api/v1/deployment/status", msg)
+	time.Sleep(10000)
 }
 
 func TestReplicaset(t *testing.T) {

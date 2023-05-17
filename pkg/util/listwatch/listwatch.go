@@ -30,8 +30,11 @@ func Publish(topic string, msg interface{}) {
 func Watch(topic string, handler WatchHandler) {
 	print("redis: watch " + topic + "\n")
 	channel := Subscribe(topic)
-	for msg := range channel {
-		print("redis: handle msg\n")
-		handler(msg)
+	for true{
+		for msg := range channel {
+			print("redis: handle msg\n")
+			handler(msg)
+		}
 	}
+	
 }

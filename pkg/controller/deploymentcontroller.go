@@ -29,8 +29,8 @@ type DeploymentController struct {
 	// work queue
 	queue   *queue.Queue
 	nameMap *_map.ConcurrentMap
-	channel <-chan *redis.Message
-	message *redis.Message
+	//channel chan struct{}
+	//message *redis.Message
 }
 
 func NewDeploymentController(ctx context.Context) (*DeploymentController, error) {
@@ -45,15 +45,16 @@ func NewDeploymentController(ctx context.Context) (*DeploymentController, error)
 func (dc *DeploymentController) Run(ctx context.Context) {
 	go dc.register()
 	go dc.worker(ctx)
+	<-ctx.Done()
 	print("deployment controller running\n")
+
 }
 
 func (dc *DeploymentController) register() {
 	print("register\n")
-	//dc.channel = util.Subscribe("/api/v1/deployment/status")
 	util.Watch("/api/v1/deployment/status", dc.listener)
 	//not reach here
-	print("registered\n")
+	//print("registered\n")
 }
 
 func (dc *DeploymentController) listener(msg *redis.Message) {
