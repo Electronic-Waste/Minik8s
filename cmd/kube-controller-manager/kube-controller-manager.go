@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"minik8s.io/cmd/kube-controller-manager/app"
 )
 

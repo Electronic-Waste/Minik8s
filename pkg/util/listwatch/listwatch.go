@@ -20,6 +20,7 @@ var rdb = redis.NewClient(&redis.Options{
 var sub *redis.PubSub = nil
 
 func Subscribe(topic string) (<-chan *redis.Message){
+	print("redis: subscribe " + topic + "\n")
 	sub = rdb.Subscribe(ctx, topic)
 	return sub.Channel()
 }
@@ -41,19 +42,15 @@ func Unsubscribe(topic string) error {
 }
 
 func Publish(topic string, msg interface{}) {
-	print("redis: publish " + topic + "\n")
+	//print("redis: publish " + topic + "\n")
 	rdb.Publish(ctx, topic, msg)
 }
 
 // When using this function, you should add "go" keyword in front of it.
 func Watch(topic string, handler WatchHandler) {
-	print("redis: watch " + topic + "\n")
 	channel := Subscribe(topic)
-	for true{
-		for msg := range channel {
-			print("redis: handle msg\n")
-			handler(msg)
-		}
+	for msg := range channel {
+		//fmt.Println("redis: receive msg")
+		handler(msg)
 	}
-	
 }

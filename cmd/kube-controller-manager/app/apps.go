@@ -10,4 +10,5 @@ func StartDeploymentController(ctx context.Context) error {
 	fmt.Printf("start deployment controller\n")
 	deploymentController, _ := controller.NewDeploymentController(ctx)
 	go deploymentController.Run(ctx)
+	return nil
 }
