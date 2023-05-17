@@ -2,12 +2,15 @@ package controller
 
 import (
 	"encoding/json"
+	"fmt"
 	"github.com/go-redis/redis/v8"
 	"github.com/google/uuid"
 	"golang.org/x/net/context"
 	"minik8s.io/pkg/apis/core"
 	"minik8s.io/pkg/apiserver/etcd"
+	"minik8s.io/pkg/podmanager"
 	util "minik8s.io/pkg/util/listwatch"
+	_map "minik8s.io/pkg/util/tools/map"
 	"minik8s.io/pkg/util/tools/queue"
 	"strings"
 	"time"
@@ -25,13 +28,15 @@ type DeploymentController struct {
 
 	// work queue
 	queue   *queue.Queue
+	nameMap *_map.ConcurrentMap
 	channel <-chan *redis.Message
 	message *redis.Message
 }
 
 func NewDeploymentController(ctx context.Context) (*DeploymentController, error) {
 	dc := &DeploymentController{
-		queue: new(queue.Queue),
+		queue:   new(queue.Queue),
+		nameMap: _map.NewConcurrentMap(),
 	}
 	print("new deployment controller\n")
 	return dc, nil
@@ -91,9 +96,10 @@ func (dc *DeploymentController) syncDeployment(ctx context.Context, watchres etc
 	)
 	//format: pod: deployment-rsuid-poduid
 	//expample:	deployment-123456-789456
-
+	fmt.Println("sync deployment")
 	actiontype = watchres.ActionType
 	objecttype = watchres.ObjectType
+	fmt.Println("type: " + objecttype)
 	switch objecttype {
 	case "Deployment":
 		deployment = core.Deployment{}
@@ -101,20 +107,26 @@ func (dc *DeploymentController) syncDeployment(ctx context.Context, watchres etc
 		if err != nil {
 			return err
 		}
-		if deployment.Spec.Selector == "" {
-			return nil
-		}
+		//TODO: add selector
+		//if deployment.Spec.Selector == "" {
+		//	return nil
+		//}
 		switch actiontype {
 		case apply:
+			fmt.Println("apply deployment pods")
 			uid := uuid.New()
-			prefix := deployment.Metadata.Name + "-" + uid.String()
+			uidstr := strings.Split(uid.String(), "-")[0]
+			prefix := deployment.Metadata.Name + "-" + uidstr
 			replicas := deployment.Spec.Replicas
 			label := map[string]string{}
 			label["app"] = "test"
+			var nameSet []string
 			for i := 0; i < replicas; i++ {
 				pid := uuid.New()
-				podname := prefix + "-" + pid.String()
-				print(podname)
+				pidstr := strings.Split(pid.String(), "-")[0]
+				podname := prefix + "-" + pidstr
+				nameSet = append(nameSet, podname)
+				fmt.Println(podname)
 				pod := core.Pod{
 					Kind:   "Pod",
 					Spec:   core.PodSpec{},
@@ -122,10 +134,17 @@ func (dc *DeploymentController) syncDeployment(ctx context.Context, watchres etc
 				}
 				AddPod(pod)
 			}
+			dc.nameMap.Put(deployment.Metadata.Name, nameSet)
 		case modify:
 		case delete:
 			//client.addPod(pod)
-
+			//var nameSet []string
+			nameSet := dc.nameMap.Get(deployment.Metadata.Name).([]string)
+			for i := 0; i < deployment.Status.AvailableReplicas; i++ {
+				podname := nameSet[i]
+				fmt.Println(podname)
+				DelPod(podname)
+			}
 		}
 	case "Pod":
 		//seems only delete pod will invoke controller
@@ -164,7 +183,12 @@ func (dc *DeploymentController) putDeployment(ctx context.Context) {
 
 // just for test
 func AddPod(pod core.Pod) {
-	print("add pod\n")
+	//fmt.Println("add pod")
+	podmanager.RunPod(&pod)
+}
+
+func DelPod(podname string) {
+	podmanager.DelPod(podname)
 }
 
 func GetDeployment(name string) core.Deployment {

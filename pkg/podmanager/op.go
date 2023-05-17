@@ -54,7 +54,7 @@ func DelPod(name string) error {
 
 	// !!! : need to specify the namespace of finding container
 	ctx := namespaces.WithNamespace(context.Background(), "default")
-	n, err := walker.WalkPod(ctx, name)
+	_, err = walker.WalkPod(ctx, name)
 	if err != nil {
 		return err
 	}

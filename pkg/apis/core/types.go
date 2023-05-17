@@ -386,9 +386,9 @@ type DeploymentSpec struct {
 }
 
 type DeploymentStatus struct {
-	ObservedGeneration int
-	AvailableReplicas  int
+	//ObservedGeneration int
+	AvailableReplicas int
 	//for later use
-	UpdatedReplicas int
-	ReadyReplicas   int
+	//UpdatedReplicas int
+	//ReadyReplicas   int
 }
