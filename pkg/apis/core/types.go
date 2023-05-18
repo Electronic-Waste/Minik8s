@@ -366,12 +366,6 @@ type NetworkOptions struct {
 	PortMappings []gocni.PortMapping
 }
 
-type MetaData struct {
-	Name      string
-	Label     string
-	Namespace string
-	//……
-}
 type Deployment struct {
 	Metadata meta.ObjectMeta
 	Spec     DeploymentSpec

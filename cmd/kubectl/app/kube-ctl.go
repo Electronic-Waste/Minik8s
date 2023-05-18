@@ -44,7 +44,7 @@ func init() {
 	// when this action is called directly.
 	rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 	rootCmd.Version = "0.0.1"
-	rootCmd.AddCommand(applyCmd)
+	//rootCmd.AddCommand(applyCmd)
 }
 
 // initConfig reads in config file and ENV variables if set.

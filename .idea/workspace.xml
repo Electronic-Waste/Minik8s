@@ -5,12 +5,17 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="6b741420-6361-4886-82c6-cfb6b02bd918" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/pkg/util/listwatch/listwatch_test.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/cmd/kube-controller-manager/app/apps.go" beforeDir="false" afterPath="$PROJECT_DIR$/cmd/kube-controller-manager/app/apps.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/cmd/kube-controller-manager/kube-controller-manager.go" beforeDir="false" afterPath="$PROJECT_DIR$/cmd/kube-controller-manager/kube-controller-manager.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pkg/controller/deployment_test.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/controller/deployment_test.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/deployment.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/deployment.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/cmd/kubectl/app/apply.go" beforeDir="false" afterPath="$PROJECT_DIR$/cmd/kubectl/app/apply.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/cmd/kubectl/app/delete.go" beforeDir="false" afterPath="$PROJECT_DIR$/cmd/kubectl/app/delete.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/cmd/kubectl/app/get.go" beforeDir="false" afterPath="$PROJECT_DIR$/cmd/kubectl/app/get.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/cmd/kubectl/app/kube-ctl.go" beforeDir="false" afterPath="$PROJECT_DIR$/cmd/kubectl/app/kube-ctl.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/cmd/kubectl/kubectl.go" beforeDir="false" afterPath="$PROJECT_DIR$/cmd/kubectl/kubectl.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/docs/deployment-controller.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/docs/deployment.md" beforeDir="false" afterPath="$PROJECT_DIR$/docs/deployment.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pkg/apis/core/types.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/apis/core/types.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/pkg/controller/deploymentcontroller.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/controller/deploymentcontroller.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pkg/util/listwatch/listwatch.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/util/listwatch/listwatch.go" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -42,24 +47,24 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent">{
-  &quot;keyToString&quot;: {
-    &quot;DefaultGoTemplateProperty&quot;: &quot;Go File&quot;,
-    &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.go.format.on.save.advertiser.fired&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.go.formatter.settings.were.checked&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.go.migrated.go.modules.settings&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.go.modules.go.list.on.any.changes.was.set&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.go.watchers.conflict.with.on.save.actions.check.performed&quot;: &quot;true&quot;,
-    &quot;WebServerToolWindowFactoryState&quot;: &quot;false&quot;,
-    &quot;go.import.settings.migrated&quot;: &quot;true&quot;,
-    &quot;go.sdk.automatically.set&quot;: &quot;true&quot;,
-    &quot;last_opened_file_path&quot;: &quot;C:/ProgramData/chocolatey/bin/make.exe&quot;,
-    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
-    &quot;settings.editor.selected.configurable&quot;: &quot;sshConsole&quot;
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "DefaultGoTemplateProperty": "Go File",
+    "RunOnceActivity.OpenProjectViewOnStart": "true",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.go.format.on.save.advertiser.fired": "true",
+    "RunOnceActivity.go.formatter.settings.were.checked": "true",
+    "RunOnceActivity.go.migrated.go.modules.settings": "true",
+    "RunOnceActivity.go.modules.go.list.on.any.changes.was.set": "true",
+    "RunOnceActivity.go.watchers.conflict.with.on.save.actions.check.performed": "true",
+    "WebServerToolWindowFactoryState": "false",
+    "go.import.settings.migrated": "true",
+    "go.sdk.automatically.set": "true",
+    "last_opened_file_path": "C:/ProgramData/chocolatey/bin/make.exe",
+    "nodejs_package_manager_path": "npm",
+    "settings.editor.selected.configurable": "reference.settings.deploy.options"
   }
-}</component>
+}]]></component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
       <recent name="D:\Cloud-K8S\minik8s\src\minik8s\docs" />
