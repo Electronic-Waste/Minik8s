@@ -30,7 +30,7 @@ type DeploymentController struct {
 	queue   *queue.Queue
 	nameMap *_map.ConcurrentMap
 	channel <-chan *redis.Message
-	message *redis.Message
+	//message *redis.Message
 }
 
 func NewDeploymentController(ctx context.Context) (*DeploymentController, error) {
