@@ -29,7 +29,7 @@ type DeploymentController struct {
 	// work queue
 	queue   *queue.Queue
 	nameMap *_map.ConcurrentMap
-	channel <-chan *redis.Message
+	//channel chan struct{}
 	//message *redis.Message
 }
 
@@ -46,14 +46,14 @@ func (dc *DeploymentController) Run(ctx context.Context) {
 	go dc.register()
 	go dc.worker(ctx)
 	print("deployment controller running\n")
+	<-ctx.Done()
 }
 
 func (dc *DeploymentController) register() {
 	print("register\n")
-	//dc.channel = util.Subscribe("/api/v1/deployment/status")
 	util.Watch("/api/v1/deployment/status", dc.listener)
 	//not reach here
-	print("registered\n")
+	//print("registered\n")
 }
 
 func (dc *DeploymentController) listener(msg *redis.Message) {
@@ -127,11 +127,8 @@ func (dc *DeploymentController) syncDeployment(ctx context.Context, watchres etc
 				podname := prefix + "-" + pidstr
 				nameSet = append(nameSet, podname)
 				fmt.Println(podname)
-				pod := core.Pod{
-					Kind:   "Pod",
-					Spec:   core.PodSpec{},
-					Status: core.PodStatus{},
-				}
+				pod := deployment.Spec.Template
+				pod.Name = podname
 				AddPod(pod)
 			}
 			dc.nameMap.Put(deployment.Metadata.Name, nameSet)
@@ -148,6 +145,7 @@ func (dc *DeploymentController) syncDeployment(ctx context.Context, watchres etc
 		}
 	case "Pod":
 		//seems only delete pod will invoke controller
+		//TODO: get real deployment status from apiserver
 		pod := core.Pod{}
 		err = json.Unmarshal(watchres.Payload, &pod)
 		if err != nil {
@@ -183,11 +181,12 @@ func (dc *DeploymentController) putDeployment(ctx context.Context) {
 
 // just for test
 func AddPod(pod core.Pod) {
-	//fmt.Println("add pod")
+	//fmt.Printf("add pod %s\n",pod.Name)
 	podmanager.RunPod(&pod)
 }
 
 func DelPod(podname string) {
+	//fmt.Printf("del pod %s\n",podname)
 	podmanager.DelPod(podname)
 }
 

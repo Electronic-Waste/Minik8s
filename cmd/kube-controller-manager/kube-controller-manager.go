@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"minik8s.io/cmd/kube-controller-manager/app"
 )
 
@@ -10,4 +11,5 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+	fmt.Println("end of controllers")
 }
