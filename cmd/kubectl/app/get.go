@@ -8,11 +8,11 @@ import (
 var (
 	getCmd = &cobra.Command{
 		Use:     "get <resources> | (<resource> <resource-name>)",
-		Short:   "delete a resource from minik8s",
-		Long:    `delete a resource from minik8s`,
+		Short:   "get a resource from minik8s",
+		Long:    `get a resource from minik8s`,
 		Example: "apply ",
 		Run: func(cmd *cobra.Command, args []string) {
-			fmt.Println("delete called")
+			fmt.Println("get called")
 			if len(args) == 1 {
 				if err := GetHandler(args[0]); err != nil {
 					fmt.Println(err.Error())

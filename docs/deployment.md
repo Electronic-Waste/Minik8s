@@ -8,4 +8,4 @@
 
 其他组件如kubelet改变pod和deployment状态的时候，apiserver会向controller发送消息，通知状态变化，controller处理完后向apiserver发送消息修改状态
 
-![deployment-controller](./deployment-controller.png)
+![deployment-controller](./img/deployment-controller.png)

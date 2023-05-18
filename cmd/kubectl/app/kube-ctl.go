@@ -11,13 +11,13 @@ import (
 var (
 	cfgFile string
 	rootCmd = &cobra.Command{
-		Use:   "minik8s",
-		Short: "A brief description of your application",
-		Long:  `A brief description of your application`,
+		Use:   "kubectl",
+		Short: "kubectl for minik8s",
+		Long:  `kubectl for minik8s`,
 		// Uncomment the following line if your bare application
 		// has an action associated with it:
 		Run: func(cmd *cobra.Command, args []string) {
-			fmt.Println(os.Args[1:])
+			//fmt.Println(os.Args[1:])
 			cmd.Help()
 		},
 	}
@@ -44,7 +44,7 @@ func init() {
 	// when this action is called directly.
 	rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 	rootCmd.Version = "0.0.1"
-	rootCmd.AddCommand(applyCmd)
+	//rootCmd.AddCommand(applyCmd)
 }
 
 // initConfig reads in config file and ENV variables if set.

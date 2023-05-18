@@ -14,8 +14,8 @@ import (
 var (
 	applyCmd = &cobra.Command{
 		Use:     "apply <pathname>",
-		Short:   "apply a yaml file to minik8s",
-		Long:    `apply a yaml file to minik8s`,
+		Short:   "apply a yaml or json file to minik8s",
+		Long:    `apply a yaml or json file to minik8s`,
 		Example: "apply ./cmd/config/xxx/yml",
 		Run: func(cmd *cobra.Command, args []string) {
 			fmt.Println("apply called")

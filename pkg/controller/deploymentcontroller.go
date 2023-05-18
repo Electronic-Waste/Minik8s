@@ -10,7 +10,7 @@ import (
 	"minik8s.io/pkg/apiserver/etcd"
 	"minik8s.io/pkg/podmanager"
 	util "minik8s.io/pkg/util/listwatch"
-	_map "minik8s.io/pkg/util/tools/map"
+	//_map "minik8s.io/pkg/util/tools/map"
 	"minik8s.io/pkg/util/tools/queue"
 	"strings"
 	"time"
@@ -18,7 +18,7 @@ import (
 
 const (
 	apply  int = 0
-	modify int = 1
+	update int = 1
 	delete int = 2
 )
 
@@ -28,7 +28,7 @@ type DeploymentController struct {
 
 	// work queue
 	queue   *queue.Queue
-	nameMap *_map.ConcurrentMap
+	nameMap map[interface{}]interface{}
 	//channel chan struct{}
 	//message *redis.Message
 }
@@ -36,7 +36,7 @@ type DeploymentController struct {
 func NewDeploymentController(ctx context.Context) (*DeploymentController, error) {
 	dc := &DeploymentController{
 		queue:   new(queue.Queue),
-		nameMap: _map.NewConcurrentMap(),
+		nameMap: make(map[interface{}]interface{}),
 	}
 	print("new deployment controller\n")
 	return dc, nil
@@ -131,12 +131,12 @@ func (dc *DeploymentController) syncDeployment(ctx context.Context, watchres etc
 				pod.Name = podname
 				AddPod(pod)
 			}
-			dc.nameMap.Put(deployment.Metadata.Name, nameSet)
-		case modify:
+			dc.nameMap[deployment.Metadata.Name] = nameSet
+		case update:
 		case delete:
 			//client.addPod(pod)
 			//var nameSet []string
-			nameSet := dc.nameMap.Get(deployment.Metadata.Name).([]string)
+			nameSet := dc.nameMap[deployment.Metadata.Name].([]string)
 			for i := 0; i < deployment.Status.AvailableReplicas; i++ {
 				podname := nameSet[i]
 				fmt.Println(podname)
