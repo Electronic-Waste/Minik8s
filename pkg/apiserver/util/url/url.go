@@ -6,12 +6,11 @@ const (
 	Port string = ":8080"
 
 	Prefix string = HttpScheme + HostURL + Port
-	
-	APIV1 string = "/api/v1"
 
-	PodStatus string = "/pods/status"
-	PodStatusGetURL string = APIV1 + PodStatus + "/get"
-	PodStatusGetAllURL string = APIV1 + PodStatus + "/getall"
-	PodStatusDelURL string = APIV1 + PodStatus + "/del"
-	PodStatusPutURL string = APIV1 + PodStatus + "/put"
+	PodStatus 			string = "/pods/status"
+	PodStatusGetURL 	string = PodStatus + "/get"
+	PodStatusGetAllURL 	string = PodStatus + "/getall"
+	PodStatusDelURL 	string = PodStatus + "/del"
+	PodStatusApplyURL 	string = PodStatus + "/apply"
+	PodStatusUpdateURL 	string = PodStatus + "/update"
 )
