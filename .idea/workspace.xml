@@ -5,17 +5,12 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="6b741420-6361-4886-82c6-cfb6b02bd918" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/deployment.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/deployment.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/pkg/util/prometheus/config/prometheus.yml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/pkg/util/prometheus/prometheus.go" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/pkg/util/prometheus/prometheus_test.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/cmd/kubectl/app/apply.go" beforeDir="false" afterPath="$PROJECT_DIR$/cmd/kubectl/app/apply.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/cmd/kubectl/app/delete.go" beforeDir="false" afterPath="$PROJECT_DIR$/cmd/kubectl/app/delete.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/cmd/kubectl/app/get.go" beforeDir="false" afterPath="$PROJECT_DIR$/cmd/kubectl/app/get.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/cmd/kubectl/app/kube-ctl.go" beforeDir="false" afterPath="$PROJECT_DIR$/cmd/kubectl/app/kube-ctl.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/cmd/kubectl/kubectl.go" beforeDir="false" afterPath="$PROJECT_DIR$/cmd/kubectl/kubectl.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/docs/deployment-controller.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/docs/deployment.md" beforeDir="false" afterPath="$PROJECT_DIR$/docs/deployment.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pkg/apis/core/types.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/apis/core/types.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pkg/controller/deploymentcontroller.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/controller/deploymentcontroller.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/go.mod" beforeDir="false" afterPath="$PROJECT_DIR$/go.mod" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/go.sum" beforeDir="false" afterPath="$PROJECT_DIR$/go.sum" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -47,24 +42,24 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "DefaultGoTemplateProperty": "Go File",
-    "RunOnceActivity.OpenProjectViewOnStart": "true",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "RunOnceActivity.go.format.on.save.advertiser.fired": "true",
-    "RunOnceActivity.go.formatter.settings.were.checked": "true",
-    "RunOnceActivity.go.migrated.go.modules.settings": "true",
-    "RunOnceActivity.go.modules.go.list.on.any.changes.was.set": "true",
-    "RunOnceActivity.go.watchers.conflict.with.on.save.actions.check.performed": "true",
-    "WebServerToolWindowFactoryState": "false",
-    "go.import.settings.migrated": "true",
-    "go.sdk.automatically.set": "true",
-    "last_opened_file_path": "C:/ProgramData/chocolatey/bin/make.exe",
-    "nodejs_package_manager_path": "npm",
-    "settings.editor.selected.configurable": "reference.settings.deploy.options"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;DefaultGoTemplateProperty&quot;: &quot;Go File&quot;,
+    &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.go.format.on.save.advertiser.fired&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.go.formatter.settings.were.checked&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.go.migrated.go.modules.settings&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.go.modules.go.list.on.any.changes.was.set&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.go.watchers.conflict.with.on.save.actions.check.performed&quot;: &quot;true&quot;,
+    &quot;WebServerToolWindowFactoryState&quot;: &quot;false&quot;,
+    &quot;go.import.settings.migrated&quot;: &quot;true&quot;,
+    &quot;go.sdk.automatically.set&quot;: &quot;true&quot;,
+    &quot;last_opened_file_path&quot;: &quot;C:/ProgramData/chocolatey/bin/make.exe&quot;,
+    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;reference.settings.deploy.options&quot;
   }
-}]]></component>
+}</component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
       <recent name="D:\Cloud-K8S\minik8s\src\minik8s\docs" />
@@ -76,7 +71,16 @@
       <recent name="D:\Cloud-K8S\minik8s\src\minik8s\cmd\kubectl" />
     </key>
   </component>
-  <component name="RunManager" selected="Go Test.TestReplicaset in minik8s.io/pkg/controller (1)">
+  <component name="RunManager" selected="Go Test.TestPrometheus in minik8s.io/pkg/util/prometheus">
+    <configuration default="true" type="GoApplicationRunConfiguration" factoryName="Go Application">
+      <module name="minik8s" />
+      <working_directory value="$PROJECT_DIR$" />
+      <kind value="PACKAGE" />
+      <package value="minik8s" />
+      <directory value="$PROJECT_DIR$" />
+      <filePath value="$PROJECT_DIR$" />
+      <method v="2" />
+    </configuration>
     <configuration name="TestDeployment in minik8s.io/pkg/controller (1)" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
       <module name="minik8s" />
       <working_directory value="$PROJECT_DIR$/pkg/controller" />
@@ -101,16 +105,16 @@
       <pattern value="^\QTestDeployment\E$" />
       <method v="2" />
     </configuration>
-    <configuration name="TestDeployment in minik8s.io/pkg/controller" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
+    <configuration name="TestPrometheus in minik8s.io/pkg/util/prometheus" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
       <module name="minik8s" />
-      <working_directory value="$PROJECT_DIR$/pkg/controller" />
+      <working_directory value="$PROJECT_DIR$/pkg/util/prometheus" />
       <root_directory value="$PROJECT_DIR$" />
       <kind value="PACKAGE" />
-      <package value="minik8s.io/pkg/controller" />
+      <package value="minik8s.io/pkg/util/prometheus" />
       <directory value="$PROJECT_DIR$" />
       <filePath value="$PROJECT_DIR$" />
       <framework value="gotest" />
-      <pattern value="^\QTestDeployment\E$" />
+      <pattern value="^\QTestPrometheus\E$" />
       <method v="2" />
     </configuration>
     <configuration name="TestReplicaset in minik8s.io/pkg/controller (1)" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
@@ -137,13 +141,23 @@
       <pattern value="^\QTestReplicaset\E$" />
       <method v="2" />
     </configuration>
+    <configuration default="true" type="GoTestRunConfiguration" factoryName="Go Test">
+      <module name="minik8s" />
+      <working_directory value="$PROJECT_DIR$" />
+      <kind value="DIRECTORY" />
+      <package value="minik8s" />
+      <directory value="$PROJECT_DIR$" />
+      <filePath value="$PROJECT_DIR$" />
+      <framework value="gotest" />
+      <method v="2" />
+    </configuration>
     <recent_temporary>
       <list>
+        <item itemvalue="Go Test.TestPrometheus in minik8s.io/pkg/util/prometheus" />
         <item itemvalue="Go Test.TestReplicaset in minik8s.io/pkg/controller (1)" />
         <item itemvalue="Go Test.TestDeployment in minik8s.io/pkg/controller (2)" />
         <item itemvalue="Go Test.TestDeployment in minik8s.io/pkg/controller (1)" />
         <item itemvalue="Go Test.TestReplicaset in minik8s.io/pkg/controller" />
-        <item itemvalue="Go Test.TestDeployment in minik8s.io/pkg/controller" />
       </list>
     </recent_temporary>
   </component>
