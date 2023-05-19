@@ -34,22 +34,7 @@ func ApplyHandler(path string) error {
 		fmt.Println("apply a yaml file")
 		viper.SetConfigType("yaml")
 
-		workDir, err := os.Getwd()
-		if err != nil {
-			return err
-		}
-		dir, file := filepath.Split(path)
-		workDir += dir[1:len(dir)]
-		//fmt.Println(workDir)
-		viper.SetConfigFile(file)
-		viper.AddConfigPath(workDir)
-		err = viper.ReadInConfig()
-		if err != nil {
-			//fmt.Println("error reading file, please use relative path\n for example: apply ./cmd/config/xxx.yml")
-			return err
-		}
-		//apply to k8s according to yaml
-		//...
+		err = viper.ReadConfig(bytes.NewReader(path))
 		objectKind := viper.GetString("kind")
 		switch objectKind {
 		case "Deployment":
