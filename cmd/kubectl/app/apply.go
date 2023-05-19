@@ -56,9 +56,16 @@ func ApplyHandler(path string) error {
 		if err != nil {
 			return err
 		}
-		fmt.Printf("deployment:%s", deployment.Metadata.Name)
+		fmt.Printf("deployment:%s\n", deployment.Metadata.Name)
 		err = applyDeployment(deployment)
 		//TODO: add more case handlers
+	case "Pod":
+		pod := core.Pod{}
+		err := viper.Unmarshal(&pod)
+		if err != nil {
+			return err
+		}
+		fmt.Printf("pod: %s\n", pod.Spec.Volumes[0].Name)
 	}
 	return nil
 }
