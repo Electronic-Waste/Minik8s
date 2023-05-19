@@ -6,6 +6,7 @@ SERVER=apiserver
 VCTL=vctl
 NCTL=nervctl
 CTLM=kube-controller-manager
+CTL=kubectl
 CMD=app/cmd
 GO=$(shell which go)
 CLEAN=$(shell rm -rf ${BIN})
@@ -18,6 +19,7 @@ build:
 	$(GO) build -o "${BIN}/${NCTL}" "${PATH}/${NCTL}/${NCTL}.go"
 	$(GO) build -o "${BIN}/${SERVER}" "${PATH}/${SERVER}/${SERVER}.go"
 	$(GO) build -o "${BIN}/${CTLM}" "${PATH}/${CTLM}/${CTLM}.go"
+	$(GO) build -o "${BIN}/${CTL}" "${PATH}/${CTL}/${CTL}.go"
 clean:
 	$(GO) clean
 	$(CLEAN)
@@ -50,3 +52,6 @@ apiserver:
 kube-controller-manager:
 	@echo "$(FOLD)"
 	$(GO) build -o "${BIN}/${CTLM}" "${PATH}/${CTLM}/${CTLM}.go"
+kubectl:
+	@echo "$(FOLD)"
+	$(GO) build -o "${BIN}/${CTL}" "${PATH}/${CTL}/${CTL}.go"

@@ -5,12 +5,24 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="6b741420-6361-4886-82c6-cfb6b02bd918" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/pkg/util/prometheus/config/prometheus.yml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/pkg/util/prometheus/prometheus.go" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/pkg/util/prometheus/prometheus_test.go" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/cmd/kubectl/app/src/test.yaml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/cmd/kubectl/app/test.yaml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/.gitignore" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/deployment.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/deployment.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/go.imports.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/minik8s.iml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/modules.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/vcs.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/webServers.xml" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/go.mod" beforeDir="false" afterPath="$PROJECT_DIR$/go.mod" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/go.sum" beforeDir="false" afterPath="$PROJECT_DIR$/go.sum" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Makefile" beforeDir="false" afterPath="$PROJECT_DIR$/Makefile" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/cmd/kubectl/app/apply.go" beforeDir="false" afterPath="$PROJECT_DIR$/cmd/kubectl/app/apply.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/cmd/kubectl/app/kube-ctl.go" beforeDir="false" afterPath="$PROJECT_DIR$/cmd/kubectl/app/kube-ctl.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/docs/deployment.md" beforeDir="false" afterPath="$PROJECT_DIR$/docs/deployment.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/docs/img/autoscaler.png" beforeDir="false" afterPath="$PROJECT_DIR$/docs/img/autoscaler.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pkg/util/prometheus/config/prometheus.yml" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/util/prometheus/config/prometheus.yml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
