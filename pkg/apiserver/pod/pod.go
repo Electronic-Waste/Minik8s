@@ -12,8 +12,9 @@ import (
 	"minik8s.io/pkg/apiserver/util/url"
 )
 
+
 // Return certain pod's status
-// uri: /api/v1/pod/status/get?namespace=...&name=...
+// uri: /pods/status/get?namespace=...&name=...
 // @namespace: namespace requested; @name: pod name
 func HandleGetPodStatus(resp http.ResponseWriter, req *http.Request) {
 	vars := req.URL.Query()
@@ -40,7 +41,7 @@ func HandleGetPodStatus(resp http.ResponseWriter, req *http.Request) {
 }
 
 // Return all pods' statuses
-// uri: /api/v1/pod/status/getall
+// uri: /pods/status/getall
 func HandleGetAllPodStatus(resp http.ResponseWriter, req *http.Request) {
 	etcdPrefix := url.PodStatus
 	var podStatusArr []string
@@ -65,12 +66,12 @@ func HandleGetAllPodStatus(resp http.ResponseWriter, req *http.Request) {
 	// return
 }
 
-// TODO(shaowang): Distinguish create & update operation
-// Update a pod's status in etcd
-// uri: /api/v1/pod/status/put?namespace=...&name=...
+
+// Apply a pod's status in etcd
+// uri: /pods/status/apply?namespace=...&name=...
 // @namespace: namespace requested; @name: pod name
 // body: core.Pod in JSON form
-func HandlePutPodStatus(resp http.ResponseWriter, req *http.Request) {
+func HandleApplyPodStatus(resp http.ResponseWriter, req *http.Request) {
 	vars := req.URL.Query()
 	namespace := vars.Get("namespace")
 	podName := vars.Get("name")
@@ -90,13 +91,42 @@ func HandlePutPodStatus(resp http.ResponseWriter, req *http.Request) {
 		return
 	}
 	// Success!
-	pubURL := path.Join(url.PodStatus, "get", namespace, podName)
+	pubURL := path.Join(url.PodStatus, "apply", namespace, podName)
+	listwatch.Publish(pubURL, string(body))	
+	resp.WriteHeader(http.StatusOK)
+}
+
+// Update a pod's status in etcd
+// uri: /pods/status/update?namespace=...&name=...
+// @namespace: namespace requested; @name: pod name
+// body: core.Pod in JSON form
+func HandleUpdatePodStatus(resp http.ResponseWriter, req *http.Request) {
+	vars := req.URL.Query()
+	namespace := vars.Get("namespace")
+	podName := vars.Get("name")
+	body, _ := ioutil.ReadAll(req.Body)
+	// Param miss: return error to client
+	if namespace == "" || podName == "" {
+		resp.WriteHeader(http.StatusBadRequest)
+		resp.Write([]byte("Name is missing"))
+		return
+	}
+	etcdURL := path.Join(url.PodStatus, namespace, podName)
+	err := etcd.Put(etcdURL, string(body))
+	// Error occur in etcd: return error to client
+	if err != nil {
+		resp.WriteHeader(http.StatusInternalServerError)
+		resp.Write([]byte(err.Error()))
+		return
+	}
+	// Success!
+	pubURL := path.Join(url.PodStatus, "update", namespace, podName)
 	listwatch.Publish(pubURL, string(body))	
 	resp.WriteHeader(http.StatusOK)
 }
 
 // Delete a pod's status in etcd
-// uri: /api/v1/pod/status/del?namespace=...&name=...
+// uri: /pods/status/del?namespace=...&name=...
 // @namespace: namespace requested; @name: pod name
 func HandleDelPodStatus(resp http.ResponseWriter, req *http.Request) {
 	vars := req.URL.Query()
