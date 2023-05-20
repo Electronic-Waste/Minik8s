@@ -7,6 +7,7 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"minik8s.io/pkg/apis/core"
+	"minik8s/pkg/clientutil"
 	"os"
 	"strings"
 )
@@ -70,8 +71,8 @@ func ApplyHandler(path string) error {
 	return nil
 }
 
-func applyDeployment(core.Deployment) error {
-	return nil
+func applyDeployment(deployment core.Deployment) error {
+	return clientutil.HttpPut("Deployment", deployment)
 }
 
 func init() {
