@@ -60,3 +60,7 @@ func TestAllProcess(t *testing.T) {
 		t.Error(err)
 	}
 }
+
+func TestPodRunning(t *testing.T) {
+	
+}

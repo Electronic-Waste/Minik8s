@@ -68,19 +68,17 @@ func (p *PodStorage) Merge(source string, update interface{}) error {
 	switch mes.Op {
 	case types.SET:
 		{
-			// set the storage to mes.Pods
-			// convert from Pod list to PodUpdate
-			// compare podStorage and mes.Pod
-			p.storeLock.RLock()
-			p.SendUpdate(p.storage[source], mes.Pods, p.update, source)
-			// clean map
+			// check Pod is running or not first
+
 		}
 	case types.ADD:
 		{
+			// run a new Pod
 			fmt.Println("not support types")
 		}
 	case types.DELETE:
 		{
+			// delete a Pod
 			fmt.Println("not support types")
 		}
 	case types.REMOVE:

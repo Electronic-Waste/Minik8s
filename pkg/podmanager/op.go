@@ -65,6 +65,28 @@ func DelPod(name string) error {
 	return nil
 }
 
+// judge a Pod is running or not
+func IsPodRunning(name string) bool {
+	// just determine the pause container is running or not
+	// find all container labeled with the 'name'
+	cli, err := remote_cli.NewRemoteRuntimeService(remote_cli.IdenticalErrorDelay)
+	if err != nil {
+		return err
+	}
+	is_find := false
+	walker := &containerwalker.ContainerWalker{
+		Client: cli.Client(),
+		OnFound: func(ctx context.Context, found containerwalker.Found) error {
+			is_find = true
+			return nil
+		},
+	}
+
+	ctx := namespaces.WithNamespace(context.Background(), "default")
+	_, err = walker.Walk(ctx, name)
+	return is_find
+}
+
 func stopContainer(id string) error {
 	// use cmd to build a pause container
 	// run cmd : nerdctl run -d  --name fake_k8s_pod_pause   registry.aliyuncs.com/google_containers/pause:3.9
