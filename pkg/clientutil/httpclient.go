@@ -11,13 +11,13 @@ import (
 )
 
 // return: error
-// @objType: type want to put; @obj: contains the obj to be put
-func HttpPut(objType string, obj any) error {
+// @objType: type want to apply; @obj: the obj to be applied
+func HttpApply(objType string, obj any) error {
 	client := http.Client{}
 	payload, _ := json.Marshal(obj)
 	switch objType {
 	case "Deployment":
-		request, err := http.NewRequest("POST", apiurl.DeploymentStatusPutURL, bytes.NewReader(payload))
+		request, err := http.NewRequest("POST", apiurl.DeploymentStatusApplyURL, bytes.NewReader(payload))
 		if err != nil {
 			log.Fatal(err)
 		}

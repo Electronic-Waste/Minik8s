@@ -72,7 +72,7 @@ func ApplyHandler(path string) error {
 }
 
 func applyDeployment(deployment core.Deployment) error {
-	return clientutil.HttpPut("Deployment", deployment)
+	return clientutil.HttpApply("Deployment", deployment)
 }
 
 func init() {

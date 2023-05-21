@@ -1,14 +1,19 @@
 package listwatch
 
 import (
-    "context"
+	"context"
 	"fmt"
-    "github.com/go-redis/redis/v8"
 )
 
 var ctx = context.Background()
 
 type WatchHandler func(msg *redis.Message)
+
+type WatchResult struct {
+	ObjectType string //Pod, Deployment
+	ActionType string //apply, delete, update
+	Payload    []byte //struct pod or deployment
+}
 
 // TODO(shaowang): Expand to multiple machines in the future
 var rdb = redis.NewClient(&redis.Options{
@@ -19,7 +24,7 @@ var rdb = redis.NewClient(&redis.Options{
 
 var sub *redis.PubSub = nil
 
-func Subscribe(topic string) (<-chan *redis.Message){
+func Subscribe(topic string) <-chan *redis.Message {
 	print("redis: subscribe " + topic + "\n")
 	sub = rdb.Subscribe(ctx, topic)
 	return sub.Channel()

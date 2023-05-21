@@ -13,7 +13,7 @@ import (
 )
 
 // Return certain deployment's status
-// uri: /api/v1/deployment/status/get?namespace=...&name=...
+// uri: /deployments/status/get?namespace=...&name=...
 // @namespace: namespace requested; @name: deployment name
 func HandleGetDeploymentStatus(resp http.ResponseWriter, req *http.Request) {
 	vars := req.URL.Query()
@@ -40,7 +40,7 @@ func HandleGetDeploymentStatus(resp http.ResponseWriter, req *http.Request) {
 }
 
 // Return all deployments' statuses
-// uri: /api/v1/deployment/status/getall
+// uri: /deployments/status/getall
 func HandleGetAllDeploymentStatus(resp http.ResponseWriter, req *http.Request) {
 	etcdPrefix := url.DeploymentStatus
 	var deploymentStatusArr []string
@@ -65,11 +65,11 @@ func HandleGetAllDeploymentStatus(resp http.ResponseWriter, req *http.Request) {
 	// return
 }
 
-// Update a deployment's status in etcd
-// uri: /api/v1/deployment/status/put?namespace=...&name=...
+// Apply a deployment's status in etcd
+// uri: /deployments/status/apply?namespace=...&name=...
 // @namespace: namespace requested; @name: deployment name
 // body: core.Deployment in JSON form
-func HandlePutDeploymentStatus(resp http.ResponseWriter, req *http.Request) {
+func HandleApplyDeploymentStatus(resp http.ResponseWriter, req *http.Request) {
 	vars := req.URL.Query()
 	namespace := vars.Get("namespace")
 	deploymentName := vars.Get("name")
@@ -89,13 +89,50 @@ func HandlePutDeploymentStatus(resp http.ResponseWriter, req *http.Request) {
 		return
 	}
 	// Success!
-	pubURL := path.Join(url.DeploymentStatus, "get", namespace, deploymentName)
-	listwatch.Publish(pubURL, string(body))
+	pubURL := path.Join(url.DeploymentStatus, "apply")
+	watchres := listwatch.WatchResult{}
+	watchres.ActionType = "apply"
+	watchres.ObjectType = "Deployment"
+	watchres.payload = body
+	listwatch.Publish(pubURL, string(watchres))
+	resp.WriteHeader(http.StatusOK)
+}
+
+// Update a deployment's status in etcd
+// uri: /deployments/status/update?namespace=...&name=...
+// @namespace: namespace requested; @name: deployment name
+// body: core.Deployment in JSON form
+func HandleUpdateDeploymentStatus(resp http.ResponseWriter, req *http.Request) {
+	vars := req.URL.Query()
+	namespace := vars.Get("namespace")
+	deploymentName := vars.Get("name")
+	body, _ := ioutil.ReadAll(req.Body)
+	// Param miss: return error to client
+	if namespace == "" || deploymentName == "" {
+		resp.WriteHeader(http.StatusBadRequest)
+		resp.Write([]byte("Name is missing"))
+		return
+	}
+	etcdURL := path.Join(url.DeploymentStatus, namespace, deploymentName)
+	err := etcd.Put(etcdURL, string(body))
+	// Error occur in etcd: return error to client
+	if err != nil {
+		resp.WriteHeader(http.StatusInternalServerError)
+		resp.Write([]byte(err.Error()))
+		return
+	}
+	// Success!
+	pubURL := path.Join(url.DeploymentStatus, "update")
+	watchres := listwatch.WatchResult{}
+	watchres.ActionType = "update"
+	watchres.ObjectType = "Deployment"
+	watchres.payload = body
+	listwatch.Publish(pubURL, string(watchres))
 	resp.WriteHeader(http.StatusOK)
 }
 
 // Delete a deployment's status in etcd
-// uri: /api/v1/deployment/status/del?namespace=...&name=...
+// uri: /deployments/status/del?namespace=...&name=...
 // @namespace: namespace requested; @name: deployment name
 func HandleDelDeploymentStatus(resp http.ResponseWriter, req *http.Request) {
 	vars := req.URL.Query()
@@ -117,6 +154,10 @@ func HandleDelDeploymentStatus(resp http.ResponseWriter, req *http.Request) {
 	}
 	// Success!
 	pubURL := path.Join(url.DeploymentStatus, "del", namespace, deploymentName)
-	listwatch.Publish(pubURL, "")
+	watchres := listwatch.WatchResult{}
+	watchres.ActionType = "delete"
+	watchres.ObjectType = "Deployment"
+	watchres.payload, _ = json.Marshal(deploymentName)
+	listwatch.Publish(pubURL, string(watchres))
 	resp.WriteHeader(http.StatusOK)
 }

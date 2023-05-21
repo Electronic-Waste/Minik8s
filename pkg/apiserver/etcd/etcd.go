@@ -97,9 +97,3 @@ func DelAll() error {
 // 		}
 // 	}()
 // }
-
-type WatchResult struct {
-	ObjectType string
-	ActionType int //0 for apply, 1 for modify, 2 for delete
-	Payload    []byte
-}

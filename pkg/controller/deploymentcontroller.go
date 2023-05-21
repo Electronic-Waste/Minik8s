@@ -3,28 +3,27 @@ package controller
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/go-redis/redis/v8"
 	"github.com/google/uuid"
 	"golang.org/x/net/context"
 	"minik8s.io/pkg/apis/core"
-	"minik8s.io/pkg/apiserver/etcd"
 	"minik8s.io/pkg/podmanager"
-	util "minik8s.io/pkg/util/listwatch"
+	"minik8s.io/pkg/util/listwatch"
+
 	//_map "minik8s.io/pkg/util/tools/map"
 	"minik8s.io/pkg/util/tools/queue"
 	"strings"
 	"time"
 )
 
-const (
-	apply  int = 0
-	update int = 1
-	delete int = 2
-)
+//const (
+//	apply  int = 0
+//	update int = 1
+//	delete int = 2
+//)
 
 type DeploymentController struct {
 	//Client
-	//listwatch
+	//util
 
 	// work queue
 	queue   *queue.Queue
@@ -51,15 +50,15 @@ func (dc *DeploymentController) Run(ctx context.Context) {
 
 func (dc *DeploymentController) register() {
 	print("register\n")
-	util.Watch("/api/v1/deployment/status", dc.listener)
+	listwatch.Watch("/api/v1/deployment/status/apply", dc.applylistener)
 	//not reach here
 	//print("registered\n")
 }
 
-func (dc *DeploymentController) listener(msg *redis.Message) {
+func (dc *DeploymentController) applylistener(msg *redis.Message) {
 	print("listening\n")
 	bytes := []byte(msg.Payload)
-	watchres := etcd.WatchResult{}
+	watchres := listwatch.WatchResult{}
 	err := json.Unmarshal(bytes, &watchres)
 	if err != nil {
 		return
@@ -83,15 +82,15 @@ func (dc *DeploymentController) worker(ctx context.Context) {
 
 func (dc *DeploymentController) processNextWorkItem(ctx context.Context) {
 	key := dc.queue.Dequeue()
-	_ = dc.syncDeployment(ctx, key.(etcd.WatchResult))
+	_ = dc.syncDeployment(ctx, key.(listwatch.WatchResult))
 	return
 }
 
-func (dc *DeploymentController) syncDeployment(ctx context.Context, watchres etcd.WatchResult) error {
+func (dc *DeploymentController) syncDeployment(ctx context.Context, watchres listwatch.WatchResult) error {
 	var (
 		err        error
 		deployment core.Deployment
-		actiontype int
+		actiontype string
 		objecttype string
 	)
 	//format: pod: deployment-rsuid-poduid
@@ -112,7 +111,7 @@ func (dc *DeploymentController) syncDeployment(ctx context.Context, watchres etc
 		//	return nil
 		//}
 		switch actiontype {
-		case apply:
+		case "apply":
 			fmt.Println("apply deployment pods")
 			uid := uuid.New()
 			uidstr := strings.Split(uid.String(), "-")[0]
@@ -132,8 +131,8 @@ func (dc *DeploymentController) syncDeployment(ctx context.Context, watchres etc
 				AddPod(pod)
 			}
 			dc.nameMap[deployment.Metadata.Name] = nameSet
-		case update:
-		case delete:
+		case "update":
+		case "delete":
 			//client.addPod(pod)
 			//var nameSet []string
 			nameSet := dc.nameMap[deployment.Metadata.Name].([]string)
