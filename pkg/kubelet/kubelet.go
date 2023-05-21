@@ -50,5 +50,6 @@ func NewMainKubelet(podConfig *config.PodConfig) (*Kubelet, error) {
 }
 
 func makePodSourceConfig() *config.PodConfig {
+	// TODO(wjl) : add fileSource support here
 	return config.NewPodConfig()
 }

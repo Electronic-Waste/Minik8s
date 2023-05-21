@@ -1,0 +1,27 @@
+kind: Pod
+metadata:
+  name: two
+spec:
+  volumes:
+    - name: shared-data
+      hostPath: /root/test_vo
+
+  containers:
+
+    - name: t1
+      image: docker.io/library/golang:latest
+      volumeMounts:
+        - name: shared-data
+          mountPath: /mnt
+      ports:
+        - containerPort: 8080
+      command: bash
+
+    - name: t2
+      image: docker.io/library/golang:latest
+      volumeMounts:
+        - name: shared-data
+          mountPath: /go/src
+      ports:
+        - containerPort: 80
+      command: bash

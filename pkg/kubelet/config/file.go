@@ -3,10 +3,16 @@ package config
 import (
 	"fmt"
 	"github.com/fsnotify/fsnotify"
+	"io/ioutil"
+	"minik8s.io/pkg/apis/core"
 	"minik8s.io/pkg/constant"
+	"minik8s.io/pkg/kubelet/types"
 	"os"
 	"time"
 )
+
+// design : maintain a cache as the total pod in the dir
+// for the purpose that we can determine which pod have been deleted
 
 type podEventType int
 
@@ -38,9 +44,18 @@ type sourceFile struct {
 	path string
 }
 
+// map from file name to pod name
+type FileCache struct {
+	PodMap map[string]string
+}
+
 func NewSourceFile(ch chan interface{}) {
 	cfg := newSourceFile(ch, constant.SysPodDir)
-	cfg.run()
+	// init the cache
+	fileCache := FileCache{
+		PodMap: make(map[string]string),
+	}
+	cfg.run(&fileCache)
 }
 
 func newSourceFile(ch chan interface{}, path string) *sourceFile {
@@ -51,19 +66,46 @@ func newSourceFile(ch chan interface{}, path string) *sourceFile {
 	}
 }
 
-func (cfg *sourceFile) run() {
+func (cfg *sourceFile) run(fileCache *FileCache) {
 	go func() {
 		// start to receive message from sourceFile
 		select {
 		case e := <-cfg.watch:
 			{
-				fmt.Println(e)
-				cfg.update <- 1
+				if e.eventType == podAdd {
+					// this code is only for file adding
+					podUpdate := types.PodUpdate{}
+					podUpdate.Op = types.ADD
+					podUpdate.Source = types.FileSource
+					pod, err := core.ParsePod(e.fileName)
+					if err != nil {
+						if err.Error() == "error file type" {
+							fmt.Println("is not yaml file")
+						} else {
+							fmt.Println(err)
+						}
+					}
+					fileCache.PodMap[e.fileName] = pod.Name
+					podUpdate.Pods = append(podUpdate.Pods, pod)
+
+					cfg.update <- podUpdate
+				} else if e.eventType == podDelete {
+					pod := core.Pod{}
+					pod.Name = fileCache.PodMap[e.fileName]
+					podUpdate := types.PodUpdate{}
+					podUpdate.Op = types.DELETE
+					podUpdate.Pods = append(podUpdate.Pods, &pod)
+					podUpdate.Source = types.FileSource
+					delete(fileCache.PodMap, e.fileName)
+					cfg.update <- podUpdate
+				} else if e.eventType == podModify {
+					fmt.Println("don't support modify")
+				}
 			}
 		}
 	}()
 
-	cfg.startWatch()
+	cfg.startWatch(fileCache)
 }
 
 func (s *sourceFile) doWatch() error {
@@ -117,8 +159,51 @@ func (s *sourceFile) produceWatchEvent(e *fsnotify.Event) error {
 	return nil
 }
 
-func (cfg *sourceFile) startWatch() {
+func ListAllConfig(path string) ([]string, error) {
+	s := []string{}
+	rd, err := ioutil.ReadDir(path)
+	if err != nil {
+		fmt.Println("read dir fail:", err)
+		return s, err
+	}
+
+	for _, fi := range rd {
+		if !fi.IsDir() {
+			fullName := path + "/" + fi.Name()
+			s = append(s, fullName)
+		}
+	}
+	return s, nil
+}
+
+func (cfg *sourceFile) startWatch(fileCache *FileCache) {
 	go func() {
+		// start all pod in the dir first
+		files, err := ListAllConfig(cfg.path)
+		if err != nil {
+			fmt.Println("error in List config")
+			return
+		}
+		podSet := []*core.Pod{}
+		for _, file := range files {
+			// parse to Pod Object
+			pod, err := core.ParsePod(file)
+			if err != nil {
+				if err.Error() == "error file type" {
+					continue
+				} else {
+					fmt.Println(err)
+					return
+				}
+			}
+			podSet = append(podSet, pod)
+			fileCache.PodMap[file] = pod.Name
+		}
+		podUpdate := types.PodUpdate{}
+		podUpdate.Op = types.SET
+		podUpdate.Source = types.FileSource
+		podUpdate.Pods = podSet
+		cfg.update <- podUpdate
 		for {
 			cfg.doWatch()
 			time.Sleep(retryPeriod)
