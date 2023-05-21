@@ -33,3 +33,13 @@ func TestInitAndDeinitIptables(t *testing.T) {
 	t.Logf("2. output is: %s", string(output))
 }
 
+func TestServiceChain(t *testing.T) {
+	cli, err := NewIPTablesClient("127.0.0.1")
+	if err != nil {
+		t.Error("create iptables client error")
+	}
+	cli.InitServiceIPTables()
+
+
+}
+
