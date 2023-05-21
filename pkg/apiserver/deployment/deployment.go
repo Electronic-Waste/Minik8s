@@ -89,7 +89,7 @@ func HandlePutDeploymentStatus(resp http.ResponseWriter, req *http.Request) {
 		return
 	}
 	// Success!
-	pubURL := path.Join(url.DeploymentStatus, "get", namespace, deploymentName)
+	pubURL := path.Join(url.DeploymentStatus, "put")
 	listwatch.Publish(pubURL, string(body))
 	resp.WriteHeader(http.StatusOK)
 }
@@ -116,7 +116,7 @@ func HandleDelDeploymentStatus(resp http.ResponseWriter, req *http.Request) {
 		return
 	}
 	// Success!
-	pubURL := path.Join(url.DeploymentStatus, "del", namespace, deploymentName)
+	pubURL := path.Join(url.DeploymentStatus, "del")
 	listwatch.Publish(pubURL, "")
 	resp.WriteHeader(http.StatusOK)
 }
