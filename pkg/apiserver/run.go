@@ -12,8 +12,10 @@ import (
 type HttpHandler func(http.ResponseWriter, *http.Request)
 
 var postHandlerMap = map[string]HttpHandler{
-	url.PodStatusPutURL:        pod.HandlePutPodStatus,
-	url.DeploymentStatusPutURL: deployment.HandlePutPodStatus,
+	url.PodStatusApplyURL:         pod.HandleApplyPodStatus,
+	url.PodStatusUpdateURL:        pod.HandleUpdatePodStatus,
+	url.DeploymentStatusApplyURL:  deployment.HandleApplyDeploymentStatus,
+	url.DeploymentStatusUpdateURL: deployment.HandleUpdateDeploymentStatus,
 }
 
 var getHandlerMap = map[string]HttpHandler{
