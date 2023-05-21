@@ -2,7 +2,9 @@ package config
 
 import (
 	"fmt"
+	"github.com/fsnotify/fsnotify"
 	"minik8s.io/pkg/constant"
+	"os"
 	"time"
 )
 
@@ -56,6 +58,7 @@ func (cfg *sourceFile) run() {
 		case e := <-cfg.watch:
 			{
 				fmt.Println(e)
+				cfg.update <- 1
 			}
 		}
 	}()
@@ -63,11 +66,62 @@ func (cfg *sourceFile) run() {
 	cfg.startWatch()
 }
 
+func (s *sourceFile) doWatch() error {
+	_, err := os.Stat(s.path)
+	if err != nil {
+		fmt.Println("error in path of source")
+	}
+
+	w, err := fsnotify.NewWatcher()
+	if err != nil {
+		return fmt.Errorf("unable to create inotify: %v", err)
+	}
+	defer w.Close()
+
+	err = w.Add(s.path)
+	if err != nil {
+		return fmt.Errorf("unable to create inotify for path %q: %v", s.path, err)
+	}
+
+	for {
+		select {
+		case event := <-w.Events:
+			if err = s.produceWatchEvent(&event); err != nil {
+				return fmt.Errorf("error while processing inotify event (%+v): %v", event, err)
+			}
+		case err = <-w.Errors:
+			return fmt.Errorf("error while watching %q: %v", s.path, err)
+		}
+	}
+}
+
+func (s *sourceFile) produceWatchEvent(e *fsnotify.Event) error {
+	var eventType podEventType
+	switch {
+	case (e.Op & fsnotify.Create) > 0:
+		eventType = podAdd
+	case (e.Op & fsnotify.Write) > 0:
+		eventType = podModify
+	case (e.Op & fsnotify.Chmod) > 0:
+		eventType = podModify
+	case (e.Op & fsnotify.Remove) > 0:
+		eventType = podDelete
+	case (e.Op & fsnotify.Rename) > 0:
+		eventType = podDelete
+	default:
+		// Ignore rest events
+		return nil
+	}
+
+	s.watch <- &watchEvent{e.Name, eventType}
+	return nil
+}
+
 func (cfg *sourceFile) startWatch() {
 	go func() {
-		// do watch
-
-		// sleep for a time
-		time.Sleep(retryPeriod)
+		for {
+			cfg.doWatch()
+			time.Sleep(retryPeriod)
+		}
 	}()
 }
