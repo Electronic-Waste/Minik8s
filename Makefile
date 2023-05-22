@@ -17,6 +17,7 @@ build:
 	$(GO) build -o "${BIN}/${VCTL}" "${PATH}/${VCTL}/${VCTL}.go"
 	$(GO) build -o "${BIN}/${NCTL}" "${PATH}/${NCTL}/${NCTL}.go"
 	$(GO) build -o "${BIN}/${SERVER}" "${PATH}/${SERVER}/${SERVER}.go"
+	$(GO) build -o "${BIN}/${KUBELET}" "${PATH}/${KUBELET}/${KUBELET}.go"
 clean:
 	$(GO) clean
 	$(CLEAN)
