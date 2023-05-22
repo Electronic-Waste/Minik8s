@@ -71,7 +71,7 @@ func IsPodRunning(name string) bool {
 	// find all container labeled with the 'name'
 	cli, err := remote_cli.NewRemoteRuntimeService(remote_cli.IdenticalErrorDelay)
 	if err != nil {
-		return err
+		return false
 	}
 	is_find := false
 	walker := &containerwalker.ContainerWalker{
