@@ -29,6 +29,8 @@ const (
 	ModeFlag			string = "--mode"
 	ModeParamNth		string = "nth"
 	EveryFlag			string = "--every"
+	PacketFlag			string = "--packet"
+	PacketFlagParam1	string = "0"
 	MarkFlag			string = "--mark"
 	CommentFlag     	string = "--comment"
 	DestPortFlag    	string = "--dport"
@@ -326,10 +328,10 @@ func (cli *IPTablesClient) ApplyServiceChain(serviceName string, clusterIP strin
 	}
 
 	// Adds a rule to KUBE-SERVICES chain, jump to a service chain
-	// -A <serviceChainName> --p tcp -d <clusterIP> -m comment --comment <serviceName> -dport <port> -j <serviceChainName>
+	// -A KUBE-SERVICES --p tcp -d <clusterIP> -m comment --comment <serviceName> -dport <port> -j <serviceChainName>
 	err := cli.iptables.Insert(
 		NATTable,
-		serviceChainName,
+		KubeServicesChainName,
 		1,
 		ProtocolFlag,
 		ProtocolTCP,
@@ -394,7 +396,7 @@ func (cli *IPTablesClient) ApplyPodChainRules(podChainName string, podIP string,
 		ProtocolFlag,
 		ProtocolTCP,
 		MatchFlag,
-		ProtocolIPv4,
+		ProtocolTCP,
 		JumpFlag,
 		DnatTarget,
 		DNATdestFlag,
@@ -427,6 +429,8 @@ func (cli *IPTablesClient) ApplyPodChain(serviceName string, serviceChainName st
 		ModeParamNth,
 		EveryFlag,
 		fmt.Sprint(num),
+		PacketFlag,
+		PacketFlagParam1,
 		JumpFlag,
 		podChainName,
 	)
@@ -452,13 +456,11 @@ func (cli *IPTablesClient) DeleteServiceChain(serviceName string, clusterIP stri
 		DestinationFlag,
 		clusterIP,
 		MatchFlag,
-		ProtocolTCP,
-		DestPortFlag,
-		fmt.Sprint(port),
-		MatchFlag,
 		MatchParamComment,
 		CommentFlag,
 		serviceName,
+		DestPortFlag,
+		fmt.Sprint(port),
 		JumpFlag,
 		serviceChainName,
 	)
