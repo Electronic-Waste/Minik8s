@@ -11,39 +11,31 @@ import (
 )
 
 func TestInitAndDeinitIptables(t *testing.T) {
-	// var output []byte
-	// cli, err := NewIPTablesClient("127.0.0.1")
-	// if err != nil {
-	// 	t.Error("create iptables client error")
-	// }
-
-	// // 1. Test func InitServiceIPTables
-	// cli.InitServiceIPTables()
-	// cmd := exec.Command("iptables-save")
-	// output, err = cmd.CombinedOutput()
-	// if err != nil {
-	// 	t.Logf("1. output is: \n%s", string(output))
-	// 	t.Errorf("exec `iptables-save` error: %v", err)
-	// }
-	// t.Logf("1. output is: %s", string(output))
-
-	// // 2. Test func DeinitServiceIPTables
-	// cli.DeinitServiceIPTables()
-	// cmd = exec.Command("iptables-save")
-	// output, err = cmd.CombinedOutput()
-	// if err != nil {
-	// 	t.Logf("2. output is: \n%s", string(output))
-	// 	t.Errorf("exec `iptables-save` error: %v", err)
-	// }
-	// t.Logf("2. output is: %s", string(output))
-}
-
-func TestDelete(t *testing.T) {
+	var output []byte
 	cli, err := NewIPTablesClient("127.0.0.1")
 	if err != nil {
 		t.Error("create iptables client error")
 	}
+
+	// 1. Test func InitServiceIPTables
+	cli.InitServiceIPTables()
+	cmd := exec.Command("iptables-save")
+	output, err = cmd.CombinedOutput()
+	if err != nil {
+		t.Logf("1. output is: \n%s", string(output))
+		t.Errorf("exec `iptables-save` error: %v", err)
+	}
+	t.Logf("1. output is: %s", string(output))
+
+	// 2. Test func DeinitServiceIPTables
 	cli.DeinitServiceIPTables()
+	cmd = exec.Command("iptables-save")
+	output, err = cmd.CombinedOutput()
+	if err != nil {
+		t.Logf("2. output is: \n%s", string(output))
+		t.Errorf("exec `iptables-save` error: %v", err)
+	}
+	t.Logf("2. output is: %s", string(output))
 }
 
 func TestServiceChain(t *testing.T) {
@@ -66,21 +58,21 @@ func TestServiceChain(t *testing.T) {
 	}
 	serviceChainName := cli.CreateServiceChain()
 	serviceName := "service-test"
-	err = cli.ApplyServiceChain(serviceName, clusterIP, serviceChainName, 23333)
-	if err != nil {
-		t.Error("Error in applying service chain")
-	}
-
-	// Create pod chain
 	podChainName := cli.CreatePodChain()
-	err = cli.ApplyPodChain(serviceName, serviceChainName, "pod-test", podChainName, 1)
-	if err != nil {
-		t.Errorf("Error in applying pod chain: %v", err)
-	}
+	podName := "pod-test"
 	err = cli.ApplyPodChainRules(podChainName, "127.0.0.1", 8080)
 	if err != nil {
 		t.Errorf("Error in applying pod chain rules: %v", err)
 	}
+	err = cli.ApplyPodChain(serviceName, serviceChainName, podName, podChainName, 1)
+	if err != nil {
+		t.Errorf("Error in applying pod chain: %v", err)
+	}
+	err = cli.ApplyServiceChain(serviceName, clusterIP, serviceChainName, 22222)
+	if err != nil {
+		t.Error("Error in applying service chain")
+	}
+	
 
 	// Output result
 	var output []byte
@@ -94,7 +86,7 @@ func TestServiceChain(t *testing.T) {
 
 	// Test
 	var response *http.Response
-	response, err = http.Get(fmt.Sprintf("http://%s:%d/", clusterIP, 23333))
+	response, err = http.Get(fmt.Sprintf("http://%s:%d/", clusterIP, 22222))
 	if err != nil {
 		t.Errorf("Error in http response: %v", err)
 	} else {
@@ -105,19 +97,18 @@ func TestServiceChain(t *testing.T) {
 		}
 	}
 	
-
 	// Clean chains and rules
-	// err = cli.DeletePodChain("pod-test", podChainName)
-	// if err != nil {
-	// 	t.Logf("Error in deleting pod chain: %v", err)
-	// }
-	// cli.DeleteServiceChain(serviceName, clusterIP, serviceChainName, 23333)
-	// if err != nil {
-	// 	t.Logf("Error in deleting service chain: %v", err)
-	// }
-	// cli.DeinitServiceIPTables()
-	// if err != nil {
-	// 	t.Logf("Error in deiniting pod chain: %v", err)
-	// }
+	err = cli.DeletePodChain("pod-test", podChainName)
+	if err != nil {
+		t.Logf("Error in deleting pod chain: %v", err)
+	}
+	cli.DeleteServiceChain(serviceName, clusterIP, serviceChainName, 22222)
+	if err != nil {
+		t.Logf("Error in deleting service chain: %v", err)
+	}
+	cli.DeinitServiceIPTables()
+	if err != nil {
+		t.Logf("Error in deiniting pod chain: %v", err)
+	}
 }
 

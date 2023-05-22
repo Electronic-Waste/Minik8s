@@ -6,7 +6,7 @@ import (
 )
 
 const (
-	clusterIPRange = "233.233.0.0/16"
+	clusterIPRange = "222.222.0.0/16"
 )
 
 type ClusterIPGenerator struct {
