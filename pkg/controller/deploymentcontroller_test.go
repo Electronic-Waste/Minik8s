@@ -5,9 +5,8 @@ import (
 	"golang.org/x/net/context"
 	"minik8s.io/pkg/apis/core"
 	util "minik8s.io/pkg/util/listwatch"
-	"minik8s/pkg/util/listwatch"
+	"minik8s.io/pkg/util/listwatch"
 	"time"
-	"github.com/go-redis/redis/v8"
 
 	"testing"
 )
@@ -66,7 +65,7 @@ func TestDeployment(t *testing.T) {
 
 	watchres := listwatch.WatchResult{}
 	watchres.ObjectType = "Deployment"
-	watchres.ActionType = apply
+	watchres.ActionType = "apply"
 	watchres.Payload, _ = json.Marshal(deployment)
 
 	bytes, _ := json.Marshal(watchres)
@@ -128,12 +127,12 @@ func TestReplicaset(t *testing.T) {
 
 	watchres := listwatch.WatchResult{}
 	watchres.ObjectType = "Deployment"
-	watchres.ActionType = apply
+	watchres.ActionType = "apply"
 	watchres.Payload, _ = json.Marshal(deployment)
 
 	deploymentController.syncDeployment(ctx, watchres)
 
-	watchres.ActionType = delete
+	watchres.ActionType = "delete"
 
 	deploymentController.syncDeployment(ctx, watchres)
 }

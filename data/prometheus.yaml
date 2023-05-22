@@ -1,0 +1,18 @@
+kind: Pod
+metadata:
+  name: prometheus
+spec:
+  volumes:
+  - name: prometheus
+    hostPath: /root/prometheus
+
+  containers:
+  - name: prometheus
+    image: docker.io/library/prom/prometheus:latest
+    volumeMounts:
+      - name: prometheus
+        mountPath: /mnt
+    ports:
+      - containerPort: 9090
+    command: 
+      - bash
