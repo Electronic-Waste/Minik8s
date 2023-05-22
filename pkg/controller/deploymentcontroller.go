@@ -157,27 +157,28 @@ func (dc *DeploymentController) syncDeployment(ctx context.Context, watchres lis
 			deploymentname := ""
 			for k,v := range dc.nameMap{
 				nameSet := v.([]string)
-				for podname := range nameSet{
+				for _,podname := range nameSet{
 					if podname == pod.Name{
 						deploymentname = k.(string)
 					}
 				}
 			}
-			
-			if deployment.Status.AvailableReplicas < deployment.Spec.Replicas {
-				num := deployment.Spec.Replicas - deployment.Status.AvailableReplicas
-				for i := 0; i < num; i++ {
-					pod := core.Pod{}
-					pod = deployment.Spec.Template
-					AddPod(pod)
+			if deploymentname != ""{
+				if deployment.Status.AvailableReplicas < deployment.Spec.Replicas {
+					num := deployment.Spec.Replicas - deployment.Status.AvailableReplicas
+					for i := 0; i < num; i++ {
+						pod := core.Pod{}
+						pod = deployment.Spec.Template
+						AddPod(pod)
+					}
 				}
-			}
-		
-			if deployment.Status.AvailableReplicas > deployment.Spec.Replicas {
-				bytes, _ := json.Marshal(deployment)
-				msg := new(redis.Message)
-				msg.Payload = string(bytes)
-				//client
+
+				if deployment.Status.AvailableReplicas > deployment.Spec.Replicas {
+					bytes, _ := json.Marshal(deployment)
+					msg := new(redis.Message)
+					msg.Payload = string(bytes)
+					//client
+				}
 			}
 		}
 		
@@ -193,8 +194,8 @@ func (dc *DeploymentController) putDeployment(ctx context.Context) {
 
 // just for test
 func AddPod(pod core.Pod) {
-	//fmt.Printf("add pod %s\n",pod.Name)
-	podmanager.RunPod(&pod)
+	fmt.Printf("add pod %s\n",pod.Name)
+	//podmanager.RunPod(&pod)
 }
 
 func DelPod(podname string) {

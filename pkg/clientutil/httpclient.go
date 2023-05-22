@@ -19,7 +19,8 @@ func HttpApply(objType string, obj any) error {
 	payload, _ := json.Marshal(obj)
 	switch objType {
 	case "Deployment":
-		request, err := http.NewRequest("POST", apiurl.Prefix + apiurl.DeploymentStatusApplyURL, bytes.NewReader(payload))
+		urlparam := "?namespace=default"
+		request, err := http.NewRequest("POST", apiurl.Prefix + apiurl.DeploymentStatusApplyURL + urlparam, bytes.NewReader(payload))
 		if err != nil {
 			log.Fatal(err)
 		}

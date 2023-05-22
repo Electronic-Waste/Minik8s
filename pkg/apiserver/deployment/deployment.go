@@ -73,15 +73,15 @@ func HandleGetAllDeploymentStatus(resp http.ResponseWriter, req *http.Request) {
 // body: core.Deployment in JSON form
 func HandleApplyDeploymentStatus(resp http.ResponseWriter, req *http.Request) {
 	fmt.Println("receive http apply deployment request")
-	//vars := req.URL.Query()
-	//namespace := vars.Get("namespace")
+	vars := req.URL.Query()
+	namespace := vars.Get("namespace")
 	//deploymentName := vars.Get("name")
 	body, _ := ioutil.ReadAll(req.Body)
 
 	deployment := core.Deployment{}
 	json.Unmarshal(body, &deployment)
 	deploymentName := deployment.Metadata.Name
-	namespace := "default"
+	//namespace := "default"
 
 	// Param miss: return error to client
 	if namespace == "" || deploymentName == "" {
