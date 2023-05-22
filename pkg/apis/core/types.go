@@ -165,7 +165,7 @@ type Container struct {
 	// +listMapKey=containerPort
 	// +listMapKey=protocol
 	// -p/--publish=127.0.0.1:80:8080/tcp ... but in nervctl version : only 127.0.0.1:80:8080/tcp
-	Ports []ContainerPort `json:"ports,omitempty" patchStrategy:"merge" patchMergeKey:"containerPort" protobuf:"bytes,6,rep,name=ports" yaml:"ports"`
+	Ports []ContainerPort `json:"ports,omitempty" yaml:"ports"`
 	// Pod volumes to mount into the container's filesystem.
 	// Cannot be updated.
 	// +optional
