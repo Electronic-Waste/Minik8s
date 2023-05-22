@@ -83,13 +83,22 @@ type Mount struct {
 	DestinationPath string
 }
 
+type VolumeMount struct {
+	// This must match the Name of a Volume.
+	Name string `json:"name" protobuf:"bytes,1,opt,name=name"`
+
+	// Path within the container at which the volume should be mounted.  Must
+	// not contain ':'.
+	MountPath string `json:"mountPath" protobuf:"bytes,3,opt,name=mountPath"`
+}
+
 // Container represents a single container that is expected to be run on the host.
 type Container struct {
 	// Required: This must be a DNS_LABEL.  Each container in a pod must
 	// have a unique name.
-	Name string
+	Name string `json:"name" protobuf:"bytes,1,opt,name=name"`
 	// Required.
-	Image string
+	Image string `json:"image,omitempty" protobuf:"bytes,2,opt,name=image"`
 	// Optional: The container image's entrypoint is used if this is not provided; cannot be updated.
 	// Variable references $(VAR_NAME) are expanded using the container's environment.  If a variable
 	// cannot be resolved, the reference in the input string will be unchanged.  Double $$ are reduced
@@ -97,7 +106,7 @@ type Container struct {
 	// produce the string literal "$(VAR_NAME)".  Escaped references will never be expanded, regardless
 	// of whether the variable exists or not.
 	// +optional
-	Command []string
+	Command []string `json:"command,omitempty" protobuf:"bytes,3,rep,name=command"`
 	// Optional: The container image's cmd is used if this is not provided; cannot be updated.
 	// Variable references $(VAR_NAME) are expanded using the container's environment.  If a variable
 	// cannot be resolved, the reference in the input string will be unchanged.  Double $$ are reduced
@@ -105,10 +114,10 @@ type Container struct {
 	// produce the string literal "$(VAR_NAME)".  Escaped references will never be expanded, regardless
 	// of whether the variable exists or not.
 	// +optional
-	Args []string
+	Args []string `json:"args,omitempty" protobuf:"bytes,4,rep,name=args"`
 	// Optional: Defaults to the container runtime's default working directory.
 	// +optional
-	WorkingDir string
+	WorkingDir string `json:"workingDir,omitempty" protobuf:"bytes,5,opt,name=workingDir"`
 	// List of ports to expose from the container. Not specifying a port here
 	// DOES NOT prevent that port from being exposed. Any port which is
 	// listening on the default "0.0.0.0" address inside a container will be
@@ -124,6 +133,12 @@ type Container struct {
 	// +listMapKey=protocol
 	// -p/--publish=127.0.0.1:80:8080/tcp ... but in nervctl version : only 127.0.0.1:80:8080/tcp
 	Ports []ContainerPort `json:"ports,omitempty" patchStrategy:"merge" patchMergeKey:"containerPort" protobuf:"bytes,6,rep,name=ports"`
+	// Pod volumes to mount into the container's filesystem.
+	// Cannot be updated.
+	// +optional
+	// +patchMergeKey=mountPath
+	// +patchStrategy=merge
+	VolumeMounts []VolumeMount `json:"volumeMounts,omitempty" patchStrategy:"merge" patchMergeKey:"mountPath" protobuf:"bytes,9,rep,name=volumeMounts"`
 
 	Mounts []Mount
 	// TODO(wjl) : add functional function step by step(such as volume and network and so on .......)
@@ -135,25 +150,25 @@ type PodStatus struct {
 }
 
 type HostPathVolumeSource struct {
-	Path string
+	Path string `json:"path" protobuf:"bytes,1,opt,name=path"`
 }
 
 type VolumeSource struct {
 	// only support host map at this time
-	HostPath *HostPathVolumeSource
+	HostPath *HostPathVolumeSource `json:"hostPath,omitempty" protobuf:"bytes,1,opt,name=hostPath"`
 
 	// TODO : try to add emptyDir type of volume
 }
 
 type Volume struct {
 	// each volume in the pod must have a unique name
-	Name string
+	Name string `json:"name" protobuf:"bytes,1,opt,name=name"`
 
-	VolumeSource
+	VolumeSource `json:",inline" protobuf:"bytes,2,opt,name=volumeSource"`
 }
 
 type PodSpec struct {
-	Volumes []Volume
+	Volumes []Volume `json:"volumes,omitempty"`
 
 	// not consider the init Container
 
@@ -163,11 +178,11 @@ type PodSpec struct {
 
 // ensure a variable which can identify a Pod
 type Pod struct {
-	meta.ObjectMeta
+	Kind string `json:"kind,omitempty" yaml:"kind,omitempty"`
 
-	Kind string
+	meta.ObjectMeta `json:"metadata" yaml:"metadata" mapstructure:"metadata"`
 
-	Spec PodSpec
+	Spec PodSpec `json:"spec,omitempty" protobuf:"bytes,2,opt,name=spec"`
 
 	Status PodStatus
 }

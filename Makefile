@@ -1,10 +1,11 @@
-.PHONY:all build clean help check test vctl kubeadm nervctl
+.PHONY:all build clean help check test vctl kubeadm nervctl kubelet
 BIN=bin
 PATH=./cmd
 ADM=kubeadm
 SERVER=apiserver
 VCTL=vctl
 NCTL=nervctl
+KUBELET=kubelet
 CMD=app/cmd
 GO=$(shell which go)
 CLEAN=$(shell rm -rf ${BIN})
@@ -45,3 +46,7 @@ nervctl:
 apiserver:
 	@echo "$(FOLD)"
 	$(GO) build -o "${BIN}/${SERVER}" "${PATH}/${SERVER}/${SERVER}.go"
+kubelet:
+	@echo "$(FOLD)"
+	$(GO) build -o "${BIN}/${KUBELET}" "${PATH}/${KUBELET}/${KUBELET}.go"
+
