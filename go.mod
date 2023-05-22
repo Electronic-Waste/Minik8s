@@ -10,6 +10,7 @@ require (
 	github.com/containerd/go-cni v1.1.9
 	github.com/coreos/go-iptables v0.6.0
 	github.com/go-redis/redis/v8 v8.11.5
+	github.com/go-yaml/yaml v2.1.0+incompatible
 	github.com/google/uuid v1.3.0
 	github.com/lithammer/dedent v1.1.0
 	github.com/opencontainers/go-digest v1.0.0

@@ -5,11 +5,13 @@ import (
 	"io/ioutil"
 	"net/http"
 	"path"
+	"fmt"
 	// "github.com/go-redis/redis/v8"
 
 	"minik8s.io/pkg/apiserver/etcd"
 	"minik8s.io/pkg/apiserver/util/url"
 	"minik8s.io/pkg/util/listwatch"
+	"minik8s.io/pkg/apis/core"
 )
 
 // Return certain deployment's status
@@ -70,12 +72,20 @@ func HandleGetAllDeploymentStatus(resp http.ResponseWriter, req *http.Request) {
 // @namespace: namespace requested; @name: deployment name
 // body: core.Deployment in JSON form
 func HandleApplyDeploymentStatus(resp http.ResponseWriter, req *http.Request) {
-	vars := req.URL.Query()
-	namespace := vars.Get("namespace")
-	deploymentName := vars.Get("name")
+	fmt.Println("receive http apply deployment request")
+	//vars := req.URL.Query()
+	//namespace := vars.Get("namespace")
+	//deploymentName := vars.Get("name")
 	body, _ := ioutil.ReadAll(req.Body)
+
+	deployment := core.Deployment{}
+	json.Unmarshal(body, &deployment)
+	deploymentName := deployment.Metadata.Name
+	namespace := "default"
+
 	// Param miss: return error to client
 	if namespace == "" || deploymentName == "" {
+		fmt.Println("deploymentName or namespace is missing")
 		resp.WriteHeader(http.StatusBadRequest)
 		resp.Write([]byte("Name is missing"))
 		return
@@ -89,12 +99,15 @@ func HandleApplyDeploymentStatus(resp http.ResponseWriter, req *http.Request) {
 		return
 	}
 	// Success!
+	fmt.Println("etcd apply deployment successfully")
 	pubURL := path.Join(url.DeploymentStatus, "apply")
 	watchres := listwatch.WatchResult{}
 	watchres.ActionType = "apply"
 	watchres.ObjectType = "Deployment"
-	watchres.payload = body
-	listwatch.Publish(pubURL, string(watchres))
+	watchres.Payload = body
+
+	bytes,_ := json.Marshal(watchres)
+	listwatch.Publish(pubURL, bytes)
 	resp.WriteHeader(http.StatusOK)
 }
 
@@ -126,8 +139,10 @@ func HandleUpdateDeploymentStatus(resp http.ResponseWriter, req *http.Request) {
 	watchres := listwatch.WatchResult{}
 	watchres.ActionType = "update"
 	watchres.ObjectType = "Deployment"
-	watchres.payload = body
-	listwatch.Publish(pubURL, string(watchres))
+	watchres.Payload = body
+
+	bytes,_ := json.Marshal(watchres)
+	listwatch.Publish(pubURL, bytes)
 	resp.WriteHeader(http.StatusOK)
 }
 
@@ -157,7 +172,9 @@ func HandleDelDeploymentStatus(resp http.ResponseWriter, req *http.Request) {
 	watchres := listwatch.WatchResult{}
 	watchres.ActionType = "delete"
 	watchres.ObjectType = "Deployment"
-	watchres.payload, _ = json.Marshal(deploymentName)
-	listwatch.Publish(pubURL, string(watchres))
+	watchres.Payload, _ = json.Marshal(deploymentName)
+
+	bytes,_ := json.Marshal(watchres)
+	listwatch.Publish(pubURL, bytes)
 	resp.WriteHeader(http.StatusOK)
 }

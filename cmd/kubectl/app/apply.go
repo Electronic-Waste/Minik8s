@@ -7,9 +7,10 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"minik8s.io/pkg/apis/core"
-	"minik8s/pkg/clientutil"
+	"minik8s.io/pkg/clientutil"
 	"os"
 	"strings"
+	//"github.com/go-yaml/yaml"
 )
 
 var (
@@ -44,7 +45,7 @@ func ApplyHandler(path string) error {
 	file, err := os.ReadFile(path)
 	err = viper.ReadConfig(bytes.NewReader(file))
 	if err != nil {
-		//fmt.Println("error reading file, please use relative path\n for example: apply ./cmd/config/xxx.yml")
+		fmt.Println("error reading file, please use relative path\n for example: apply ./cmd/config/xxx.yml")
 		return err
 	}
 	//apply to k8s according to yaml
@@ -57,21 +58,35 @@ func ApplyHandler(path string) error {
 		if err != nil {
 			return err
 		}
-		fmt.Printf("deployment:%s\n", deployment.Metadata.Name)
+		fmt.Printf("deployment: %s\n", deployment.Metadata.Name)
 		err = applyDeployment(deployment)
+		if err != nil{
+			return err
+		}
 		//TODO: add more case handlers
 	case "Pod":
 		pod := core.Pod{}
+		//err := yaml.Unmarshal(file,&pod)
 		err := viper.Unmarshal(&pod)
 		if err != nil {
 			return err
 		}
-		fmt.Printf("pod: %s\n", pod.Spec.Volumes[0].Name)
+		fmt.Printf("pod: %s\n", pod.Name)
+		err = applyPod(pod)
+		if err != nil{
+			return err
+		}
 	}
 	return nil
 }
 
+func applyPod(pod core.Pod) error {
+	fmt.Println("apply pod")
+	return clientutil.HttpApply("Pod", pod)
+}
+
 func applyDeployment(deployment core.Deployment) error {
+	fmt.Println("apply deployment")
 	return clientutil.HttpApply("Deployment", deployment)
 }
 

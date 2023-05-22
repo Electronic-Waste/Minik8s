@@ -3,6 +3,7 @@ package listwatch
 import (
 	"context"
 	"fmt"
+	"github.com/go-redis/redis/v8"
 )
 
 var ctx = context.Background()
@@ -47,7 +48,7 @@ func Unsubscribe(topic string) error {
 }
 
 func Publish(topic string, msg interface{}) {
-	//print("redis: publish " + topic + "\n")
+	print("redis: publish " + topic + "\n")
 	rdb.Publish(ctx, topic, msg)
 }
 
@@ -55,7 +56,7 @@ func Publish(topic string, msg interface{}) {
 func Watch(topic string, handler WatchHandler) {
 	channel := Subscribe(topic)
 	for msg := range channel {
-		//fmt.Println("redis: receive msg")
+		fmt.Println("redis: receive msg")
 		handler(msg)
 	}
 }

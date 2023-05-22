@@ -7,6 +7,7 @@ import (
 	util "minik8s.io/pkg/util/listwatch"
 	"minik8s/pkg/util/listwatch"
 	"time"
+	"github.com/go-redis/redis/v8"
 
 	"testing"
 )

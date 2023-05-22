@@ -9,6 +9,8 @@ import (
 
 	gocni "github.com/containerd/go-cni"
 	"minik8s.io/pkg/apis/meta"
+
+	"github.com/opencontainers/runtime-spec/specs-go"
 )
 
 // Protocol defines network protocols supported for things like container ports.
@@ -176,7 +178,7 @@ type PodSpec struct {
 
 // ensure a variable which can identify a Pod
 type Pod struct {
-	meta.ObjectMeta
+	meta.ObjectMeta	`json:"metadata" yaml:"metadata" mapstructure:"metadata"`
 
 	Kind string
 
