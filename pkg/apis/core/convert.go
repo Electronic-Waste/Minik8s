@@ -1,9 +1,9 @@
 package core
 
 import (
-	"bytes"
 	"errors"
 	"fmt"
+	"github.com/go-yaml/yaml"
 	"github.com/spf13/viper"
 	"os"
 	"strings"
@@ -46,13 +46,14 @@ func ParsePod(path string) (*Pod, error) {
 	}
 	viper.SetConfigType("yaml")
 	file, err := os.ReadFile(path)
-	err = viper.ReadConfig(bytes.NewReader(file))
-	if err != nil {
-		//fmt.Println("error reading file, please use relative path\n for example: apply ./cmd/config/xxx.yml")
-		return nil, err
-	}
+	//err = viper.ReadConfig(bytes.NewReader(file))
+	//if err != nil {
+	//	//fmt.Println("error reading file, please use relative path\n for example: apply ./cmd/config/xxx.yml")
+	//	return nil, err
+	//}
 	pod := Pod{}
-	err = viper.Unmarshal(&pod)
+	err = yaml.Unmarshal(file, &pod)
+	fmt.Printf("pod name after parse is %s\n", pod.Name)
 	if err != nil {
 		return nil, err
 	}

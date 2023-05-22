@@ -99,6 +99,7 @@ func (p *PodStorage) Merge(source string, update interface{}) error {
 			p.storage[mes.Source] = make(map[string]*core.Pod)
 			for _, pod := range mes.Pods {
 				// running core Pod
+				fmt.Printf("pod name is %s\n", pod.Name)
 				err := podmanager.RunPod(pod)
 				if err != nil {
 					fmt.Println(err)

@@ -15,7 +15,8 @@ spec:
         mountPath: /mnt
     ports:
       - containerPort: 8080
-    command: bash
+    command:
+      - bash
 
   - name: go2
     image: docker.io/library/golang:latest
@@ -24,4 +25,5 @@ spec:
         mountPath: /go/src
     ports:
       - containerPort: 80
-    command: bash
+    command:
+      - bash
