@@ -194,8 +194,8 @@ func (dc *DeploymentController) putDeployment(ctx context.Context) {
 
 // just for test
 func AddPod(pod core.Pod) {
-	fmt.Printf("add pod %s\n",pod.Name)
-	//podmanager.RunPod(&pod)
+	//fmt.Printf("add pod %s\n",pod.Name)
+	podmanager.RunPod(&pod)
 }
 
 func DelPod(podname string) {
