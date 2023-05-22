@@ -117,6 +117,38 @@ func IsCrashContainer(name string) bool {
 	return is_find
 }
 
+func GetPods() ([]core.Pod, error) {
+	// get pod name and core pod status is ok
+	var podSet []core.Pod
+	// get all pause container
+	// find all container labeled with the 'name'
+	cli, err := remote_cli.NewRemoteRuntimeService(remote_cli.IdenticalErrorDelay)
+	// !!! : need to specify the namespace of finding container
+	ctx := namespaces.WithNamespace(context.Background(), "default")
+	if err != nil {
+		return nil, err
+	}
+	walker := &containerwalker.ContainerWalker{
+		Client: cli.Client(),
+		OnFound: func(ctx context.Context, found containerwalker.Found) error {
+			fmt.Println("find a Pod")
+			labels, err := found.Container.Labels(ctx)
+			if err != nil {
+				return err
+			}
+			fmt.Printf(labels["nerdctl/name"])
+			pod := core.Pod{}
+			pod.Name = labels["nerdctl/name"]
+			podSet = append(podSet, pod)
+			return nil
+		},
+	}
+	_, err = walker.WalkPause(ctx, "pause")
+
+	// check all container status
+	return podSet, nil
+}
+
 func stopContainer(id string) error {
 	// use cmd to build a pause container
 	// run cmd : nerdctl run -d  --name fake_k8s_pod_pause   registry.aliyuncs.com/google_containers/pause:3.9

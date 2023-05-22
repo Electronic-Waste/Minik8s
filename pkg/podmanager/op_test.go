@@ -57,6 +57,13 @@ func TestAllProcess(t *testing.T) {
 	}
 }
 
+func TestGetPod(t *testing.T) {
+	_, err := GetPods()
+	if err != nil {
+		t.Error(err)
+	}
+}
+
 func TestPodRunning(t *testing.T) {
 	// construct a Pod Object
 	var pod core.Pod

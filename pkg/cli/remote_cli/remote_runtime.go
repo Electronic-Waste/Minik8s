@@ -248,7 +248,8 @@ func (cli *remoteRuntimeService) StartContainer(ctx context.Context, containerMe
 func (cli *remoteRuntimeService) RunSandBox(name string) error {
 	// use cmd to build a pause container
 	// run cmd : nerdctl run -d  --name fake_k8s_pod_pause   registry.aliyuncs.com/google_containers/pause:3.9
-	cmd := exec.Command("nerdctl", "run", "-d", "--name", name, "--net", "flannel", constant.SandBox_Image)
+	cmd := exec.Command("nerdctl", "run", "-d", "--name", name, "--net", "flannel",
+		"--label", "minik8s=pause", constant.SandBox_Image)
 	var stdout, stderr bytes.Buffer
 	cmd.Stdout = &stdout
 	cmd.Stderr = &stderr
