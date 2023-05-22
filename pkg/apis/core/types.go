@@ -366,18 +366,39 @@ type NetworkOptions struct {
 	PortMappings []gocni.PortMapping
 }
 
+type Deployment struct {
+	Metadata meta.ObjectMeta
+	Spec     DeploymentSpec
+	Status   DeploymentStatus
+}
+
+type DeploymentSpec struct {
+	Replicas int
+	Template Pod
+	Selector string //must match .spec.template.metadata.labels
+	//strategy	DeploymentStrategy
+}
+
+type DeploymentStatus struct {
+	//ObservedGeneration int
+	AvailableReplicas int
+	//for later use
+	//UpdatedReplicas int
+	//ReadyReplicas   int
+}
+
 // Service is a named abstraction of software service (for example, mysql) consisting of local port
 // that the proxy listens on, and the selector that determines which pods will answer 
 // requests sent through the proxy.
 type Service struct {
 	// Service's name (can be omitted)
-	meta.ObjectMeta		`json:"metadata,omitempty"`
+	meta.ObjectMeta `json:"metadata,omitempty"`
 
 	// Service's kind is Service
-	Kind string			`json:"kind"`
+	Kind string `json:"kind"`
 
 	// Spec defines the behavior of a service.
-	Spec ServiceSpec	`json:"spec"`
+	Spec ServiceSpec `json:"spec"`
 }
 
 // ServicePort represents the port on which the service is exposed
@@ -386,13 +407,13 @@ type ServicePort struct {
 	// name of this port within the service.  This must be a DNS_LABEL.
 	// All ports within a ServiceSpec must have unique names.  This maps to
 	// the 'Name' field in EndpointPort objects.
-	Name string	`json:"name"`
+	Name string `json:"name"`
 
 	// The IP protocol for this port.  Supports "TCP", "UDP", and "SCTP".
-	Protocol Protocol	`json:"protocol,omitempty"`
+	Protocol Protocol `json:"protocol,omitempty"`
 
 	// The port that will be exposed on the service.
-	Port int32	`json:"port,omitempty"`
+	Port int32 `json:"port,omitempty"`
 
 	// Optional: The target port on pods selected by this service.  If this
 	// is a string, it will be looked up as a named port in the target
@@ -417,11 +438,10 @@ type ServiceSpec struct {
 	// external process managing its endpoints, which Kubernetes will not
 	// modify. Only applies to types ClusterIP, NodePort, and LoadBalancer.
 	// Ignored if type is ExternalName.
-	Selector  map[string]string `json:"selector,omitempty"`
+	Selector map[string]string `json:"selector,omitempty"`
 
 	// ClusterIP is the IP address of the service and is usually assigned
 	// randomly by the master. If an address is specified manually and is not in
 	// use by others, it will be allocated to the service
 	ClusterIP string `json:"clusterIP,omitempty"`
 }
-

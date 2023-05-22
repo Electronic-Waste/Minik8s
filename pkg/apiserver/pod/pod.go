@@ -10,6 +10,7 @@ import (
 	"minik8s.io/pkg/util/listwatch"
 	"minik8s.io/pkg/apiserver/etcd"
 	"minik8s.io/pkg/apiserver/util/url"
+	"minik8s.io/pkg/apis/core"
 )
 
 
@@ -72,10 +73,15 @@ func HandleGetAllPodStatus(resp http.ResponseWriter, req *http.Request) {
 // @namespace: namespace requested; @name: pod name
 // body: core.Pod in JSON form
 func HandleApplyPodStatus(resp http.ResponseWriter, req *http.Request) {
-	vars := req.URL.Query()
-	namespace := vars.Get("namespace")
-	podName := vars.Get("name")
+	//vars := req.URL.Query()
+	//namespace := vars.Get("namespace")
+	//podName := vars.Get("name")
 	body, _ := ioutil.ReadAll(req.Body)
+
+	pod := core.Pod{}
+	json.Unmarshal(body, &pod)
+	podName := pod.Name
+	namespace := "default"
 	// Param miss: return error to client
 	if namespace == "" || podName == "" {
 		resp.WriteHeader(http.StatusBadRequest)

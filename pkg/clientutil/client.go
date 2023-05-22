@@ -22,6 +22,7 @@ func IsSocketAccessible(s string) error {
 	}
 	// set AT_EACCESS to allow running nerdctl as a setuid binary
 	return unix.Faccessat(-1, abs, unix.R_OK|unix.W_OK, unix.AT_EACCESS)
+	return nil
 }
 
 func NewClient(ctx context.Context, namespace, address string, opts ...containerd.ClientOpt) (*containerd.Client, context.Context, context.CancelFunc, error) {
