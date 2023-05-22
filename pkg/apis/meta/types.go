@@ -9,7 +9,7 @@ type ObjectMeta struct {
 	// More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names#names
 	// +optional
 	// we use it as the pause container name
-	Name string
+	Name string `json:"name,omitempty" yaml:"name,omitempty"`
 
 	// Map of string keys and values that can be used to organize and categorize
 	// (scope and select) objects. May match selectors of replication controllers

@@ -26,7 +26,7 @@ func Run() error {
 
 func RunKubelet() error {
 	var podConfig *config.PodConfig
-	klet, err := createAndInitKubelet(podConfig)
+	klet, err := createAndInitKubelet(&podConfig)
 	if err != nil {
 		return err
 	}
@@ -34,7 +34,7 @@ func RunKubelet() error {
 	return nil
 }
 
-func createAndInitKubelet(podConfig *config.PodConfig) (kubelet.Bootstrap, error) {
+func createAndInitKubelet(podConfig **config.PodConfig) (kubelet.Bootstrap, error) {
 	// init a kubelet object
 	klet, err := kubelet.NewMainKubelet(podConfig)
 	if err != nil {

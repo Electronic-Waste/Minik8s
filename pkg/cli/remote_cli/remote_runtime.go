@@ -110,6 +110,7 @@ func (cli *remoteRuntimeService) StartContainer(ctx context.Context, containerMe
 		// init the label to use namespace to find all container
 		// parse the Name here
 		arr := strings.Split(Namespace, ":")
+		fmt.Printf("receive the namespace is %s\n", Namespace)
 		if len(arr) < 2 {
 			return errors.New("wrong namespace format")
 		}

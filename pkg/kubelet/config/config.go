@@ -4,7 +4,9 @@ import (
 	"fmt"
 	"minik8s.io/pkg/apis/core"
 	"minik8s.io/pkg/kubelet/types"
+	"minik8s.io/pkg/podmanager"
 	"minik8s.io/pkg/util/config"
+	"strings"
 	"sync"
 )
 
@@ -17,6 +19,18 @@ type PodStorage struct {
 	storage map[string]map[string]*core.Pod
 	// lock protect the storage
 	storeLock sync.RWMutex
+}
+
+// !!! attention : this function can only be call in the lock protected
+func (p *PodStorage) IsPodExist(name string) bool {
+	for _, m := range p.storage {
+		for p_name, _ := range m {
+			if strings.Compare(p_name, name) == 0 {
+				return true
+			}
+		}
+	}
+	return false
 }
 
 // this method don't check for update, just check for add and remove
@@ -68,20 +82,67 @@ func (p *PodStorage) Merge(source string, update interface{}) error {
 	switch mes.Op {
 	case types.SET:
 		{
-			// set the storage to mes.Pods
-			// convert from Pod list to PodUpdate
-			// compare podStorage and mes.Pod
+			// check Pod is running or not first
+			// running all Pod when types is SET
+			for _, p := range mes.Pods {
+				if !podmanager.IsPodRunning(p.Name) && !podmanager.IsCrashContainer(p.Name) {
+
+				} else if podmanager.IsPodRunning(p.Name) {
+					podmanager.DelPod(p.Name)
+				} else if podmanager.IsCrashContainer(p.Name) {
+					podmanager.DelSimpleContainer(p.Name)
+				}
+			}
+
+			// change the storage and Pod status
 			p.storeLock.RLock()
-			p.SendUpdate(p.storage[source], mes.Pods, p.update, source)
-			// clean map
+			p.storage[mes.Source] = make(map[string]*core.Pod)
+			for _, pod := range mes.Pods {
+				// running core Pod
+				fmt.Printf("pod name is %s\n", pod.Name)
+				err := podmanager.RunPod(pod)
+				if err != nil {
+					fmt.Println(err)
+					return err
+				}
+
+				// update storage
+				p.storage[mes.Source][pod.Name] = pod
+			}
+			p.storeLock.RUnlock()
 		}
 	case types.ADD:
 		{
-			fmt.Println("not support types")
+			// run a new Pod
+			p.storeLock.RLock()
+			// do some error handling
+			// check for exist Pod name
+			for _, pod := range mes.Pods {
+				if p.IsPodExist(pod.Name) {
+					fmt.Println("Pod name crash in Pod adding in file source")
+				} else {
+					// run the pod
+					err := podmanager.RunPod(pod)
+					if err != nil {
+						fmt.Println(err)
+						return err
+					}
+					p.storage[mes.Source][pod.Name] = pod
+				}
+			}
+			p.storeLock.RUnlock()
 		}
 	case types.DELETE:
 		{
-			fmt.Println("not support types")
+			// delete a Pod
+			p.storeLock.RLock()
+			for _, pod := range mes.Pods {
+				if podmanager.IsPodRunning(pod.Name) {
+					podmanager.DelPod(pod.Name)
+				}
+				delete(p.storage[mes.Source], pod.Name)
+			}
+			p.storeLock.RUnlock()
 		}
 	case types.REMOVE:
 		{

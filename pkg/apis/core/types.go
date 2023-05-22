@@ -178,11 +178,11 @@ type PodSpec struct {
 
 // ensure a variable which can identify a Pod
 type Pod struct {
-	meta.ObjectMeta	`json:"metadata" yaml:"metadata" mapstructure:"metadata"`
+	Kind string `json:"kind,omitempty" yaml:"kind,omitempty"`
 
-	Kind string
+	meta.ObjectMeta `json:"metadata" yaml:"metadata" mapstructure:"metadata"`
 
-	Spec PodSpec
+	Spec PodSpec `json:"spec,omitempty" protobuf:"bytes,2,opt,name=spec"`
 
 	Status PodStatus
 }
