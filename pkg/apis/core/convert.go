@@ -2,6 +2,9 @@ package core
 
 import (
 	"errors"
+	"fmt"
+	"github.com/go-yaml/yaml"
+	"os"
 	"strings"
 )
 
@@ -32,4 +35,21 @@ func (p *Pod) ContainerConvert() error {
 		}
 	}
 	return nil
+}
+
+func ParsePod(path string) (*Pod, error) {
+	if !strings.HasSuffix(path, ".yaml") {
+		//get yaml file content
+		fmt.Println("error file type")
+		return nil, errors.New("error file type")
+	}
+	file, err := os.ReadFile(path)
+	pod := Pod{}
+	err = yaml.Unmarshal(file, &pod)
+	pod.ContainerConvert()
+	fmt.Printf("pod name after parse is %s\n", pod.Name)
+	if err != nil {
+		return nil, err
+	}
+	return &pod, nil
 }

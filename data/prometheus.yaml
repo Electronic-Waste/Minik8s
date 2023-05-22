@@ -4,7 +4,7 @@ metadata:
 spec:
   volumes:
   - name: prometheus
-    hostPath: /root/prometheus
+    hostPath: /etc/prometheus
 
   containers:
   - name: prometheus
@@ -14,5 +14,15 @@ spec:
         mountPath: /mnt
     ports:
       - containerPort: 9090
-    command: 
-      - bash
+    volumeMounts:
+      - ./build/config/prometheus.yml:/etc/prometheus/prometheus.yml
+
+  prometheus:
+    image: prom/prometheus
+    container_name: prometheus
+    hostname: prometheus
+    restart: always
+    volumes:
+      - ./build/config/prometheus.yml:/etc/prometheus/prometheus.yml
+    ports:
+      - "9090:9090"

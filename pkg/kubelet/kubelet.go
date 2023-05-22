@@ -16,7 +16,7 @@ type Bootstrap interface {
 	//ListenAndServe()
 	//ListenAndServeReadOnly(address net.IP, port uint)
 	//ListenAndServePodResources()
-	Run(<-chan kubetypes.PodUpdate)
+	Run(chan kubetypes.PodUpdate)
 	//RunOnce(<-chan kubetypes.PodUpdate) ([]RunPodResult, error)
 }
 
@@ -43,12 +43,15 @@ func (k *Kubelet) syncLoopIteration(update chan kubetypes.PodUpdate) error {
 	return nil
 }
 
-func NewMainKubelet(podConfig *config.PodConfig) (*Kubelet, error) {
+func NewMainKubelet(podConfig **config.PodConfig) (*Kubelet, error) {
 	// return a new Kubelet Object
-	podConfig = makePodSourceConfig()
+	*podConfig = makePodSourceConfig()
 	return &Kubelet{}, nil
 }
 
 func makePodSourceConfig() *config.PodConfig {
-	return config.NewPodConfig()
+	// TODO(wjl) : add fileSource support here
+	cfg := config.NewPodConfig()
+	config.NewSourceFile(cfg.Channel(kubetypes.FileSource))
+	return cfg
 }

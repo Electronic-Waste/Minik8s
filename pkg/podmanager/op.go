@@ -36,7 +36,7 @@ func RunPod(pod *core.Pod) error {
 	return nil
 }
 
-func DelPod(name string) error {
+func DelSimpleContainer(name string) error {
 	// find all container labeled with the 'name'
 	cli, err := remote_cli.NewRemoteRuntimeService(remote_cli.IdenticalErrorDelay)
 	if err != nil {
@@ -58,11 +58,63 @@ func DelPod(name string) error {
 	if err != nil {
 		return err
 	}
+	return nil
+}
+
+func DelPod(name string) error {
+	err := DelSimpleContainer(name)
+	if err != nil {
+		return err
+	}
 
 	// delete pause container
 	stopContainer(name)
 	delContainer(name)
 	return nil
+}
+
+// judge a Pod is running or not
+func IsPodRunning(name string) bool {
+	// just determine the pause container is running or not
+	// find all container labeled with the 'name'
+	cli, err := remote_cli.NewRemoteRuntimeService(remote_cli.IdenticalErrorDelay)
+	if err != nil {
+		return false
+	}
+	is_find := false
+	walker := &containerwalker.ContainerWalker{
+		Client: cli.Client(),
+		OnFound: func(ctx context.Context, found containerwalker.Found) error {
+			is_find = true
+			return nil
+		},
+	}
+
+	ctx := namespaces.WithNamespace(context.Background(), "default")
+	_, err = walker.Walk(ctx, name)
+	return is_find
+}
+
+func IsCrashContainer(name string) bool {
+	// just determine the pause container is running or not
+	// find all container labeled with the 'name'
+	cli, err := remote_cli.NewRemoteRuntimeService(remote_cli.IdenticalErrorDelay)
+	if err != nil {
+		return false
+	}
+
+	is_find := false
+	walker := &containerwalker.ContainerWalker{
+		Client: cli.Client(),
+		OnFound: func(ctx context.Context, found containerwalker.Found) error {
+			is_find = true
+			return nil
+		},
+	}
+
+	ctx := namespaces.WithNamespace(context.Background(), "default")
+	_, err = walker.WalkPod(ctx, name)
+	return is_find
 }
 
 func stopContainer(id string) error {
