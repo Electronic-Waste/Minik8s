@@ -80,6 +80,7 @@ func genLimits(resMap map[core.ResourceName]core.Quantity) ([]oci.SpecOpts, erro
 			return nil, err
 		}
 		// cpus: from https://github.com/containerd/containerd/blob/v1.4.3/cmd/ctr/commands/run/run_unix.go#L187-L193
+		fmt.Printf("cpus is %f\n", float)
 		if float > 0.0 {
 			var (
 				period = uint64(100000)

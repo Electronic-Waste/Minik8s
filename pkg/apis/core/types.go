@@ -89,7 +89,7 @@ type VolumeMount struct {
 
 	// Path within the container at which the volume should be mounted.  Must
 	// not contain ':'.
-	MountPath string `json:"mountPath" protobuf:"bytes,3,opt,name=mountPath"`
+	MountPath string `json:"mountPath" protobuf:"bytes,3,opt,name=mountPath" yaml:"mountPath"`
 }
 
 // ResourceName is the name identifying various resources in a ResourceList.
@@ -165,17 +165,17 @@ type Container struct {
 	// +listMapKey=containerPort
 	// +listMapKey=protocol
 	// -p/--publish=127.0.0.1:80:8080/tcp ... but in nervctl version : only 127.0.0.1:80:8080/tcp
-	Ports []ContainerPort `json:"ports,omitempty" patchStrategy:"merge" patchMergeKey:"containerPort" protobuf:"bytes,6,rep,name=ports"`
+	Ports []ContainerPort `json:"ports,omitempty" patchStrategy:"merge" patchMergeKey:"containerPort" protobuf:"bytes,6,rep,name=ports" yaml:"ports"`
 	// Pod volumes to mount into the container's filesystem.
 	// Cannot be updated.
 	// +optional
 	// +patchMergeKey=mountPath
 	// +patchStrategy=merge
-	VolumeMounts []VolumeMount `json:"volumeMounts,omitempty" patchStrategy:"merge" patchMergeKey:"mountPath" protobuf:"bytes,9,rep,name=volumeMounts"`
+	VolumeMounts []VolumeMount `json:"volumeMounts,omitempty" patchStrategy:"merge" patchMergeKey:"mountPath" protobuf:"bytes,9,rep,name=volumeMounts" yaml:"volumeMounts""`
 
 	// Compute resource requirements.
 	// +optional
-	Resources ResourceRequirements `json:"resources,omitempty" protobuf:"bytes,8,opt,name=resources"`
+	Resources ResourceRequirements `json:"resources,omitempty" protobuf:"bytes,8,opt,name=resources" yaml:"resources""`
 
 	Mounts []Mount
 	// TODO(wjl) : add functional function step by step(such as volume and network and so on .......)
@@ -186,22 +186,11 @@ type PodStatus struct {
 	Phase PodPhase
 }
 
-type HostPathVolumeSource struct {
-	Path string `json:"path" protobuf:"bytes,1,opt,name=path"`
-}
-
-type VolumeSource struct {
-	// only support host map at this time
-	HostPath *HostPathVolumeSource `json:"hostPath,omitempty" protobuf:"bytes,1,opt,name=hostPath"`
-
-	// TODO : try to add emptyDir type of volume
-}
-
 type Volume struct {
 	// each volume in the pod must have a unique name
 	Name string `json:"name" protobuf:"bytes,1,opt,name=name"`
 
-	VolumeSource `json:",inline" protobuf:"bytes,2,opt,name=volumeSource"`
+	HostPath string `json:"hostPath,omitempty" yaml:"hostPath,omitempty"`
 }
 
 type PodSpec struct {

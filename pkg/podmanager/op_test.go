@@ -12,12 +12,8 @@ func TestAllProcess(t *testing.T) {
 	pod.Name = "test"
 	pod.Kind = "Pod"
 	pod.Spec.Volumes = []core.Volume{{
-		Name: "shared-data",
-		VolumeSource: core.VolumeSource{
-			HostPath: &core.HostPathVolumeSource{
-				Path: "/root/test_vo",
-			},
-		},
+		Name:     "shared-data",
+		HostPath: "/root/test_vo",
 	}}
 	pod.Spec.Containers = []core.Container{
 		{
@@ -67,12 +63,8 @@ func TestPodRunning(t *testing.T) {
 	pod.Name = "test"
 	pod.Kind = "Pod"
 	pod.Spec.Volumes = []core.Volume{{
-		Name: "shared-data",
-		VolumeSource: core.VolumeSource{
-			HostPath: &core.HostPathVolumeSource{
-				Path: "/root/test_vo",
-			},
-		},
+		Name:     "shared-data",
+		HostPath: "/root/test_vo",
 	}}
 	pod.Spec.Containers = []core.Container{
 		{
