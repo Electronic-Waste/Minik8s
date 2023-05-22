@@ -3,28 +3,27 @@ package controller
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/go-redis/redis/v8"
 	"github.com/google/uuid"
 	"golang.org/x/net/context"
 	"minik8s.io/pkg/apis/core"
-	"minik8s.io/pkg/apiserver/etcd"
 	"minik8s.io/pkg/podmanager"
-	util "minik8s.io/pkg/util/listwatch"
-	//_map "minik8s.io/pkg/util/tools/map"
+	"minik8s.io/pkg/util/listwatch"
+	"github.com/go-redis/redis/v8"
 	"minik8s.io/pkg/util/tools/queue"
+	apiurl "minik8s.io/pkg/apiserver/util/url"
 	"strings"
 	"time"
 )
 
-const (
-	apply  int = 0
-	update int = 1
-	delete int = 2
-)
+//const (
+//	apply  int = 0
+//	update int = 1
+//	delete int = 2
+//)
 
 type DeploymentController struct {
 	//Client
-	//listwatch
+	//util
 
 	// work queue
 	queue   *queue.Queue
@@ -51,7 +50,9 @@ func (dc *DeploymentController) Run(ctx context.Context) {
 
 func (dc *DeploymentController) register() {
 	print("register\n")
-	util.Watch("/api/v1/deployment/status", dc.listener)
+	listwatch.Watch(apiurl.DeploymentStatusApplyURL, dc.listener)
+	listwatch.Watch(apiurl.DeploymentStatusUpdateURL, dc.listener)
+	listwatch.Watch(apiurl.DeploymentStatusDelURL, dc.listener)
 	//not reach here
 	//print("registered\n")
 }
@@ -59,7 +60,7 @@ func (dc *DeploymentController) register() {
 func (dc *DeploymentController) listener(msg *redis.Message) {
 	print("listening\n")
 	bytes := []byte(msg.Payload)
-	watchres := etcd.WatchResult{}
+	watchres := listwatch.WatchResult{}
 	err := json.Unmarshal(bytes, &watchres)
 	if err != nil {
 		return
@@ -83,15 +84,15 @@ func (dc *DeploymentController) worker(ctx context.Context) {
 
 func (dc *DeploymentController) processNextWorkItem(ctx context.Context) {
 	key := dc.queue.Dequeue()
-	_ = dc.syncDeployment(ctx, key.(etcd.WatchResult))
+	_ = dc.syncDeployment(ctx, key.(listwatch.WatchResult))
 	return
 }
 
-func (dc *DeploymentController) syncDeployment(ctx context.Context, watchres etcd.WatchResult) error {
+func (dc *DeploymentController) syncDeployment(ctx context.Context, watchres listwatch.WatchResult) error {
 	var (
 		err        error
 		deployment core.Deployment
-		actiontype int
+		actiontype string
 		objecttype string
 	)
 	//format: pod: deployment-rsuid-poduid
@@ -112,7 +113,7 @@ func (dc *DeploymentController) syncDeployment(ctx context.Context, watchres etc
 		//	return nil
 		//}
 		switch actiontype {
-		case apply:
+		case "apply":
 			fmt.Println("apply deployment pods")
 			uid := uuid.New()
 			uidstr := strings.Split(uid.String(), "-")[0]
@@ -132,8 +133,8 @@ func (dc *DeploymentController) syncDeployment(ctx context.Context, watchres etc
 				AddPod(pod)
 			}
 			dc.nameMap[deployment.Metadata.Name] = nameSet
-		case update:
-		case delete:
+		case "update":
+		case "delete":
 			//client.addPod(pod)
 			//var nameSet []string
 			nameSet := dc.nameMap[deployment.Metadata.Name].([]string)
@@ -144,32 +145,44 @@ func (dc *DeploymentController) syncDeployment(ctx context.Context, watchres etc
 			}
 		}
 	case "Pod":
-		//seems only delete pod will invoke controller
-		//TODO: get real deployment status from apiserver
 		pod := core.Pod{}
 		err = json.Unmarshal(watchres.Payload, &pod)
 		if err != nil {
 			return err
 		}
-		name := pod.Name
-		namearr := strings.Split(name, "-")
-		deploymentname := namearr[0] + "-" + namearr[1]
-		deployment = GetDeployment(deploymentname)
-		if deployment.Status.AvailableReplicas < deployment.Spec.Replicas {
-			num := deployment.Spec.Replicas - deployment.Status.AvailableReplicas
-			for i := 0; i < num; i++ {
-				pod := core.Pod{}
-				pod = deployment.Spec.Template
-				AddPod(pod)
+		switch actiontype{
+		case "apply":
+		case "update":
+		case "delete":
+			deploymentname := ""
+			for k,v := range dc.nameMap{
+				nameSet := v.([]string)
+				for _,podname := range nameSet{
+					if podname == pod.Name{
+						deploymentname = k.(string)
+					}
+				}
+			}
+			if deploymentname != ""{
+				if deployment.Status.AvailableReplicas < deployment.Spec.Replicas {
+					num := deployment.Spec.Replicas - deployment.Status.AvailableReplicas
+					for i := 0; i < num; i++ {
+						pod := core.Pod{}
+						pod = deployment.Spec.Template
+						AddPod(pod)
+					}
+				}
+
+				if deployment.Status.AvailableReplicas > deployment.Spec.Replicas {
+					bytes, _ := json.Marshal(deployment)
+					msg := new(redis.Message)
+					msg.Payload = string(bytes)
+					//client
+				}
 			}
 		}
-
-		if deployment.Status.AvailableReplicas > deployment.Spec.Replicas {
-			bytes, _ := json.Marshal(deployment)
-			msg := new(redis.Message)
-			msg.Payload = string(bytes)
-			//client
-		}
+		
+		
 	}
 	//TODO: check the deployment status and do actions accordingly
 	return nil

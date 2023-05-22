@@ -4,9 +4,10 @@ import (
 	"encoding/json"
 	"golang.org/x/net/context"
 	"minik8s.io/pkg/apis/core"
-	"minik8s.io/pkg/apiserver/etcd"
 	util "minik8s.io/pkg/util/listwatch"
+	"minik8s/pkg/util/listwatch"
 	"time"
+	"github.com/go-redis/redis/v8"
 
 	"testing"
 )
@@ -55,7 +56,6 @@ func TestDeployment(t *testing.T) {
 		},
 	}
 
-
 	deployment := core.Deployment{}
 	deployment.Spec.Replicas = 3
 	deployment.Status.AvailableReplicas = 3
@@ -64,14 +64,13 @@ func TestDeployment(t *testing.T) {
 	deployment.Status.AvailableReplicas = 3
 	deployment.Spec.Template = pod
 
-	watchres := etcd.WatchResult{}
+	watchres := listwatch.WatchResult{}
 	watchres.ObjectType = "Deployment"
 	watchres.ActionType = apply
 	watchres.Payload, _ = json.Marshal(deployment)
 
 	bytes, _ := json.Marshal(watchres)
 	//payload := string(bytes)
-	
 
 	util.Publish("/api/v1/deployment/status", bytes)
 	time.Sleep(time.Second * 3)
@@ -119,7 +118,6 @@ func TestReplicaset(t *testing.T) {
 		},
 	}
 
-
 	deployment := core.Deployment{}
 	deployment.Spec.Replicas = 3
 	deployment.Status.AvailableReplicas = 3
@@ -128,7 +126,7 @@ func TestReplicaset(t *testing.T) {
 	deployment.Status.AvailableReplicas = 3
 	deployment.Spec.Template = pod
 
-	watchres := etcd.WatchResult{}
+	watchres := listwatch.WatchResult{}
 	watchres.ObjectType = "Deployment"
 	watchres.ActionType = apply
 	watchres.Payload, _ = json.Marshal(deployment)

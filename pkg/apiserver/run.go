@@ -1,27 +1,33 @@
 package apiserver
 
-import(
+import (
 	"net/http"
 
-	"minik8s.io/pkg/apiserver/util/url"
-	"minik8s.io/pkg/apiserver/pod"
+	"minik8s.io/pkg/apiserver/deployment"
 	"minik8s.io/pkg/apiserver/etcd"
+	"minik8s.io/pkg/apiserver/pod"
+	"minik8s.io/pkg/apiserver/util/url"
 )
 
 type HttpHandler func(http.ResponseWriter, *http.Request)
 
 var postHandlerMap = map[string]HttpHandler{
-	url.PodStatusPutURL : pod.HandlePutPodStatus,
-	
+	url.PodStatusApplyURL:         pod.HandleApplyPodStatus,
+	url.PodStatusUpdateURL:        pod.HandleUpdatePodStatus,
+	url.DeploymentStatusApplyURL:  deployment.HandleApplyDeploymentStatus,
+	url.DeploymentStatusUpdateURL: deployment.HandleUpdateDeploymentStatus,
 }
 
 var getHandlerMap = map[string]HttpHandler{
-	url.PodStatusGetURL : pod.HandleGetPodStatus,
-	url.PodStatusGetAllURL : pod.HandleGetAllPodStatus,
+	url.PodStatusGetURL:           pod.HandleGetPodStatus,
+	url.PodStatusGetAllURL:        pod.HandleGetAllPodStatus,
+	url.DeploymentStatusGetURL:    deployment.HandleGetDeploymentStatus,
+	url.DeploymentStatusGetAllURL: deployment.HandleGetAllDeploymentStatus,
 }
 
 var deleteHandlerMap = map[string]HttpHandler{
-	url.PodStatusDelURL : pod.HandleDelPodStatus,
+	url.PodStatusDelURL:        pod.HandleDelPodStatus,
+	url.DeploymentStatusDelURL: deployment.HandleDelDeploymentStatus,
 }
 
 func bindWatchHandler() {
