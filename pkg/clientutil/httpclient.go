@@ -86,6 +86,30 @@ func HttpGet(objType string, params map[string]string) ([]byte, error) {
 	return nil, errors.New("invalid request")
 }
 
+// return: obj queried
+// @objType: type want to get
+func HttpGetAll(objType string) ([]byte, error) {
+	client := http.Client{}
+	switch objType {
+	case "Deployment":
+		request, err := http.NewRequest("GET", apiurl.Prefix + apiurl.DeploymentStatusGetAllURL, nil)
+		if err != nil {
+			log.Fatal(err)
+		}
+		response, err := client.Do(request)
+		if err != nil {
+			log.Fatal(err)
+			//return errors.New("")
+		}
+		if response.StatusCode != http.StatusOK {
+			return nil, errors.New("get fail")
+		}
+		data, err := ioutil.ReadAll(response.Body)
+		return data, nil
+	}
+	return nil, errors.New("invalid request")
+}
+
 // return: error
 // @objType: type want to get; @params: query params
 func HttpDel(objType string, params map[string]string) ([]byte, error) {

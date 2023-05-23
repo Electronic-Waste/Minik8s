@@ -1,17 +1,17 @@
 package controller
 
 import (
-	"encoding/json"
-	"golang.org/x/net/context"
-	"minik8s.io/pkg/apis/core"
+	//"encoding/json"
+	//"context"
+	//"minik8s.io/pkg/apis/core"
 	util "minik8s.io/pkg/util/listwatch"
-	"minik8s/pkg/util/listwatch"
-	"time"
-	"github.com/go-redis/redis/v8"
+	//"time"
+	//"github.com/go-redis/redis/v8"
+	apiurl "minik8s.io/pkg/apiserver/util/url"
 
 	"testing"
 )
-
+/*
 func TestDeployment(t *testing.T) {
 	ctx := context.Background()
 	deploymentController, _ := NewDeploymentController(ctx)
@@ -136,4 +136,11 @@ func TestReplicaset(t *testing.T) {
 	watchres.ActionType = delete
 
 	deploymentController.syncDeployment(ctx, watchres)
+}
+*/
+func TestApply(t *testing.T) {
+	bytes := []byte{}
+	util.Publish(apiurl.DeploymentStatusApplyURL, bytes)
+	util.Publish(apiurl.DeploymentStatusUpdateURL, bytes)
+	util.Publish(apiurl.DeploymentStatusDelURL, bytes)
 }

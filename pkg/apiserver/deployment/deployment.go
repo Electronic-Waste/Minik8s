@@ -46,7 +46,8 @@ func HandleGetDeploymentStatus(resp http.ResponseWriter, req *http.Request) {
 func HandleGetAllDeploymentStatus(resp http.ResponseWriter, req *http.Request) {
 	etcdPrefix := url.DeploymentStatus
 	var deploymentStatusArr []string
-	deploymentStatusArr, err := etcd.GetWithPrefix(etcdPrefix)
+	//deploymentStatusArr, err := etcd.GetWithPrefix(etcdPrefix)
+	err := etcd.DelWithPrefix(etcdPrefix)
 	// Error occur in etcd: return error to client
 	if err != nil {
 		resp.WriteHeader(http.StatusNotFound)
