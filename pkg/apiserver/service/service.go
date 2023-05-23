@@ -89,8 +89,11 @@ func HandleApplyService(resp http.ResponseWriter, req *http.Request) {
 		return
 	}
 	// Success!
+	// Publish to redis:
+	// 1. topic: /service/apply
+	// 2. payload: <KubeproxyServiceParam>
 	// TODO(shaowang): Implement selector & Design redis message pattern
-	pubURL := path.Join(url.Service, "apply", namespace, serviceName)
+	pubURL := path.Join(url.Service, "apply")
 	listwatch.Publish(pubURL, string(body))	
 	resp.WriteHeader(http.StatusOK)
 }
@@ -119,7 +122,10 @@ func HandleUpdateService(resp http.ResponseWriter, req *http.Request) {
 		return
 	}
 	// Success!
-	pubURL := path.Join(url.Service, "update", namespace, serviceName)
+	// Publish to redis:
+	// 1. topic: /service/update
+	// 2. payload: core.Service's JSON format
+	pubURL := path.Join(url.Service, "update")
 	listwatch.Publish(pubURL, string(body))	
 	resp.WriteHeader(http.StatusOK)
 }
@@ -146,7 +152,10 @@ func HandleDelService(resp http.ResponseWriter, req *http.Request) {
 		return
 	}
 	// Success!
-	pubURL := path.Join(url.Service, "del", namespace, serviceName)
-	listwatch.Publish(pubURL, "")	
+	// Publish to redis:
+	// 1. topic: /service/del
+	// 2. payload: <serviceName>
+	pubURL := path.Join(url.Service, "del")
+	listwatch.Publish(pubURL, serviceName)
 	resp.WriteHeader(http.StatusOK)
 }

@@ -17,9 +17,9 @@ const (
 	Service				string = "/service"
 	ServiceGetURL		string = Service + "/get"
 	ServiceGetAllURL	string = Service + "/getall"
-	ServiceDelURL		string = Service + "del"
-	ServiceApplyURL		string = Service + "apply"
-	ServiceUpdateURL	string = Service + "update"
+	ServiceDelURL		string = Service + "/del"
+	ServiceApplyURL		string = Service + "/apply"
+	ServiceUpdateURL	string = Service + "/update"
 
 	DeploymentStatus          string = "/deployment/status"
 	DeploymentStatusGetURL    string = DeploymentStatus + "/get"
