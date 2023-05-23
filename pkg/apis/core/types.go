@@ -410,3 +410,23 @@ type ServiceSpec struct {
 	ClusterIP string `json:"clusterIP,omitempty"`
 }
 
+// KubeproxyServiceParam is received by kuebproxy, which is used for creating service
+type KubeproxyServiceParam struct {
+	// Service's name
+	ServiceName 	string			`json:"serviceName,omitempty"`
+
+	// ClusterIP is the IP address of the service and is usually assigned
+	// randomly by the master. If an address is specified manually and is not in
+	// use by others, it will be allocated to the service
+	ClusterIP 		string			`json:"clusterIP,omitempty"`
+
+	// ServicePort represents the port on which the service is exposed
+	ServicePorts 	[]ServicePort	`json:"servicePorts,omitempty"`
+
+	// Pods' names
+	PodNames 		[]string		`json:"podNames,omitempty"`
+
+	// Pods' IPs
+	PodIPs 			[]string		`json:"podIPs,omitempty"`
+}
+

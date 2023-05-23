@@ -6,6 +6,7 @@ import (
 	"os/exec"
 	"fmt"
 	"io/ioutil"
+	"encoding/json"
 
 	"minik8s.io/pkg/util/ipgen"
 )
@@ -91,24 +92,24 @@ func TestServiceChain(t *testing.T) {
 		t.Errorf("Error in http response: %v", err)
 	} else {
 		body, _ := ioutil.ReadAll(response.Body)
-		t.Logf("response: %s", string(body))
-		if string(body) != "test" {
+		var content string
+		json.Unmarshal(body, &content)
+		t.Logf("response: %s", content)
+		if content != "test" {
 			t.Error("Test result error!")
 		}
 	}
 	
 	// Clean chains and rules
+	err = cli.DeleteServiceChain(serviceName, clusterIP, serviceChainName, 22222)
+	if err != nil {
+		t.Logf("Error in deleting service chain: %v", err)
+	}
 	err = cli.DeletePodChain("pod-test", podChainName)
 	if err != nil {
 		t.Logf("Error in deleting pod chain: %v", err)
 	}
-	cli.DeleteServiceChain(serviceName, clusterIP, serviceChainName, 22222)
-	if err != nil {
-		t.Logf("Error in deleting service chain: %v", err)
-	}
-	cli.DeinitServiceIPTables()
-	if err != nil {
-		t.Logf("Error in deiniting pod chain: %v", err)
-	}
+	
+
 }
 
