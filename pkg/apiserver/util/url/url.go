@@ -2,8 +2,8 @@ package url
 
 const (
 	HttpScheme string = "http://"
-	HostURL string = "localhost"
-	Port string = ":8080"
+	HostURL    string = "localhost"
+	Port       string = ":8080"
 
 	Prefix string = HttpScheme + HostURL + Port
 
@@ -20,4 +20,12 @@ const (
 	ServiceDelURL		string = Service + "del"
 	ServiceApplyURL		string = Service + "apply"
 	ServiceUpdateURL	string = Service + "update"
+
+	DeploymentStatus          string = "/deployment/status"
+	DeploymentStatusGetURL    string = DeploymentStatus + "/get"
+	DeploymentStatusGetAllURL string = DeploymentStatus + "/getall"
+	DeploymentStatusDelURL    string = DeploymentStatus + "/del"
+	DeploymentStatusApplyURL  string = DeploymentStatus + "/apply"
+	DeploymentStatusUpdateURL string = DeploymentStatus + "/update"
 )
+

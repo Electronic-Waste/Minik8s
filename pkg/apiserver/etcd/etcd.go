@@ -1,18 +1,17 @@
 package etcd
 
 import (
-	"time"
 	"context"
-	"fmt"
 	"errors"
-
+	"fmt"
 	clientv3 "go.etcd.io/etcd/client/v3"
+	"time"
 )
 
 var client *clientv3.Client = nil
 
 const (
-	etcdTimeout =  2 * time.Second
+	etcdTimeout = 2 * time.Second
 )
 
 // Initialize a new etcd client
@@ -22,7 +21,7 @@ func InitializeEtcdKVStore() error {
 		return nil
 	}
 	cli, err := clientv3.New(clientv3.Config{
-		Endpoints: []string{"127.0.0.1:2379"},
+		Endpoints:   []string{"127.0.0.1:2379"},
 		DialTimeout: etcdTimeout,
 	})
 	client = cli
@@ -85,6 +84,7 @@ func DelWithPrefix(keyPrefix string) error {
 func DelAll() error {
 	return DelWithPrefix("")
 }
+
 // // Watch invoke a handler function on the change of a given key
 // func Watch(key string) {
 // 	watchCh := client.Watch(context.Background(), key)
@@ -97,4 +97,3 @@ func DelAll() error {
 // 		}
 // 	}()
 // }
-

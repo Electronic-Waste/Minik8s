@@ -10,6 +10,7 @@ import (
 	"minik8s.io/pkg/util/listwatch"
 	"minik8s.io/pkg/apiserver/etcd"
 	"minik8s.io/pkg/apiserver/util/url"
+	"minik8s.io/pkg/apis/core"
 )
 
 
@@ -72,10 +73,15 @@ func HandleGetAllPodStatus(resp http.ResponseWriter, req *http.Request) {
 // @namespace: namespace requested; @name: pod name
 // body: core.Pod in JSON form
 func HandleApplyPodStatus(resp http.ResponseWriter, req *http.Request) {
-	vars := req.URL.Query()
-	namespace := vars.Get("namespace")
-	podName := vars.Get("name")
+	//vars := req.URL.Query()
+	//namespace := vars.Get("namespace")
+	//podName := vars.Get("name")
 	body, _ := ioutil.ReadAll(req.Body)
+
+	pod := core.Pod{}
+	json.Unmarshal(body, &pod)
+	podName := pod.Name
+	namespace := "default"
 	// Param miss: return error to client
 	if namespace == "" || podName == "" {
 		resp.WriteHeader(http.StatusBadRequest)
@@ -91,7 +97,7 @@ func HandleApplyPodStatus(resp http.ResponseWriter, req *http.Request) {
 		return
 	}
 	// Success!
-	pubURL := path.Join(url.PodStatus, "apply", namespace, podName)
+	pubURL := path.Join(url.PodStatus, "apply")
 	listwatch.Publish(pubURL, string(body))	
 	resp.WriteHeader(http.StatusOK)
 }
@@ -120,7 +126,7 @@ func HandleUpdatePodStatus(resp http.ResponseWriter, req *http.Request) {
 		return
 	}
 	// Success!
-	pubURL := path.Join(url.PodStatus, "update", namespace, podName)
+	pubURL := path.Join(url.PodStatus, "update")
 	listwatch.Publish(pubURL, string(body))	
 	resp.WriteHeader(http.StatusOK)
 }
@@ -147,8 +153,8 @@ func HandleDelPodStatus(resp http.ResponseWriter, req *http.Request) {
 		return
 	}
 	// Success!
-	pubURL := path.Join(url.PodStatus, "del", namespace, podName)
-	listwatch.Publish(pubURL, "")	
+	pubURL := path.Join(url.PodStatus, "del")
+	listwatch.Publish(pubURL, podName)	
 	resp.WriteHeader(http.StatusOK)
 }
 

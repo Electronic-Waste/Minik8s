@@ -83,13 +83,22 @@ type Mount struct {
 	DestinationPath string
 }
 
+type VolumeMount struct {
+	// This must match the Name of a Volume.
+	Name string `json:"name" protobuf:"bytes,1,opt,name=name"`
+
+	// Path within the container at which the volume should be mounted.  Must
+	// not contain ':'.
+	MountPath string `json:"mountPath" protobuf:"bytes,3,opt,name=mountPath"`
+}
+
 // Container represents a single container that is expected to be run on the host.
 type Container struct {
 	// Required: This must be a DNS_LABEL.  Each container in a pod must
 	// have a unique name.
-	Name string
+	Name string `json:"name" protobuf:"bytes,1,opt,name=name"`
 	// Required.
-	Image string
+	Image string `json:"image,omitempty" protobuf:"bytes,2,opt,name=image"`
 	// Optional: The container image's entrypoint is used if this is not provided; cannot be updated.
 	// Variable references $(VAR_NAME) are expanded using the container's environment.  If a variable
 	// cannot be resolved, the reference in the input string will be unchanged.  Double $$ are reduced
@@ -97,7 +106,7 @@ type Container struct {
 	// produce the string literal "$(VAR_NAME)".  Escaped references will never be expanded, regardless
 	// of whether the variable exists or not.
 	// +optional
-	Command []string
+	Command []string `json:"command,omitempty" protobuf:"bytes,3,rep,name=command"`
 	// Optional: The container image's cmd is used if this is not provided; cannot be updated.
 	// Variable references $(VAR_NAME) are expanded using the container's environment.  If a variable
 	// cannot be resolved, the reference in the input string will be unchanged.  Double $$ are reduced
@@ -105,10 +114,10 @@ type Container struct {
 	// produce the string literal "$(VAR_NAME)".  Escaped references will never be expanded, regardless
 	// of whether the variable exists or not.
 	// +optional
-	Args []string
+	Args []string `json:"args,omitempty" protobuf:"bytes,4,rep,name=args"`
 	// Optional: Defaults to the container runtime's default working directory.
 	// +optional
-	WorkingDir string
+	WorkingDir string `json:"workingDir,omitempty" protobuf:"bytes,5,opt,name=workingDir"`
 	// List of ports to expose from the container. Not specifying a port here
 	// DOES NOT prevent that port from being exposed. Any port which is
 	// listening on the default "0.0.0.0" address inside a container will be
@@ -124,6 +133,12 @@ type Container struct {
 	// +listMapKey=protocol
 	// -p/--publish=127.0.0.1:80:8080/tcp ... but in nervctl version : only 127.0.0.1:80:8080/tcp
 	Ports []ContainerPort `json:"ports,omitempty" patchStrategy:"merge" patchMergeKey:"containerPort" protobuf:"bytes,6,rep,name=ports"`
+	// Pod volumes to mount into the container's filesystem.
+	// Cannot be updated.
+	// +optional
+	// +patchMergeKey=mountPath
+	// +patchStrategy=merge
+	VolumeMounts []VolumeMount `json:"volumeMounts,omitempty" patchStrategy:"merge" patchMergeKey:"mountPath" protobuf:"bytes,9,rep,name=volumeMounts"`
 
 	Mounts []Mount
 	// TODO(wjl) : add functional function step by step(such as volume and network and so on .......)
@@ -135,25 +150,25 @@ type PodStatus struct {
 }
 
 type HostPathVolumeSource struct {
-	Path string
+	Path string `json:"path" protobuf:"bytes,1,opt,name=path"`
 }
 
 type VolumeSource struct {
 	// only support host map at this time
-	HostPath *HostPathVolumeSource
+	HostPath *HostPathVolumeSource `json:"hostPath,omitempty" protobuf:"bytes,1,opt,name=hostPath"`
 
 	// TODO : try to add emptyDir type of volume
 }
 
 type Volume struct {
 	// each volume in the pod must have a unique name
-	Name string
+	Name string `json:"name" protobuf:"bytes,1,opt,name=name"`
 
-	VolumeSource
+	VolumeSource `json:",inline" protobuf:"bytes,2,opt,name=volumeSource"`
 }
 
 type PodSpec struct {
-	Volumes []Volume
+	Volumes []Volume `json:"volumes,omitempty"`
 
 	// not consider the init Container
 
@@ -163,11 +178,11 @@ type PodSpec struct {
 
 // ensure a variable which can identify a Pod
 type Pod struct {
-	meta.ObjectMeta
+	Kind string `json:"kind,omitempty" yaml:"kind,omitempty"`
 
-	Kind string
+	meta.ObjectMeta `json:"metadata" yaml:"metadata" mapstructure:"metadata"`
 
-	Spec PodSpec
+	Spec PodSpec `json:"spec,omitempty" protobuf:"bytes,2,opt,name=spec"`
 
 	Status PodStatus
 }
@@ -351,18 +366,39 @@ type NetworkOptions struct {
 	PortMappings []gocni.PortMapping
 }
 
+type Deployment struct {
+	Metadata meta.ObjectMeta
+	Spec     DeploymentSpec
+	Status   DeploymentStatus
+}
+
+type DeploymentSpec struct {
+	Replicas int
+	Template Pod
+	Selector string //must match .spec.template.metadata.labels
+	//strategy	DeploymentStrategy
+}
+
+type DeploymentStatus struct {
+	//ObservedGeneration int
+	AvailableReplicas int
+	//for later use
+	//UpdatedReplicas int
+	//ReadyReplicas   int
+}
+
 // Service is a named abstraction of software service (for example, mysql) consisting of local port
 // that the proxy listens on, and the selector that determines which pods will answer 
 // requests sent through the proxy.
 type Service struct {
 	// Service's name (can be omitted)
-	meta.ObjectMeta		`json:"metadata,omitempty"`
+	meta.ObjectMeta `json:"metadata,omitempty"`
 
 	// Service's kind is Service
-	Kind string			`json:"kind"`
+	Kind string `json:"kind"`
 
 	// Spec defines the behavior of a service.
-	Spec ServiceSpec	`json:"spec"`
+	Spec ServiceSpec `json:"spec"`
 }
 
 // ServicePort represents the port on which the service is exposed
@@ -371,13 +407,13 @@ type ServicePort struct {
 	// name of this port within the service.  This must be a DNS_LABEL.
 	// All ports within a ServiceSpec must have unique names.  This maps to
 	// the 'Name' field in EndpointPort objects.
-	Name string	`json:"name"`
+	Name string `json:"name"`
 
 	// The IP protocol for this port.  Supports "TCP", "UDP", and "SCTP".
-	Protocol Protocol	`json:"protocol,omitempty"`
+	Protocol Protocol `json:"protocol,omitempty"`
 
 	// The port that will be exposed on the service.
-	Port int32	`json:"port,omitempty"`
+	Port int32 `json:"port,omitempty"`
 
 	// Optional: The target port on pods selected by this service.  If this
 	// is a string, it will be looked up as a named port in the target
@@ -402,13 +438,14 @@ type ServiceSpec struct {
 	// external process managing its endpoints, which Kubernetes will not
 	// modify. Only applies to types ClusterIP, NodePort, and LoadBalancer.
 	// Ignored if type is ExternalName.
-	Selector  map[string]string `json:"selector,omitempty"`
+	Selector map[string]string `json:"selector,omitempty"`
 
 	// ClusterIP is the IP address of the service and is usually assigned
 	// randomly by the master. If an address is specified manually and is not in
 	// use by others, it will be allocated to the service
 	ClusterIP string `json:"clusterIP,omitempty"`
 }
+
 
 // KubeproxyServiceParam is received by kuebproxy, which is used for creating service
 type KubeproxyServiceParam struct {

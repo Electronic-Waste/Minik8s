@@ -4,9 +4,11 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log"
 	"os/exec"
+	"strings"
 	"time"
 
 	"minik8s.io/pkg/network"
@@ -26,9 +28,13 @@ type remoteRuntimeService struct {
 	runtimeClient *containerd.Client
 }
 
+func (r *remoteRuntimeService) Client() *containerd.Client {
+	return r.runtimeClient
+}
+
 func NewRemoteRuntimeService(connectionTimeout time.Duration) (*remoteRuntimeService, error) {
 	// build a new cri client
-	client, err := containerd.New(constant.Cri_uri)
+	client, err := containerd.New(constant.Cli_uri)
 	// need to call client.Close() to gc this object
 	if err != nil {
 		return nil, err
@@ -71,12 +77,15 @@ func (cli *remoteRuntimeService) StartContainer(ctx context.Context, containerMe
 	// create a container
 	var processArgs []string
 	flag := len(containerMeta.Command) == 0
+
+	// init the command and core args
 	for _, cmd := range containerMeta.Command {
 		processArgs = append(processArgs, cmd)
 	}
 	for _, arg := range containerMeta.Args {
 		processArgs = append(processArgs, arg)
 	}
+
 	var opts []oci.SpecOpts
 	var cOpts []containerd.NewContainerOpts
 
@@ -91,11 +100,21 @@ func (cli *remoteRuntimeService) StartContainer(ctx context.Context, containerMe
 	}
 
 	netConfig := network.DefaultNetOpt()
+	nameMap := make(map[string]string)
 	if Namespace != "" {
 		// with shared network namespace
 		// format container:<containerid>
 		// TODO : add the checking logic here to check for the format
 		netConfig.NetworkSlice = []string{Namespace}
+
+		// init the label to use namespace to find all container
+		// parse the Name here
+		arr := strings.Split(Namespace, ":")
+		fmt.Printf("receive the namespace is %s\n", Namespace)
+		if len(arr) < 2 {
+			return errors.New("wrong namespace format")
+		}
+		nameMap["minik8s/podName"] = arr[1]
 	}
 	network_manager := network.ConstructNetworkManager(*(network.New()), netConfig)
 
@@ -130,6 +149,8 @@ func (cli *remoteRuntimeService) StartContainer(ctx context.Context, containerMe
 		cOpts = append(cOpts, containerd.WithImage(image_getted))
 		cOpts = append(cOpts, containerd.WithNewSnapshot(containerMeta.Name+"-snapshot", image_getted))
 		cOpts = append(cOpts, containerd.WithAdditionalContainerLabels(portMap))
+		// add label to make it can be find by the containerwalker
+		cOpts = append(cOpts, containerd.WithAdditionalContainerLabels(nameMap))
 		cOpts = append(cOpts, containerd.WithNewSpec(opts...))
 	}
 	container, err := cli.runtimeClient.NewContainer(
@@ -146,6 +167,8 @@ func (cli *remoteRuntimeService) StartContainer(ctx context.Context, containerMe
 		return err
 	}
 
+	fmt.Println("create task is")
+	fmt.Println(task)
 	defer task.Delete(ctx)
 
 	// make sure we wait before calling start
@@ -174,8 +197,7 @@ func (cli *remoteRuntimeService) StartContainer(ctx context.Context, containerMe
 func (cli *remoteRuntimeService) RunSandBox(name string) error {
 	// use cmd to build a pause container
 	// run cmd : nerdctl run -d  --name fake_k8s_pod_pause   registry.aliyuncs.com/google_containers/pause:3.9
-	cmd := exec.Command("nerdctl", "run", "-d", "--name", name, constant.SandBox_Image)
-	fmt.Println("finish the init of cmd")
+	cmd := exec.Command("nerdctl", "run", "-d", "--name", name, "--net", "flannel", constant.SandBox_Image)
 	var stdout, stderr bytes.Buffer
 	cmd.Stdout = &stdout
 	cmd.Stderr = &stderr
