@@ -111,7 +111,7 @@ func main() {
 			fmt.Println(err)
 			os.Exit(1)
 		}
-		pod.ContainerConvert()
+		fmt.Println(pod)
 		err = podmanager.RunPod(pod)
 		if err != nil {
 			fmt.Println(err)
