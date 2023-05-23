@@ -59,9 +59,9 @@ func TestServiceChain(t *testing.T) {
 	serviceChainName := cli.CreateServiceChain()
 	serviceName := "service-test"
 	podChainName := cli.CreatePodChain()
-	podName := "pod-test"
-	podIP := "192.168.1.6"
-	targetPort := 8080
+	podName := "test"
+	podIP := "10.0.6.2"
+	targetPort := 80
 	port := 22222
 	err = cli.ApplyPodChainRules(podChainName, podIP, (uint16)(targetPort))
 	if err != nil {

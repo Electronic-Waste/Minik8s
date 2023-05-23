@@ -5,14 +5,14 @@ import (
 )
 
 type Interface interface {
-	AppendServiceChainName(serviceName, serviceChainName string)
+	AppendServiceChainNames(serviceName string, serviceChainNames []string)
 	AppendClusterIP(serviceName, clusterIP string)
 	AppendServicePorts(serviceName string, servicePorts []core.ServicePort)
 	AppendPodNames(serviceName string, podNames []string)
 	AppendPodChainName(podName, podChainName string)
 	AppendPodIP(podName, podIP string)
 	GetServiceChainName(serviceName string)
-	DeleteServiceChainName(serviceName string)
+	DeleteServiceChainNames(serviceName string)
 	DeleteClusterIP(serviceName string)
 	DeleteServicePorts(serviceName string)
 	DeletePodNames(serviceName string)
@@ -22,7 +22,7 @@ type Interface interface {
 
 type MetaController struct {
 	// serviceName -> serviceChainNames (KUBE-SVC-)
-	MapServiceChainName		map[string][]string
+	MapServiceChainNames	map[string][]string
 	// serviceName -> clusterIP
 	MapClusterIP			map[string]string
 	// serviceName -> servicePorts
@@ -37,7 +37,7 @@ type MetaController struct {
 
 func NewMetaController() (*MetaController, error) {
 	return &MetaController{
-		MapServiceChainName: map[string][]string{},
+		MapServiceChainNames: map[string][]string{},
 		MapClusterIP: map[string]string{},
 		MapServicePorts: map[string][]core.ServicePort{},
 		MapPodNames: map[string][]string{},
@@ -46,8 +46,8 @@ func NewMetaController() (*MetaController, error) {
 	}, nil
 }
 
-func (controller *MetaController) AppendServiceChainName(serviceName string, serviceChainNames []string) {
-	controller.MapServiceChainName[serviceName] = serviceChainNames
+func (controller *MetaController) AppendServiceChainNames(serviceName string, serviceChainNames []string) {
+	controller.MapServiceChainNames[serviceName] = serviceChainNames
 }
 
 func (controller *MetaController) AppendClusterIP(serviceName, clusterIP string) {
@@ -70,8 +70,8 @@ func (controller *MetaController) AppendPodIP(podName, podIP string) {
 	controller.MapPodIP[podName] = podIP
 }
 
-func (controller *MetaController) DeleteServiceChainName(serviceName string) {
-	delete(controller.MapServiceChainName, serviceName)
+func (controller *MetaController) DeleteServiceChainNames(serviceName string) {
+	delete(controller.MapServiceChainNames, serviceName)
 }
 
 func (controller *MetaController) DeleteClusterIP(serviceName string) {
