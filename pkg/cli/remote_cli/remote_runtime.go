@@ -6,8 +6,10 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/docker/go-units"
 	"log"
 	"os/exec"
+	"strconv"
 	"strings"
 	"time"
 
@@ -65,6 +67,37 @@ func propagateContainerdLabelsToOCIAnnotations() oci.SpecOpts {
 	return func(ctx context.Context, oc oci.Client, c *containers.Container, s *oci.Spec) error {
 		return oci.WithAnnotations(c.Labels)(ctx, oc, c, s)
 	}
+}
+
+func genLimits(resMap map[core.ResourceName]core.Quantity) ([]oci.SpecOpts, error) {
+	var opts []oci.SpecOpts
+	// parse the limit and construct the core Opts
+	if res, ok := resMap[core.ResourceCPU]; ok {
+		// deal with cpu case
+		float, err := strconv.ParseFloat(string(res), 64)
+		if err != nil {
+			fmt.Println(err)
+			return nil, err
+		}
+		// cpus: from https://github.com/containerd/containerd/blob/v1.4.3/cmd/ctr/commands/run/run_unix.go#L187-L193
+		fmt.Printf("cpus is %f\n", float)
+		if float > 0.0 {
+			var (
+				period = uint64(100000)
+				quota  = int64(float * 100000.0)
+			)
+			opts = append(opts, oci.WithCPUCFS(quota, period))
+		}
+	}
+	if res, ok := resMap[core.ResourceMemory]; ok {
+		// deal with memory case
+		mem64, err := units.RAMInBytes(string(res))
+		if err != nil {
+			return nil, fmt.Errorf("failed to parse memory bytes %q: %w", string(res), err)
+		}
+		opts = append(opts, oci.WithMemoryLimit(uint64(mem64)))
+	}
+	return opts, nil
 }
 
 // we use a Container Object to start a container with our purpose
@@ -133,7 +166,20 @@ func (cli *remoteRuntimeService) StartContainer(ctx context.Context, containerMe
 		cOpts = append(cOpts, containerd.WithImage(image_getted))
 		cOpts = append(cOpts, containerd.WithNewSnapshot(containerMeta.Name+"-snapshot", image_getted))
 		cOpts = append(cOpts, containerd.WithNewSpec(oci.WithImageConfig(image_getted)))
+		cOpts = append(cOpts, containerd.WithAdditionalContainerLabels(portMap))
+		// add label to make it can be find by the containerwalker
+		cOpts = append(cOpts, containerd.WithAdditionalContainerLabels(nameMap))
 		opts = append(opts, netOpts...)
+
+		resOpts, err := genLimits(containerMeta.Resources.Limits)
+		if err != nil {
+			return err
+		}
+		opts = append(opts, resOpts...)
+
+		opts = append(opts,
+			oci.WithMounts(core.ConvertMounts(containerMeta.Mounts)),
+			propagateContainerdLabelsToOCIAnnotations())
 		cOpts = append(cOpts, netNewContainerOpts...)
 
 	} else {
@@ -145,6 +191,11 @@ func (cli *remoteRuntimeService) StartContainer(ctx context.Context, containerMe
 			propagateContainerdLabelsToOCIAnnotations(),
 		)
 		opts = append(opts, netOpts...)
+		resOpts, err := genLimits(containerMeta.Resources.Limits)
+		if err != nil {
+			return err
+		}
+		opts = append(opts, resOpts...)
 
 		cOpts = append(cOpts, containerd.WithImage(image_getted))
 		cOpts = append(cOpts, containerd.WithNewSnapshot(containerMeta.Name+"-snapshot", image_getted))
@@ -197,7 +248,8 @@ func (cli *remoteRuntimeService) StartContainer(ctx context.Context, containerMe
 func (cli *remoteRuntimeService) RunSandBox(name string) error {
 	// use cmd to build a pause container
 	// run cmd : nerdctl run -d  --name fake_k8s_pod_pause   registry.aliyuncs.com/google_containers/pause:3.9
-	cmd := exec.Command("nerdctl", "run", "-d", "--name", name, "--net", "flannel", constant.SandBox_Image)
+	cmd := exec.Command("nerdctl", "run", "-d", "--name", name, "--net", "flannel",
+		"--label", "minik8s=pause", constant.SandBox_Image)
 	var stdout, stderr bytes.Buffer
 	cmd.Stdout = &stdout
 	cmd.Stderr = &stderr

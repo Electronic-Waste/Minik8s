@@ -3,6 +3,8 @@ package main
 import (
 	"context"
 	"fmt"
+	"minik8s.io/pkg/constant"
+	"minik8s.io/pkg/podmanager"
 	"os"
 	"strings"
 
@@ -102,5 +104,18 @@ func main() {
 			panic(err)
 		}
 		fmt.Println("start a new SandBox")
+	} else if strings.Compare("test", os.Args[1]) == 0 {
+		// parse the Pod config first
+		pod, err := core.ParsePod(constant.SysPodDir + "/test.yaml")
+		if err != nil {
+			fmt.Println(err)
+			os.Exit(1)
+		}
+		fmt.Println(pod)
+		err = podmanager.RunPod(pod)
+		if err != nil {
+			fmt.Println(err)
+			os.Exit(1)
+		}
 	}
 }

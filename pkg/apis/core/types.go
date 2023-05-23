@@ -89,7 +89,40 @@ type VolumeMount struct {
 
 	// Path within the container at which the volume should be mounted.  Must
 	// not contain ':'.
-	MountPath string `json:"mountPath" protobuf:"bytes,3,opt,name=mountPath"`
+	MountPath string `json:"mountPath" protobuf:"bytes,3,opt,name=mountPath" yaml:"mountPath"`
+}
+
+// ResourceName is the name identifying various resources in a ResourceList.
+type ResourceName string
+
+type Quantity string
+
+// ResourceList is a set of (resource name, quantity) pairs.
+type ResourceList map[ResourceName]Quantity
+
+// Resource names must be not more than 63 characters, consisting of upper- or lower-case alphanumeric characters,
+// with the -, _, and . characters allowed anywhere, except the first or last character.
+// The default convention, matching that for annotations, is to use lower-case names, with dashes, rather than
+// camel case, separating compound words.
+// Fully-qualified resource typenames are constructed from a DNS-style subdomain, followed by a slash `/` and a name.
+const (
+	// CPU, in cores. (500m = .5 cores)
+	ResourceCPU ResourceName = "cpu"
+	// Memory, in bytes. (500Gi = 500GiB = 500 * 1024 * 1024 * 1024)
+	ResourceMemory ResourceName = "memory"
+)
+
+type ResourceRequirements struct {
+	// Limits describes the maximum amount of compute resources allowed.
+	// More info: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/
+	// +optional
+	Limits ResourceList `json:"limits,omitempty" protobuf:"bytes,1,rep,name=limits,casttype=ResourceList,castkey=ResourceName"`
+	// Requests describes the minimum amount of compute resources required.
+	// If Requests is omitted for a container, it defaults to Limits if that is explicitly specified,
+	// otherwise to an implementation-defined value. Requests cannot exceed Limits.
+	// More info: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/
+	// +optional
+	Requests ResourceList `json:"requests,omitempty" protobuf:"bytes,2,rep,name=requests,casttype=ResourceList,castkey=ResourceName"`
 }
 
 // Container represents a single container that is expected to be run on the host.
@@ -132,13 +165,17 @@ type Container struct {
 	// +listMapKey=containerPort
 	// +listMapKey=protocol
 	// -p/--publish=127.0.0.1:80:8080/tcp ... but in nervctl version : only 127.0.0.1:80:8080/tcp
-	Ports []ContainerPort `json:"ports,omitempty" patchStrategy:"merge" patchMergeKey:"containerPort" protobuf:"bytes,6,rep,name=ports"`
+	Ports []ContainerPort `json:"ports,omitempty" yaml:"ports"`
 	// Pod volumes to mount into the container's filesystem.
 	// Cannot be updated.
 	// +optional
 	// +patchMergeKey=mountPath
 	// +patchStrategy=merge
-	VolumeMounts []VolumeMount `json:"volumeMounts,omitempty" patchStrategy:"merge" patchMergeKey:"mountPath" protobuf:"bytes,9,rep,name=volumeMounts"`
+	VolumeMounts []VolumeMount `json:"volumeMounts,omitempty" patchStrategy:"merge" patchMergeKey:"mountPath" protobuf:"bytes,9,rep,name=volumeMounts" yaml:"volumeMounts""`
+
+	// Compute resource requirements.
+	// +optional
+	Resources ResourceRequirements `json:"resources,omitempty" protobuf:"bytes,8,opt,name=resources" yaml:"resources""`
 
 	Mounts []Mount
 	// TODO(wjl) : add functional function step by step(such as volume and network and so on .......)
@@ -149,22 +186,11 @@ type PodStatus struct {
 	Phase PodPhase
 }
 
-type HostPathVolumeSource struct {
-	Path string `json:"path" protobuf:"bytes,1,opt,name=path"`
-}
-
-type VolumeSource struct {
-	// only support host map at this time
-	HostPath *HostPathVolumeSource `json:"hostPath,omitempty" protobuf:"bytes,1,opt,name=hostPath"`
-
-	// TODO : try to add emptyDir type of volume
-}
-
 type Volume struct {
 	// each volume in the pod must have a unique name
 	Name string `json:"name" protobuf:"bytes,1,opt,name=name"`
 
-	VolumeSource `json:",inline" protobuf:"bytes,2,opt,name=volumeSource"`
+	HostPath string `json:"hostPath,omitempty" yaml:"hostPath,omitempty"`
 }
 
 type PodSpec struct {
