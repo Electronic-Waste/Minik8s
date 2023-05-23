@@ -6,7 +6,6 @@ import (
 	"os/exec"
 	"fmt"
 	"io/ioutil"
-	"encoding/json"
 
 	"minik8s.io/pkg/util/ipgen"
 )
@@ -61,7 +60,10 @@ func TestServiceChain(t *testing.T) {
 	serviceName := "service-test"
 	podChainName := cli.CreatePodChain()
 	podName := "pod-test"
-	err = cli.ApplyPodChainRules(podChainName, "127.0.0.1", 8080)
+	podIP := "192.168.1.6"
+	targetPort := 8080
+	port := 22222
+	err = cli.ApplyPodChainRules(podChainName, podIP, (uint16)(targetPort))
 	if err != nil {
 		t.Errorf("Error in applying pod chain rules: %v", err)
 	}
@@ -69,7 +71,7 @@ func TestServiceChain(t *testing.T) {
 	if err != nil {
 		t.Errorf("Error in applying pod chain: %v", err)
 	}
-	err = cli.ApplyServiceChain(serviceName, clusterIP, serviceChainName, 22222)
+	err = cli.ApplyServiceChain(serviceName, clusterIP, serviceChainName, (uint16)(port))
 	if err != nil {
 		t.Error("Error in applying service chain")
 	}
@@ -87,21 +89,19 @@ func TestServiceChain(t *testing.T) {
 
 	// Test
 	var response *http.Response
-	response, err = http.Get(fmt.Sprintf("http://%s:%d/", clusterIP, 22222))
+	response, err = http.Get(fmt.Sprintf("http://%s:%d/", clusterIP, port))
 	if err != nil {
 		t.Errorf("Error in http response: %v", err)
 	} else {
 		body, _ := ioutil.ReadAll(response.Body)
-		var content string
-		json.Unmarshal(body, &content)
-		t.Logf("response: %s", content)
-		if content != "test" {
+		t.Logf("response: %s", string(body))
+		if string(body) != "test" {
 			t.Error("Test result error!")
 		}
 	}
 	
 	// Clean chains and rules
-	err = cli.DeleteServiceChain(serviceName, clusterIP, serviceChainName, 22222)
+	err = cli.DeleteServiceChain(serviceName, clusterIP, serviceChainName, (uint16)(port))
 	if err != nil {
 		t.Logf("Error in deleting service chain: %v", err)
 	}

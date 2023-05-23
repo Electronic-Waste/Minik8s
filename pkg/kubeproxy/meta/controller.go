@@ -21,8 +21,8 @@ type Interface interface {
 }
 
 type MetaController struct {
-	// serviceName -> serviceChainName (KUBE-SVC-)
-	MapServiceChainName		map[string]string
+	// serviceName -> serviceChainNames (KUBE-SVC-)
+	MapServiceChainName		map[string][]string
 	// serviceName -> clusterIP
 	MapClusterIP			map[string]string
 	// serviceName -> servicePorts
@@ -37,7 +37,7 @@ type MetaController struct {
 
 func NewMetaController() (*MetaController, error) {
 	return &MetaController{
-		MapServiceChainName: map[string]string{},
+		MapServiceChainName: map[string][]string{},
 		MapClusterIP: map[string]string{},
 		MapServicePorts: map[string][]core.ServicePort{},
 		MapPodNames: map[string][]string{},
@@ -46,8 +46,8 @@ func NewMetaController() (*MetaController, error) {
 	}, nil
 }
 
-func (controller *MetaController) AppendServiceChainName(serviceName, serviceChainName string) {
-	controller.MapServiceChainName[serviceName] = serviceChainName
+func (controller *MetaController) AppendServiceChainName(serviceName string, serviceChainNames []string) {
+	controller.MapServiceChainName[serviceName] = serviceChainNames
 }
 
 func (controller *MetaController) AppendClusterIP(serviceName, clusterIP string) {
