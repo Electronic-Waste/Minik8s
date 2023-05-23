@@ -1,28 +1,16 @@
 kind: Pod
 metadata:
-  name: prometheus
+  name: monitor
 spec:
   volumes:
   - name: prometheus
-    hostPath: /etc/prometheus
+    hostPath: /opt/prometheus
 
   containers:
   - name: prometheus
-    image: docker.io/library/prom/prometheus:latest
+    image: docker.io/prom/prometheus:latest
     volumeMounts:
       - name: prometheus
-        mountPath: /mnt
+        mountPath: /etc/prometheus
     ports:
       - containerPort: 9090
-    volumeMounts:
-      - ./build/config/prometheus.yml:/etc/prometheus/prometheus.yml
-
-  prometheus:
-    image: prom/prometheus
-    container_name: prometheus
-    hostname: prometheus
-    restart: always
-    volumes:
-      - ./build/config/prometheus.yml:/etc/prometheus/prometheus.yml
-    ports:
-      - "9090:9090"

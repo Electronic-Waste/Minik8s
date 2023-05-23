@@ -1,0 +1,24 @@
+kind: Pod
+metadata:
+  name: exporter
+spec:
+  volumes:
+  - name: proc
+    hostPath: /proc
+  - name: sys
+    hostPath: /sys
+  - name: root
+    hostPath: /
+
+  containers:
+  - name: node-exporter
+    image: docker.io/prom/node-exporter:latest
+    volumeMounts:
+      - name: proc
+        mountPath: /host/proc:ro
+      - name: sys
+        mountPath: /host/sys:ro
+      - name: root
+        mountPath: /rootfs:ro
+    ports:
+      - containerPort: 9100
