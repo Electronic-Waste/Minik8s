@@ -6,6 +6,22 @@ import (
 	v2 "github.com/containerd/cgroups/v2/stats"
 )
 
+// Useful interface
+func GetStatsEntryV1(data *v1.Metrics) (StatsEntry, error) {
+	return StatsEntry{
+		CPUPercentage:    0,
+		Memory:           0,
+		MemoryLimit:      0,
+		MemoryPercentage: 0,
+	}, nil
+}
+
+// Useful interface
+func GetStatsEntryV2(data *v1.Metrics) (StatsEntry, error) {
+	fmt.Println("have not support v2 yet hhhhhh")
+	return StatsEntry{}, nil
+}
+
 func PrintCpuStatusV1(data *v1.Metrics) {
 	fmt.Printf("total  cpu usage is %v\n", data.CPU.Usage.Total)
 	fmt.Printf("kernel cpu usage is %v\n", data.CPU.Usage.Kernel)

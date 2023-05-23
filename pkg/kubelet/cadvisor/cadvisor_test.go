@@ -1,10 +1,14 @@
 package cadvisor
 
-import "testing"
+import (
+	"fmt"
+	"testing"
+)
 
 func TestGetMetrix(t *testing.T) {
-	err := GetContainerMetric("go2")
+	status, err := GetContainerMetric("go2")
 	if err != nil {
 		t.Error(err)
 	}
+	fmt.Println(status)
 }

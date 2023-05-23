@@ -8,10 +8,11 @@ import (
 
 func main() {
 	for {
-		err := cadvisor.GetContainerMetric("go1")
+		status, err := cadvisor.GetContainerMetric("go1")
 		if err != nil {
 			fmt.Println(err)
 		}
+		fmt.Println(status)
 		// every 3 second detect a cpu usage
 		time.Sleep(3 * time.Second)
 	}

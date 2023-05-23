@@ -17,38 +17,63 @@ import (
 type CAdvisor struct {
 }
 
-func GetContainerMetric(id string) error {
+func GetContainerMetric(id string) (stats.StatsEntry, error) {
 	cli, err := remote_cli.NewRemoteRuntimeService(remote_cli.IdenticalErrorDelay)
 	if err != nil {
-		return err
+		return stats.StatsEntry{}, err
 	}
 	ctx := namespaces.WithNamespace(context.Background(), "default")
 	container, err := cli.Client().LoadContainer(ctx, id)
-	err = getContainerMetric(container, ctx)
-	return err
+	entry, err := getContainerMetric(container, ctx)
+	return entry, err
 }
 
 // get a metric of container which id is provided
-func getContainerMetric(container containerd.Container, ctx context.Context) error {
+func getContainerMetric(container containerd.Container, ctx context.Context) (stats.StatsEntry, error) {
 	//task is in the for loop to avoid nil task just after Container creation
 	task, err := container.Task(ctx, nil)
 	if err != nil {
-		return err
+		return stats.StatsEntry{}, err
 	}
 
 	metric, err := task.Metrics(ctx)
 	if err != nil {
-		return err
+		return stats.StatsEntry{}, err
 	}
 	anydata, err := typeurl.UnmarshalAny(metric.Data)
 	if err != nil {
-		return err
+		return stats.StatsEntry{}, err
 	}
 	err = printMetric(anydata)
 	if err != nil {
-		return err
+		return stats.StatsEntry{}, err
 	}
-	return nil
+	return stats.StatsEntry{}, err
+}
+
+func getMetric(any interface{}) (stats.StatsEntry, error) {
+	var (
+		data  *v1.Metrics
+		data2 *v2.Metrics
+	)
+
+	switch v := any.(type) {
+	case *v1.Metrics:
+		data = v
+	case *v2.Metrics:
+		data2 = v
+	default:
+		err := errors.New("cannot convert metric data to cgroups.Metrics")
+		return stats.StatsEntry{}, err
+	}
+
+	if data != nil {
+
+	} else if data2 != nil {
+
+	}
+
+	return stats.StatsEntry{}, nil
 }
 
 // the interface for debug use
@@ -83,17 +108,17 @@ func printMetric(anydata interface{}) error {
 	return nil
 }
 
-func (c *CAdvisor) GetAllPodMetric() map[string]stats.StatsEntry {
+func (c *CAdvisor) GetAllPodMetric() map[string]stats.PodStats {
 	return nil
 }
 
 // given a Pod name
-func (c *CAdvisor) GetPodMetric(name string) (stats.StatsEntry, error) {
+func (c *CAdvisor) GetPodMetric(name string) (stats.PodStats, error) {
 	// we don't include the pause container's resource usage
 	// find all container labeled with the 'name'
 	cli, err := remote_cli.NewRemoteRuntimeService(remote_cli.IdenticalErrorDelay)
 	if err != nil {
-		return err
+		return stats.PodStats{}, nil
 	}
 	walker := &containerwalker.ContainerWalker{
 		Client: cli.Client(),
@@ -108,7 +133,7 @@ func (c *CAdvisor) GetPodMetric(name string) (stats.StatsEntry, error) {
 	ctx := namespaces.WithNamespace(context.Background(), "default")
 	_, err = walker.WalkPod(ctx, name)
 	if err != nil {
-		return stats.StatsEntry{}, err
+		return stats.PodStats{}, err
 	}
-	return stats.StatsEntry{}, nil
+	return stats.PodStats{}, nil
 }
