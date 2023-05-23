@@ -58,9 +58,12 @@ func TestAllProcess(t *testing.T) {
 }
 
 func TestGetPod(t *testing.T) {
-	_, err := GetPods()
+	podSet, err := GetPods()
 	if err != nil {
 		t.Error(err)
+	}
+	for _, pod := range podSet {
+		fmt.Printf("the %s's status is %s\n", pod.Name, pod.Status.Phase)
 	}
 }
 
