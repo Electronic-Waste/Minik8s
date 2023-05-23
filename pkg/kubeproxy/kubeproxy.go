@@ -14,7 +14,7 @@ import (
 type Manager interface{
 	// Create a service by adding chains and rules to iptables
 	CreateService(
-		serviceName string, clusterIP string, servicePorts []*core.ServicePort,
+		serviceName string, clusterIP string, servicePorts []core.ServicePort,
 		podNames []string, podIPs []string) error
 
 	// Delete a service by deleting relevant chains and rule from iptables
