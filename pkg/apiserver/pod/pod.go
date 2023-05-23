@@ -126,7 +126,7 @@ func HandleUpdatePodStatus(resp http.ResponseWriter, req *http.Request) {
 		return
 	}
 	// Success!
-	pubURL := path.Join(url.PodStatus, "update", namespace, podName)
+	pubURL := path.Join(url.PodStatus, "update")
 	listwatch.Publish(pubURL, string(body))	
 	resp.WriteHeader(http.StatusOK)
 }
@@ -153,8 +153,8 @@ func HandleDelPodStatus(resp http.ResponseWriter, req *http.Request) {
 		return
 	}
 	// Success!
-	pubURL := path.Join(url.PodStatus, "del", namespace, podName)
-	listwatch.Publish(pubURL, "")	
+	pubURL := path.Join(url.PodStatus, "del")
+	listwatch.Publish(pubURL, podName)	
 	resp.WriteHeader(http.StatusOK)
 }
 

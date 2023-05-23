@@ -11,7 +11,7 @@ import (
 func (p *Pod) getMountPath(name string) (string, error) {
 	for _, v := range p.Spec.Volumes {
 		if strings.Compare(name, v.Name) == 0 {
-			return v.HostPath.Path, nil
+			return v.HostPath, nil
 		}
 	}
 	return "", errors.New("not such volume")
@@ -46,6 +46,7 @@ func ParsePod(path string) (*Pod, error) {
 	file, err := os.ReadFile(path)
 	pod := Pod{}
 	err = yaml.Unmarshal(file, &pod)
+	fmt.Println(pod)
 	pod.ContainerConvert()
 	fmt.Printf("pod name after parse is %s\n", pod.Name)
 	if err != nil {

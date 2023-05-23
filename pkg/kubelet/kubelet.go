@@ -3,7 +3,12 @@ package kubelet
 import (
 	"fmt"
 	"minik8s.io/pkg/kubelet/config"
+	"minik8s.io/pkg/apis/core"
+	"minik8s.io/pkg/util/listwatch"
+	"encoding/json"
 	kubetypes "minik8s.io/pkg/kubelet/types"
+	"github.com/go-redis/redis/v8"
+	"minik8s.io/pkg/podmanager"
 	"os"
 )
 
@@ -26,6 +31,7 @@ type Kubelet struct {
 
 func (k *Kubelet) Run(update chan kubetypes.PodUpdate) {
 	// wait for new event caused by listening source
+	bindWatchHandler()
 	k.syncLoop(update)
 }
 
@@ -54,4 +60,27 @@ func makePodSourceConfig() *config.PodConfig {
 	cfg := config.NewPodConfig()
 	config.NewSourceFile(cfg.Channel(kubetypes.FileSource))
 	return cfg
+}
+
+func bindWatchHandler() {
+	go listwatch.Watch("/pods/status/apply", ApplyPodHanlder)
+	go listwatch.Watch("/pods/status/del", DeletePodHandler)
+	go listwatch.Watch("/pods/status/update", UpdatePodHandler)
+}
+
+func ApplyPodHanlder(msg *redis.Message) {
+	var podSpec core.Pod
+	json.Unmarshal([]byte(msg.Payload), &podSpec)
+	fmt.Printf("Kubelet receive msg: %s", msg.Payload)
+	podmanager.RunPod(&podSpec)
+}
+
+func UpdatePodHandler(msg *redis.Message) {
+
+}
+
+func DeletePodHandler(msg *redis.Message) {
+	podName := msg.Payload
+	fmt.Printf("kubelet receive del msg: %s", podName)
+	podmanager.DelPod(podName)
 }
