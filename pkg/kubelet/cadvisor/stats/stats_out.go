@@ -4,6 +4,7 @@ import (
 	"fmt"
 	v1 "github.com/containerd/cgroups/stats/v1"
 	v2 "github.com/containerd/cgroups/v2/stats"
+	"time"
 )
 
 // Useful interface
@@ -30,12 +31,13 @@ func calculateCgroupCPUPercent(previousStats *ContainerStats, metrics *v1.Metric
 		// calculate the change for the cpu usage of the container in between readings
 		cpuDelta = float64(metrics.CPU.Usage.Total) - float64(previousStats.CgroupCPU)
 		// calculate the change for the entire system between readings
-		UserDelta = float64(metrics.CPU.Usage.User) - float64(previousStats.CgroupSystem)
+		//UserDelta = float64(metrics.CPU.Usage.User) - float64(previousStats.CgroupSystem)
+		UserDelta = float64(time.Since(previousStats.Time).Nanoseconds())
 	)
 
 	if UserDelta > 0.0 && cpuDelta > 0.0 {
 		// for the reason that we only hace 2 cpu cores, so we use 2 to replace the online cpu cores
-		cpuPercent = (UserDelta / cpuDelta) * 2 * 100.0
+		cpuPercent = (cpuDelta / UserDelta) * 100.0
 	}
 	return cpuPercent
 }

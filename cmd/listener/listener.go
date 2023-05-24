@@ -8,17 +8,21 @@ import (
 )
 
 func main() {
-	c := cadvisor.GetNewListener()
+	c := cadvisor.GetCAdvisor()
 	// detect for go1
-	err := c.RegisterContainer("go2")
+	err := c.RegisterPod("test")
 	if err != nil {
 		fmt.Println(err)
 		os.Exit(2)
 	}
 	for {
-		status := c.GetStats("go2")
+		status, err := c.GetPodMetric("test")
+		if err != nil {
+			fmt.Println(err)
+			os.Exit(2)
+		}
 		fmt.Println(status)
 		// every 3 second detect a cpu usage
-		time.Sleep(3 * time.Second)
+		time.Sleep(2 * time.Second)
 	}
 }

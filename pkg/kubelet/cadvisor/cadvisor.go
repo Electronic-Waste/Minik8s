@@ -12,6 +12,7 @@ import (
 	"minik8s.io/pkg/cli/remote_cli"
 	"minik8s.io/pkg/idutil/containerwalker"
 	"minik8s.io/pkg/kubelet/cadvisor/stats"
+	"sync"
 	"time"
 )
 
@@ -20,6 +21,8 @@ type ContainerListener struct {
 	DataStore map[string]*stats.Stats
 	// mid data useful in compute the container stats
 	PreStats map[string]stats.ContainerStats
+
+	mutex sync.RWMutex
 }
 
 func GetNewListener() *ContainerListener {
@@ -76,7 +79,9 @@ func (c *ContainerListener) collect(id string) error {
 				c.DataStore[id] = stats.NewStats(id)
 			}
 			c.DataStore[id].SetStatistics(Constats)
+			c.mutex.RLock()
 			c.PreStats[id] = newPrevious
+			c.mutex.RUnlock()
 		case *v2.Metrics:
 			data2 = v
 			tmp := c.PreStats[id]
@@ -88,7 +93,9 @@ func (c *ContainerListener) collect(id string) error {
 				c.DataStore[id] = stats.NewStats(id)
 			}
 			c.DataStore[id].SetStatistics(Constats)
+			c.mutex.RLock()
 			c.PreStats[id] = newPrevious
+			c.mutex.RUnlock()
 		default:
 			err := errors.New("cannot convert metric data to cgroups.Metrics")
 			return err
