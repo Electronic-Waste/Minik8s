@@ -243,6 +243,7 @@ func (dc *DeploymentController) replicaWatcher() {
 		//fmt.Println("pods:")
 
 		numMap := make(map[string]int)
+		dc.d2pMap = make(map[interface{}]interface{})
 		for _,pod := range pods{
 			if pod.Status.Phase != core.PodFailed{
 				deploymentname,ok := dc.p2dMap[pod.Name]
@@ -254,10 +255,16 @@ func (dc *DeploymentController) replicaWatcher() {
 						//fmt.Println("deployment recorded:")
 						//fmt.Println(replica)
 						numMap[deploymentname.(string)] = replica
+						nameSet := dc.d2pMap[deploymentname.(string)]
+						nameSet = append(nameSet, pod.Name)
+						dc.d2pMap[deploymentname.(string)] = nameSet
 					}else{
 						//fmt.Println("deployment unrecorded:")
 						//fmt.Println(1)
 						numMap[deploymentname.(string)] = 1
+						nameSet := make([]string)
+						nameSet = append(nameSet, pod.Name)
+						dc.d2pMap[deploymentname.(string)] = nameSet
 					}
 				}
 			}
@@ -272,6 +279,7 @@ func (dc *DeploymentController) replicaWatcher() {
 						prefix := deployment.Metadata.Name + "-" + did
 						num := deployment.Spec.Replicas - replica
 						var nameSet []string
+						
 						var containerNameSet []string
 						pod := deployment.Spec.Template
 						for _,c := range pod.Spec.Containers{
