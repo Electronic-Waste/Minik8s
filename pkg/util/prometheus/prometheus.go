@@ -1,16 +1,16 @@
 package prometheus
 
 import (
-	"fmt"
-	"context"
+	//"fmt"
+	//"context"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	//"github.com/containerd/containerd/oci"
-	"github.com/containerd/containerd/namespaces"
+	//"github.com/containerd/containerd/namespaces"
 	//"github.com/containerd/containerd"
 	"net/http"
 	//"minik8s.io/pkg/constant"
-	"minik8s.io/pkg/cli/remote_cli"
-	"minik8s.io/pkg/apis/core"
+	//"minik8s.io/pkg/cli/remote_cli"
+	//"minik8s.io/pkg/apis/core"
 )
 
 //暴露端口给prometheus

@@ -2,10 +2,10 @@
 
 ### 启动
 
-启动`kube-controller-manager`时会启动一系列的controller，包括`deployment controller`，`deployment controller`创建完成后会向redis注册watch的回调函数
+`./bin/apiserver`启动apiserver  
+`./bin/kube-controller-manager`启动所有controller
 
-### 监听
+### 使用Deployment controller创建deployment实例  
 
-其他组件如kubelet改变pod和deployment状态的时候，apiserver会向controller发送消息，通知状态变化，controller处理完后向apiserver发送消息修改状态
-
-![deployment-controller](./img/deployment-controller.png)
+`./bin/kubectl apply <filename>`(expmple: `./bin/kubectl apply ./cmd/kubectl/app/src/test_deployment.yaml`)创建deployment实例  
+`nerdctl ps`可以看到
