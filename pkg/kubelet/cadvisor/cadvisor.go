@@ -12,9 +12,246 @@ import (
 	"minik8s.io/pkg/cli/remote_cli"
 	"minik8s.io/pkg/idutil/containerwalker"
 	"minik8s.io/pkg/kubelet/cadvisor/stats"
+	"time"
 )
 
+type ContainerListener struct {
+	// actual container stats
+	DataStore map[string]*stats.Stats
+	// mid data useful in compute the container stats
+	PreStats map[string]stats.ContainerStats
+}
+
+func GetNewListener() *ContainerListener {
+	return &ContainerListener{
+		DataStore: make(map[string]*stats.Stats),
+		PreStats:  make(map[string]stats.ContainerStats),
+	}
+}
+
+func (c *ContainerListener) RegisterContainer(id string) error {
+	// start a new thread to listen to the container state
+	// collect prestats first
+	conStats, _, err := c.GetContainerStats(id)
+	if err != nil {
+		return err
+	}
+	c.PreStats[id] = conStats
+	go c.collect(id)
+	return nil
+}
+
+// stats which has been deal with
+func (c *ContainerListener) GetStats(id string) stats.StatsEntry {
+	for {
+		if _, ok := c.DataStore[id]; ok {
+			break
+		}
+		time.Sleep(500 * time.Millisecond)
+	}
+	return c.DataStore[id].GetStatistics()
+}
+
+func (c *ContainerListener) collect(id string) error {
+	// using a for loop to collect the stats
+	for {
+		newPrevious, any, err := c.GetContainerStats(id)
+		if err != nil {
+			return err
+		}
+		var (
+			data  *v1.Metrics
+			data2 *v2.Metrics
+		)
+
+		switch v := any.(type) {
+		case *v1.Metrics:
+			data = v
+			tmp := c.PreStats[id]
+			Constats, err := stats.GetStatsEntryV1(data, &(tmp))
+			if err != nil {
+				return err
+			}
+			if _, ok := c.DataStore[id]; !ok {
+				c.DataStore[id] = stats.NewStats(id)
+			}
+			c.DataStore[id].SetStatistics(Constats)
+			c.PreStats[id] = newPrevious
+		case *v2.Metrics:
+			data2 = v
+			tmp := c.PreStats[id]
+			Constats, err := stats.GetStatsEntryV2(data2, &(tmp))
+			if err != nil {
+				return err
+			}
+			if _, ok := c.DataStore[id]; !ok {
+				c.DataStore[id] = stats.NewStats(id)
+			}
+			c.DataStore[id].SetStatistics(Constats)
+			c.PreStats[id] = newPrevious
+		default:
+			err := errors.New("cannot convert metric data to cgroups.Metrics")
+			return err
+		}
+
+		// get data per second
+		time.Sleep(1 * time.Second)
+	}
+}
+
+// that raw stats
+func (c *ContainerListener) GetContainerStats(id string) (stats.ContainerStats, interface{}, error) {
+	cli, err := remote_cli.NewRemoteRuntimeService(remote_cli.IdenticalErrorDelay)
+	if err != nil {
+		return stats.ContainerStats{}, nil, err
+	}
+	ctx := namespaces.WithNamespace(context.Background(), "default")
+	container, err := cli.Client().LoadContainer(ctx, id)
+	task, err := container.Task(ctx, nil)
+	if err != nil {
+		return stats.ContainerStats{}, nil, err
+	}
+
+	metric, err := task.Metrics(ctx)
+	if err != nil {
+		return stats.ContainerStats{}, nil, err
+	}
+	anydata, err := typeurl.UnmarshalAny(metric.Data)
+	if err != nil {
+		return stats.ContainerStats{}, nil, err
+	}
+	var (
+		data  *v1.Metrics
+		data2 *v2.Metrics
+	)
+
+	switch v := anydata.(type) {
+	case *v1.Metrics:
+		data = v
+	case *v2.Metrics:
+		data2 = v
+	default:
+		err := errors.New("cannot convert metric data to cgroups.Metrics")
+		return stats.ContainerStats{}, nil, err
+	}
+
+	conStats := stats.ContainerStats{
+		Time: time.Now(),
+	}
+
+	if data != nil {
+		conStats.CgroupCPU = data.CPU.Usage.Total
+		conStats.CgroupSystem = data.CPU.Usage.Kernel
+	} else if data2 != nil {
+		conStats.Cgroup2CPU = data2.CPU.UsageUsec * 1000
+		conStats.Cgroup2System = data2.CPU.SystemUsec * 1000
+	}
+	return conStats, anydata, nil
+}
+
 type CAdvisor struct {
+	DataStore map[string]stats.PodStats
+	// use to listen to container status
+	containerListener *ContainerListener
+}
+
+func GetCAdvisor() *CAdvisor {
+	return &CAdvisor{
+		DataStore:         make(map[string]stats.PodStats),
+		containerListener: GetNewListener(),
+	}
+}
+
+func (c *CAdvisor) RegisterAllPod() error {
+	// register all the container in the Pod to containerListener
+	cli, err := remote_cli.NewRemoteRuntimeService(remote_cli.IdenticalErrorDelay)
+	if err != nil {
+		return err
+	}
+	// !!! : need to specify the namespace of finding container
+	ctx := namespaces.WithNamespace(context.Background(), "default")
+	walker := &containerwalker.ContainerWalker{
+		Client: cli.Client(),
+		OnFound: func(ctx context.Context, found containerwalker.Found) error {
+			labels, err := found.Container.Labels(ctx)
+			if err != nil {
+				return err
+			}
+			fmt.Printf("try to register pod %s\n", labels["nerdctl/name"])
+			err = c.RegisterPod(labels["nerdctl/name"])
+			return err
+		},
+	}
+
+	_, err = walker.WalkPod(ctx, "pause")
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (c *CAdvisor) RegisterPod(name string) error {
+	// register all the container in the Pod to containerListener
+	cli, err := remote_cli.NewRemoteRuntimeService(remote_cli.IdenticalErrorDelay)
+	if err != nil {
+		return err
+	}
+	walker := &containerwalker.ContainerWalker{
+		Client: cli.Client(),
+		OnFound: func(ctx context.Context, found containerwalker.Found) error {
+			fmt.Printf("try to register container %s\n", found.Container.ID())
+			err := c.containerListener.RegisterContainer(found.Container.ID())
+			return err
+		},
+	}
+
+	// !!! : need to specify the namespace of finding container
+	ctx := namespaces.WithNamespace(context.Background(), "default")
+	_, err = walker.WalkPod(ctx, name)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (c *CAdvisor) GetAllPodMetric() map[string]stats.PodStats {
+	return nil
+}
+
+// given a Pod name
+func (c *CAdvisor) GetPodMetric(name string) (stats.PodStats, error) {
+	// we don't include the pause container's resource usage
+	// find all container labeled with the 'name'
+	cli, err := remote_cli.NewRemoteRuntimeService(remote_cli.IdenticalErrorDelay)
+	if err != nil {
+		return stats.PodStats{}, nil
+	}
+	cpuPer := 0.0
+	mem := 0.0
+	memLimit := 0.0
+	walker := &containerwalker.ContainerWalker{
+		Client: cli.Client(),
+		OnFound: func(ctx context.Context, found containerwalker.Found) error {
+			fmt.Println(found.Container.ID())
+			ConStats := c.containerListener.GetStats(found.Container.ID())
+			cpuPer += ConStats.CPUPercentage
+			mem += ConStats.Memory
+			memLimit += ConStats.MemoryLimit
+			return nil
+		},
+	}
+
+	// !!! : need to specify the namespace of finding container
+	ctx := namespaces.WithNamespace(context.Background(), "default")
+	_, err = walker.WalkPod(ctx, name)
+	if err != nil {
+		return stats.PodStats{}, err
+	}
+	return stats.PodStats{
+		Name:             name,
+		CPUPercentage:    cpuPer,
+		MemoryPercentage: mem / memLimit,
+	}, nil
 }
 
 func GetContainerMetric(id string) (stats.StatsEntry, error) {
@@ -106,34 +343,4 @@ func printMetric(anydata interface{}) error {
 	fmt.Println("finish one print")
 
 	return nil
-}
-
-func (c *CAdvisor) GetAllPodMetric() map[string]stats.PodStats {
-	return nil
-}
-
-// given a Pod name
-func (c *CAdvisor) GetPodMetric(name string) (stats.PodStats, error) {
-	// we don't include the pause container's resource usage
-	// find all container labeled with the 'name'
-	cli, err := remote_cli.NewRemoteRuntimeService(remote_cli.IdenticalErrorDelay)
-	if err != nil {
-		return stats.PodStats{}, nil
-	}
-	walker := &containerwalker.ContainerWalker{
-		Client: cli.Client(),
-		OnFound: func(ctx context.Context, found containerwalker.Found) error {
-			fmt.Println(found.Container.ID())
-
-			return nil
-		},
-	}
-
-	// !!! : need to specify the namespace of finding container
-	ctx := namespaces.WithNamespace(context.Background(), "default")
-	_, err = walker.WalkPod(ctx, name)
-	if err != nil {
-		return stats.PodStats{}, err
-	}
-	return stats.PodStats{}, nil
 }

@@ -7,20 +7,56 @@ import (
 )
 
 // Useful interface
-func GetStatsEntryV1(data *v1.Metrics) (StatsEntry, error) {
+func GetStatsEntryV1(data *v1.Metrics, previous *ContainerStats) (StatsEntry, error) {
+	mem := calculateCgroupMemUsage(data)
+	memLimit := float64(data.Memory.Usage.Limit)
 	return StatsEntry{
-		CPUPercentage:    0,
-		Memory:           0,
-		MemoryLimit:      0,
-		MemoryPercentage: 0,
+		CPUPercentage:    calculateCgroupCPUPercent(previous, data),
+		Memory:           mem,
+		MemoryLimit:      memLimit,
+		MemoryPercentage: calculateMemPercent(memLimit, mem),
 	}, nil
 }
 
 // Useful interface
-func GetStatsEntryV2(data *v1.Metrics) (StatsEntry, error) {
+func GetStatsEntryV2(data *v2.Metrics, previous *ContainerStats) (StatsEntry, error) {
 	fmt.Println("have not support v2 yet hhhhhh")
 	return StatsEntry{}, nil
 }
+
+func calculateCgroupCPUPercent(previousStats *ContainerStats, metrics *v1.Metrics) float64 {
+	var (
+		cpuPercent = 0.0
+		// calculate the change for the cpu usage of the container in between readings
+		cpuDelta = float64(metrics.CPU.Usage.Total) - float64(previousStats.CgroupCPU)
+		// calculate the change for the entire system between readings
+		UserDelta = float64(metrics.CPU.Usage.User) - float64(previousStats.CgroupSystem)
+	)
+
+	if UserDelta > 0.0 && cpuDelta > 0.0 {
+		// for the reason that we only hace 2 cpu cores, so we use 2 to replace the online cpu cores
+		cpuPercent = (UserDelta / cpuDelta) * 2 * 100.0
+	}
+	return cpuPercent
+}
+
+func calculateCgroupMemUsage(metrics *v1.Metrics) float64 {
+	if v := metrics.Memory.TotalInactiveFile; v < metrics.Memory.Usage.Usage {
+		return float64(metrics.Memory.Usage.Usage - v)
+	}
+	return float64(metrics.Memory.Usage.Usage)
+}
+
+func calculateMemPercent(limit float64, usedNo float64) float64 {
+	// Limit will never be 0 unless the container is not running and we haven't
+	// got any data from cgroup
+	if limit != 0 {
+		return usedNo / limit * 100.0
+	}
+	return 0
+}
+
+// ----------------------------- Above is Usage interface ---------------------------------------//
 
 func PrintCpuStatusV1(data *v1.Metrics) {
 	fmt.Printf("total  cpu usage is %v\n", data.CPU.Usage.Total)
