@@ -240,12 +240,10 @@ func (dc *DeploymentController) replicaWatcher() {
 					replica,ok := numMap[deploymentname.(string)]
 					if ok{
 						replica++
-						fmt.Println("deployment recorded:")
-						fmt.Println(replica)
+						fmt.Printf("deployment recorded: %d",replica)
 						numMap[deploymentname.(string)] = replica
 					}else{
-						fmt.Println("deployment unrecorded:")
-						fmt.Println(1)
+						fmt.Println("deployment unrecorded: %d", 1)
 						numMap[deploymentname.(string)] = 1
 					}
 				}
@@ -267,7 +265,6 @@ func (dc *DeploymentController) replicaWatcher() {
 								podname := prefix + "-" + pid
 								dc.p2dMap[podname] = deployment.Metadata.Name
 								nameSet = append(nameSet, podname)
-								fmt.Println("podname: " + podname)
 								pod := deployment.Spec.Template
 								pod.Name = podname
 								AddPod(pod)
