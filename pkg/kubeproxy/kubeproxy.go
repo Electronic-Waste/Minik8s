@@ -27,6 +27,12 @@ type Manager interface{
 	// Processing request from redis: delete service
 	HandleDelService(msg *redis.Message)
 
+	// Processing request from redis: apply dns
+	HandleApplyDNS(msg *redis.Message)
+
+	// Processing request from redis: delete dns
+	HandleDelDNS(msg *redis.Message)
+
 	// Start Kubeproxy
 	Run()
 }
