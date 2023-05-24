@@ -3,6 +3,8 @@ package app
 import (
 	"fmt"
 	"github.com/spf13/cobra"
+
+	"minik8s.io/pkg/clientutil"
 )
 
 var (
@@ -26,8 +28,29 @@ func DeleteHandler(resourceKind, resourceName string) error {
 		return nil
 		//add more
 		//...
+	case "service":
+		fmt.Printf("Delete service name: %s\n", resourceName)
+		err := deleteService(resourceName)
+		if err != nil {
+			fmt.Printf("Error in sending del service msg to apiserver: %v", err)
+		}
 	}
+
 	return nil
+}
+
+func deleteService(serviceName string) error {
+	fmt.Println("del service")
+	params := map[string]string {
+		"namespace"	: "default",
+		"name"		: serviceName,
+	}
+	rawResp, err := clientutil.HttpDel("Service", params)
+	if err != nil {
+		return fmt.Errorf("Error in clientutil: %v", err)
+	}
+	fmt.Printf("deleteService response body: %s\n", string(rawResp))
+	return nil;
 }
 
 func init() {

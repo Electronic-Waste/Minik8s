@@ -86,8 +86,9 @@ func HandleGetAllServices(resp http.ResponseWriter, req *http.Request) {
 // @namespace: namespace requested; @name: service name
 // body: core.Service in JSON form
 func HandleApplyService(resp http.ResponseWriter, req *http.Request) {
-	namespace := req.FormValue("namespace")
-	serviceName := req.FormValue("name")
+	vars := req.URL.Query()
+	namespace := vars.Get("namespace")
+	serviceName := vars.Get("name")
 	body, _ := ioutil.ReadAll(req.Body)
 	fmt.Printf("HandleApplyService receive msg: namespace is %s, serviceName is %s, body is %s\n",
 					namespace, serviceName, string(body))
@@ -209,6 +210,7 @@ func HandleDelService(resp http.ResponseWriter, req *http.Request) {
 	vars := req.URL.Query()
 	namespace := vars.Get("namespace")
 	serviceName := vars.Get("name")
+	fmt.Printf("HandleApplyService receive msg: namespace is %s, serviceName is %s\n", namespace, serviceName)
 	// Param miss: return error to client
 	if namespace == "" || serviceName == "" {
 		resp.WriteHeader(http.StatusBadRequest)

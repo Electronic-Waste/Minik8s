@@ -87,12 +87,14 @@ func (manager *KubeproxyManager) CreateService(
 	for _, servicePort := range servicePorts {
 		serviceChainName := manager.iptablesCli.CreateServiceChain()
 		serviceChainNames = append(serviceChainNames, serviceChainName)
+		podChainNames := []string{}
 		for i := range podNames {
 			podChainName := manager.iptablesCli.CreatePodChain()
+			podChainNames = append(podChainNames, podChainName)
 			if net.ParseIP(podIPs[i]) == nil {
 				return fmt.Errorf("pod IP %s is invalid", podIPs[i])
 			}
-			manager.metaController.AppendPodChainName(podNames[i], podChainName)
+			manager.metaController.AppendPodChainNameToPodName(podChainName, podNames[i])
 			manager.metaController.AppendPodIP(podNames[i], podIPs[i])
 			// 1. Create KUBE-SEP- rule
 			err := manager.iptablesCli.ApplyPodChainRules(
@@ -115,6 +117,8 @@ func (manager *KubeproxyManager) CreateService(
 				return fmt.Errorf("Error in applying pod chain: %v", err)
 			}
 		}
+		// Map serviceChainName -> podChainNames
+		manager.metaController.AppendPodChainNames(serviceChainName, podChainNames)
 		// Create KUBE-SERVICES -> KUBE-SVC- rule
 		err := manager.iptablesCli.ApplyServiceChain(
 			serviceName, 
@@ -136,10 +140,9 @@ func (manager *KubeproxyManager) DelService(serviceName string) error {
 	serviceChainNames := manager.metaController.MapServiceChainNames[serviceName]
 	clusterIP := manager.metaController.MapClusterIP[serviceName]
 	servicePorts := manager.metaController.MapServicePorts[serviceName]
-	podNames := manager.metaController.MapPodNames[serviceName]
 	
 	// Clear service
-	for i, _ := range servicePorts {
+	for i, _ := range serviceChainNames {
 		// Delete some rules and chains in service:
 		// 1. The rule jumping from KUBE-SERVICES to KUBE-SVC-
 		// 2. The chain KUBE-SVC-
@@ -153,12 +156,13 @@ func (manager *KubeproxyManager) DelService(serviceName string) error {
 			return fmt.Errorf("Error in deleting serviceChain %s: %v", serviceChainNames[i], err)
 		}
 
-		for j := range podNames {
+		podChainNames := manager.metaController.MapPodChainNames[serviceChainNames[i]]
+		for _, podChainName := range podChainNames {
 			// Delete some rule and chain in pod:
 			// 1. The chain KUBE-SEP
-			podChainName := manager.metaController.MapPodChainName[podNames[j]]
+			podName := manager.metaController.MapPodChainNameToPodName[podChainName]
 			err = manager.iptablesCli.DeletePodChain(
-				podNames[j],
+				podName,
 				podChainName,
 			)
 			if err != nil {
@@ -166,9 +170,10 @@ func (manager *KubeproxyManager) DelService(serviceName string) error {
 			}
 
 			// Update map data in metaController
-			manager.metaController.DeletePodChainName(podNames[j])
-			manager.metaController.DeletePodIP(podNames[j])
+			manager.metaController.DeletePodChainNameToPodName(podChainName)
+			manager.metaController.DeletePodIP(podName)
 		}
+		manager.metaController.DeletePodChainNames(serviceChainNames[i])
 	}
 	// Update map data in metaController
 	manager.metaController.DeleteServiceChainNames(serviceName)

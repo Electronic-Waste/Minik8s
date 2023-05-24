@@ -143,7 +143,17 @@ func HttpDel(objType string, params map[string]string) ([]byte, error) {
 			return nil, errors.New("del fail")
 		}
 		data, err = ioutil.ReadAll(response.Body)
-		
+	case "Service":
+		request, _ := http.NewRequest("DELETE", apiurl.Prefix + apiurl.ServiceDelURL + urlparam, nil)
+		fmt.Printf("URL is %s\n", request.URL)
+		response, err := client.Do(request)
+		if err != nil {
+			return []byte{}, err
+		}
+		if response.StatusCode != http.StatusOK {
+			return nil, fmt.Errorf("del service fail")
+		}
+		data, err = ioutil.ReadAll(response.Body)
 	}
 	return data, nil
 }

@@ -9,14 +9,16 @@ type Interface interface {
 	AppendClusterIP(serviceName, clusterIP string)
 	AppendServicePorts(serviceName string, servicePorts []core.ServicePort)
 	AppendPodNames(serviceName string, podNames []string)
-	AppendPodChainName(podName, podChainName string)
+	AppendPodChainNames(serviceChainName string, podChainNames []string)
+	AppendPodChainNameToPodName(podChainName, podName string)
 	AppendPodIP(podName, podIP string)
 	GetServiceChainName(serviceName string)
 	DeleteServiceChainNames(serviceName string)
 	DeleteClusterIP(serviceName string)
 	DeleteServicePorts(serviceName string)
 	DeletePodNames(serviceName string)
-	DeletePodChainName(podName string)
+	DeletePodChainNames(serviceChainName string)
+	DeletePodChainNameToPodName(podChainName string)
 	DeletePodIP(podName string)
 }
 
@@ -29,8 +31,10 @@ type MetaController struct {
 	MapServicePorts			map[string][]core.ServicePort
 	// serviceName -> podNames
 	MapPodNames				map[string][]string
-	// podName -> podChainName (KUBE-SEP-)
-	MapPodChainName			map[string]string
+	// serviceChainName (KUBE-SVC) -> podChainNames (KUBE-SEP-)
+	MapPodChainNames			map[string][]string
+	// podChainName (KUBE-SEP-) -> podName
+	MapPodChainNameToPodName	map[string]string
 	// podName -> podIP
 	MapPodIP				map[string]string
 }
@@ -41,7 +45,8 @@ func NewMetaController() (*MetaController, error) {
 		MapClusterIP: map[string]string{},
 		MapServicePorts: map[string][]core.ServicePort{},
 		MapPodNames: map[string][]string{},
-		MapPodChainName: map[string]string{},
+		MapPodChainNames: map[string][]string{},
+		MapPodChainNameToPodName:	map[string]string{},
 		MapPodIP: map[string]string{},
 	}, nil
 }
@@ -62,8 +67,12 @@ func (controller *MetaController) AppendPodNames(serviceName string, podNames []
 	controller.MapPodNames[serviceName] = podNames
 }
 
-func (controller *MetaController) AppendPodChainName(podName, podChainName string) {
-	controller.MapPodChainName[podName] = podChainName
+func (controller *MetaController) AppendPodChainNames(serviceChainName string, podChainNames []string) {
+	controller.MapPodChainNames[serviceChainName] = podChainNames
+}
+
+func (controller *MetaController) AppendPodChainNameToPodName(podChainName, podName string) {
+	controller.MapPodChainNameToPodName[podChainName] = podName
 }
 
 func (controller *MetaController) AppendPodIP(podName, podIP string) {
@@ -86,8 +95,12 @@ func (controller *MetaController) DeletePodNames(serviceName string) {
 	delete(controller.MapPodNames, serviceName)
 }
 
-func (controller *MetaController) DeletePodChainName(podName string) {
-	delete(controller.MapPodChainName, podName)
+func (controller *MetaController) DeletePodChainNames(serviceChainName string) {
+	delete(controller.MapPodChainNames, serviceChainName)
+}
+
+func (controller *MetaController) DeletePodChainNameToPodName(podChainName string) {
+	delete(controller.MapPodChainNameToPodName, podChainName)
 }
 
 func (controller *MetaController) DeletePodIP(podName string) {
