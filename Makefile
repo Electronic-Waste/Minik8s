@@ -1,4 +1,4 @@
-.PHONY:all build clean help check test vctl kubeadm nervctl kubelet
+.PHONY:all build clean help check test vctl kubeadm nervctl kubelet listener
 BIN=bin
 PATH=./cmd
 ADM=kubeadm
@@ -6,6 +6,7 @@ SERVER=apiserver
 VCTL=vctl
 NCTL=nervctl
 KUBELET=kubelet
+LISTENER=listener
 CTLM=kube-controller-manager
 CTL=kubectl
 CMD=app/cmd
@@ -54,6 +55,9 @@ apiserver:
 kubelet:
 	@echo "$(FOLD)"
 	$(GO) build -o "${BIN}/${KUBELET}" "${PATH}/${KUBELET}/${KUBELET}.go"
+listener:
+	@echo "$(FOLD)"
+	$(GO) build -o "${BIN}/${LISTENER}" "${PATH}/${LISTENER}/${LISTENER}.go"
 kube-controller-manager:
 	@echo "$(FOLD)"
 	$(GO) build -o "${BIN}/${CTLM}" "${PATH}/${CTLM}/${CTLM}.go"
