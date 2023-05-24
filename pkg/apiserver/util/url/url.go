@@ -1,9 +1,10 @@
 package url
 
 const (
-	HttpScheme string = "http://"
-	HostURL    string = "localhost"
-	Port       string = ":8080"
+	HttpScheme    string = "http://"
+	HostURL       string = "localhost"
+	Port          string = ":8080"
+	SchedulerPort string = "1234"
 
 	Prefix string = HttpScheme + HostURL + Port
 
@@ -30,4 +31,7 @@ const (
 
 	Node             string = "/node"
 	NodeRergisterUrl string = Node + "/register"
+
+	Sched        string = "/sched"
+	SchedPostURL        = Sched + "/post"
 )
