@@ -270,7 +270,6 @@ func (dc *DeploymentController) replicaWatcher() {
 						fmt.Println("start adding replicas")
 						did := uid.NewUid()
 						prefix := deployment.Metadata.Name + "-" + did
-						replicas := deployment.Spec.Replicas
 						num := deployment.Spec.Replicas - replica
 						var nameSet []string
 						var containerNameSet []string
@@ -278,7 +277,7 @@ func (dc *DeploymentController) replicaWatcher() {
 						for _,c := range pod.Spec.Containers{
 							containerNameSet = append(containerNameSet, c.Name)
 						}
-						for i := 0; i < replicas; i++ {
+						for i := 0; i < num; i++ {
 							//give pod names
 							pid := uid.NewUid()
 							podname := prefix + "-" + pid
