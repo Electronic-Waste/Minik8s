@@ -17,34 +17,30 @@ func HttpApply(objType string, obj any) error {
 	fmt.Println("http apply")
 	client := http.Client{}
 	payload, _ := json.Marshal(obj)
+	urlparam := "?namespace=default"
+	var requestUrl string
 	switch objType {
+	case "Autoscaler":
+		requestUrl = apiurl.Prefix + apiurl.AutoscalerStatusApplyURL + urlparam
+		fmt.Println("http apply autoscaler")
 	case "Deployment":
-		urlparam := "?namespace=default"
-		request, err := http.NewRequest("POST", apiurl.Prefix + apiurl.DeploymentStatusApplyURL + urlparam, bytes.NewReader(payload))
-		if err != nil {
-			log.Fatal(err)
-		}
+		requestUrl = apiurl.Prefix + apiurl.DeploymentStatusApplyURL + urlparam
 		fmt.Println("http apply deployment")
-		response, err := client.Do(request)
-		if err != nil {
-			log.Fatal(err)
-		}
-		if response.StatusCode != http.StatusOK {
-			return errors.New("apply fail")
-		}
 	case "Pod":
-		request, err := http.NewRequest("POST", apiurl.Prefix + apiurl.PodStatusApplyURL, bytes.NewReader(payload))
-		if err != nil {
-			log.Fatal(err)
-		}
+		requestUrl = apiurl.Prefix + apiurl.PodStatusApplyURL + urlparam
 		fmt.Println("http apply pod")
-		response, err := client.Do(request)
-		if err != nil {
-			log.Fatal(err)
-		}
-		if response.StatusCode != http.StatusOK {
-			return errors.New("apply fail")
-		}
+	}
+	request, err := http.NewRequest("POST", requestUrl, bytes.NewReader(payload))
+	if err != nil {
+		log.Fatal(err)
+	}
+	
+	response, err := client.Do(request)
+	if err != nil {
+		log.Fatal(err)
+	}
+	if response.StatusCode != http.StatusOK {
+		return errors.New("apply fail")
 	}
 	return nil
 }
@@ -66,32 +62,34 @@ func HttpGet(objType string, params map[string]string) ([]byte, error) {
 			i++
 		}
 	}
+	var requestUrl string
 	switch objType {
+	case "Autoscaler":
+		requestUrl = apiurl.Prefix + apiurl.AutoscalerStatusGetURL + urlparam
 	case "Deployment":
-		request, err := http.NewRequest("GET", apiurl.Prefix + apiurl.DeploymentStatusGetURL+urlparam, nil)
-		if err != nil {
-			log.Fatal(err)
-		}
-		response, err := client.Do(request)
-		if err != nil {
-			log.Fatal(err)
-			//return errors.New("")
-		}
-		if response.StatusCode != http.StatusOK {
-			return nil, errors.New("get fail")
-		}
-		data, err := ioutil.ReadAll(response.Body)
-		return data, nil
+		requestUrl = apiurl.Prefix + apiurl.DeploymentStatusGetURL + urlparam
+	case "Pod":
+		requestUrl = apiurl.Prefix + apiurl.PodStatusGetURL + urlparam
 	}
-	return nil, errors.New("invalid request")
+	request, err := http.NewRequest("GET", requestUrl, nil)
+	if err != nil {
+		log.Fatal(err)
+	}
+	response, err := client.Do(request)
+	if err != nil {
+		log.Fatal(err)
+		//return errors.New("")
+	}
+	if response.StatusCode != http.StatusOK {
+		return nil, errors.New("get fail")
+	}
+	data, err := ioutil.ReadAll(response.Body)
+	return data, nil
 }
 
 // return: error
 // @objType: type want to get; @params: query params
-func HttpDel(objType string, params map[string]string) ([]byte, error) {
-	var(
-		data []byte
-	)
+func HttpDel(objType string, params map[string]string)  error {
 	client := http.Client{}
 	urlparam := ""
 	//if there are params, construct get url
@@ -106,22 +104,26 @@ func HttpDel(objType string, params map[string]string) ([]byte, error) {
 			i++
 		}
 	}
+	var requestUrl string
 	switch objType {
+	case "Autoscaler":
+		requestUrl = apiurl.Prefix + apiurl.AutoscalerStatusDelURL + urlparam
 	case "Deployment":
-		request, err := http.NewRequest("DELETE", apiurl.Prefix + apiurl.DeploymentStatusDelURL+urlparam, nil)
-		if err != nil {
-			log.Fatal(err)
-		}
-		response, err := client.Do(request)
-		if err != nil {
-			log.Fatal(err)
-			//return errors.New("")
-		}
-		if response.StatusCode != http.StatusOK {
-			return nil, errors.New("del fail")
-		}
-		data, err = ioutil.ReadAll(response.Body)
-		
+		requestUrl = apiurl.Prefix + apiurl.DeploymentStatusDelURL + urlparam
+	case "Pod":
+		requestUrl = apiurl.Prefix + apiurl.PodStatusDelURL + urlparam
 	}
-	return data, nil
+	request, err := http.NewRequest("DELETE", requestUrl, nil)
+	if err != nil {
+		log.Fatal(err)
+	}
+	response, err := client.Do(request)
+	if err != nil {
+		log.Fatal(err)
+		//return errors.New("")
+	}
+	if response.StatusCode != http.StatusOK {
+		return errors.New("del fail")
+	}
+	return nil
 }

@@ -287,7 +287,6 @@
         name: cpu
         target:
           averageUtilization: 40
-          type: Utilization
       type: Resource
     minReplicas: 3
     scaleTargetRef:

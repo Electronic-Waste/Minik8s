@@ -22,4 +22,11 @@ const (
 	DeploymentStatusDelURL    string = DeploymentStatus + "/del"
 	DeploymentStatusApplyURL  string = DeploymentStatus + "/apply"
 	DeploymentStatusUpdateURL string = DeploymentStatus + "/update"
+
+	AutoscalerStatus          string = "/autoscaler/status"
+	AutoscalerStatusGetURL    string = AutoscalerStatus + "/get"
+	AutoscalerStatusGetAllURL string = AutoscalerStatus + "/getall"
+	AutoscalerStatusDelURL    string = AutoscalerStatus + "/del"
+	AutoscalerStatusApplyURL  string = AutoscalerStatus + "/apply"
+	AutoscalerStatusUpdateURL string = AutoscalerStatus + "/update"
 )

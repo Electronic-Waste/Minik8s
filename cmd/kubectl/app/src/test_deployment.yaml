@@ -1,6 +1,6 @@
 kind: Deployment
 metadata:
-  name: test
+  name: deployment_test
 spec: 
   replicas: 3
   selector: test

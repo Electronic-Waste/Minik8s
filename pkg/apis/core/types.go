@@ -471,3 +471,29 @@ type ServiceSpec struct {
 	// use by others, it will be allocated to the service
 	ClusterIP string `json:"clusterIP,omitempty"`
 }
+
+type Autoscaler struct {
+	Metadata meta.ObjectMeta
+	Spec	AutoscalerSpec
+}
+
+type AutoscalerSpec struct {
+	MaxReplicas		int
+	MinReplicas		int
+	ScaleTargetRef	AutoscalerTarget
+	Metrics			[]AutoscalerMetrics
+}
+
+type AutoscalerTarget struct {
+	Kind string
+	Name string
+}
+
+type AutoscalerMetrics struct {
+	Resource 	AutoscalerResource
+}
+
+type AutoscalerResource struct {
+	Name 				string
+	AverageUtilization	int
+}

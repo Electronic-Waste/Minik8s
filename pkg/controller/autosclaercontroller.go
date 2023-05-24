@@ -1,12 +1,20 @@
 package controller
 
-type DeploymentController struct {
-	//Client
-	//util
+import(
+	"context"
+)
 
-	// work queue
-	queue   *queue.Queue
-	nameMap map[interface{}]interface{}
-	//channel chan struct{}
-	//message *redis.Message
+type AutoscalerController struct {
+	DeploymentName string
+}
+
+func NewAutoscalerController(ctx context.Context) (*AutoscalerController, error) {
+	ac := &AutoscalerController{
+		DeploymentName: "test",
+	}
+	return ac, nil
+}
+
+func (ac *AutoscalerController) Run (ctx context.Context) {
+	return
 }
