@@ -1,15 +1,15 @@
 package clientutil
 
 import (
-	"fmt"
 	"bytes"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io/ioutil"
 	"log"
+	"minik8s.io/pkg/apis/core"
 	apiurl "minik8s.io/pkg/apiserver/util/url"
 	"net/http"
-	"minik8s.io/pkg/apis/core"
 )
 
 // return: error
@@ -21,7 +21,7 @@ func HttpApply(objType string, obj any) error {
 	switch objType {
 	case "Deployment":
 		urlparam := "?namespace=default"
-		request, err := http.NewRequest("POST", apiurl.Prefix + apiurl.DeploymentStatusApplyURL + urlparam, bytes.NewReader(payload))
+		request, err := http.NewRequest("POST", apiurl.Prefix+apiurl.DeploymentStatusApplyURL+urlparam, bytes.NewReader(payload))
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -34,7 +34,7 @@ func HttpApply(objType string, obj any) error {
 			return errors.New("apply fail")
 		}
 	case "Pod":
-		request, err := http.NewRequest("POST", apiurl.Prefix + apiurl.PodStatusApplyURL, bytes.NewReader(payload))
+		request, err := http.NewRequest("POST", apiurl.Prefix+apiurl.PodStatusApplyURL, bytes.NewReader(payload))
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -67,7 +67,25 @@ func HttpApply(objType string, obj any) error {
 		}
 		body, _ := ioutil.ReadAll(response.Body)
 		fmt.Printf("Response: %s\n", string(body))
+	case "Node":
+		var node core.Node
+		json.Unmarshal([]byte(payload), &node)
+		postURL := apiurl.HttpScheme + node.Spec.MasterIp + apiurl.Port + apiurl.NodeRergisterUrl
+		request, err := http.NewRequest("POST", postURL, bytes.NewReader(payload))
+		if err != nil {
+			log.Fatal(err)
+		}
+		response, err := client.Do(request)
+		if err != nil {
+			log.Fatal(err)
+		}
+		if response.StatusCode != http.StatusOK {
+			return errors.New("register fail")
+		}
+		body, _ := ioutil.ReadAll(response.Body)
+		fmt.Printf("Response: %s\n", string(body))
 	}
+
 	return nil
 }
 
@@ -90,7 +108,7 @@ func HttpGet(objType string, params map[string]string) ([]byte, error) {
 	}
 	switch objType {
 	case "Deployment":
-		request, err := http.NewRequest("GET", apiurl.Prefix + apiurl.DeploymentStatusGetURL+urlparam, nil)
+		request, err := http.NewRequest("GET", apiurl.Prefix+apiurl.DeploymentStatusGetURL+urlparam, nil)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -111,7 +129,7 @@ func HttpGet(objType string, params map[string]string) ([]byte, error) {
 // return: error
 // @objType: type want to get; @params: query params
 func HttpDel(objType string, params map[string]string) ([]byte, error) {
-	var(
+	var (
 		data []byte
 	)
 	client := http.Client{}
@@ -130,7 +148,7 @@ func HttpDel(objType string, params map[string]string) ([]byte, error) {
 	}
 	switch objType {
 	case "Deployment":
-		request, err := http.NewRequest("DELETE", apiurl.Prefix + apiurl.DeploymentStatusDelURL+urlparam, nil)
+		request, err := http.NewRequest("DELETE", apiurl.Prefix+apiurl.DeploymentStatusDelURL+urlparam, nil)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -144,7 +162,7 @@ func HttpDel(objType string, params map[string]string) ([]byte, error) {
 		}
 		data, err = ioutil.ReadAll(response.Body)
 	case "Service":
-		request, _ := http.NewRequest("DELETE", apiurl.Prefix + apiurl.ServiceDelURL + urlparam, nil)
+		request, _ := http.NewRequest("DELETE", apiurl.Prefix+apiurl.ServiceDelURL+urlparam, nil)
 		fmt.Printf("URL is %s\n", request.URL)
 		response, err := client.Do(request)
 		if err != nil {
