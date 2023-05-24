@@ -45,7 +45,7 @@ func NewDeploymentController(ctx context.Context) (*DeploymentController, error)
 
 func (dc *DeploymentController) Run(ctx context.Context) {
 	go dc.register()		//register list watch handler
-	go dc.replicaWatcher()	//supervise pod replica numbers
+	//go dc.replicaWatcher()	//supervise pod replica numbers
 	go dc.worker(ctx)		//main thread processing messages
 	print("deployment controller running\n")
 	<-ctx.Done()
@@ -124,14 +124,25 @@ func (dc *DeploymentController) syncDeployment(ctx context.Context, watchres lis
 			//label := map[string]string{}
 			//label["app"] = "test"
 			var nameSet []string
+			var containerNameSet []string
+			pod := deployment.Spec.Template
+			for _,c := range pod.Spec.Containers{
+				containerNameSet = append(containerNameSet, c.Name)
+			}
+
 			for i := 0; i < replicas; i++ {
+				//give pod names
 				pid := uid.NewUid()
 				podname := prefix + "-" + pid
 				dc.p2dMap[podname] = deployment.Metadata.Name
 				nameSet = append(nameSet, podname)
 				fmt.Println("podname: " + podname)
-				pod := deployment.Spec.Template
 				pod.Name = podname
+				//give container names
+				for i,_ := range pod.Spec.Containers{
+					cid := uid.NewUid()
+					pod.Spec.Containers[i].Name = containerNameSet[i] + "-" + cid
+				}
 				AddPod(pod)
 			}
 			dc.d2pMap[deployment.Metadata.Name] = nameSet
@@ -225,27 +236,27 @@ func (dc *DeploymentController) replicaWatcher() {
 			deploymentSet = append(deploymentSet, deployment)
 			fmt.Println(deployment.Metadata.Name)
 		}
-		fmt.Println("map:")
-		for k,v := range dc.p2dMap{
-			fmt.Println("podname:" + k.(string) + ", deployname: " + v.(string))
-		}
-		fmt.Println("pods:")
+		//fmt.Println("map:")
+		//for k,v := range dc.p2dMap{
+		//	fmt.Println("podname:" + k.(string) + ", deployname: " + v.(string))
+		//}
+		//fmt.Println("pods:")
 
 		numMap := make(map[string]int)
 		for _,pod := range pods{
 			if pod.Status.Phase != core.PodFailed{
 				deploymentname,ok := dc.p2dMap[pod.Name]
 				if ok == true{
-					fmt.Println("pod: " + pod.Name + ", deployment: deploymentname")
+					//fmt.Println("pod: " + pod.Name + ", deployment: deploymentname")
 					replica,ok := numMap[deploymentname.(string)]
 					if ok{
 						replica++
-						fmt.Println("deployment recorded:")
-						fmt.Println(replica)
+						//fmt.Println("deployment recorded:")
+						//fmt.Println(replica)
 						numMap[deploymentname.(string)] = replica
 					}else{
-						fmt.Println("deployment unrecorded:")
-						fmt.Println(1)
+						//fmt.Println("deployment unrecorded:")
+						//fmt.Println(1)
 						numMap[deploymentname.(string)] = 1
 					}
 				}
@@ -262,14 +273,25 @@ func (dc *DeploymentController) replicaWatcher() {
 						num := deployment.Spec.Replicas - replica
 						for i := 0; i < num; i++{
 							var nameSet []string
+							var containerNameSet []string
+							pod := deployment.Spec.Template
+							for _,c := range pod.Spec.Containers{
+								containerNameSet = append(containerNameSet, c.Name)
+							}
+						
 							for i := 0; i < replicas; i++ {
+								//give pod names
 								pid := uid.NewUid()
 								podname := prefix + "-" + pid
 								dc.p2dMap[podname] = deployment.Metadata.Name
 								nameSet = append(nameSet, podname)
 								fmt.Println("podname: " + podname)
-								pod := deployment.Spec.Template
 								pod.Name = podname
+								//give container names
+								for i,_ := range pod.Spec.Containers{
+									cid := uid.NewUid()
+									pod.Spec.Containers[i].Name = containerNameSet[i] + "-" + cid
+								}
 								AddPod(pod)
 							}
 							dc.d2pMap[deployment.Metadata.Name] = nameSet
@@ -287,6 +309,9 @@ func (dc *DeploymentController) replicaWatcher() {
 // just for test
 func AddPod(pod core.Pod) {
 	fmt.Printf("add pod %s\n",pod.Name)
+	//for _,c := range pod.Spec.Containers{
+	//	fmt.Printf("pod container %s\n", c.Name)
+	//}
 	podmanager.RunPod(&pod)
 }
 
