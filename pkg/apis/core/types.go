@@ -418,13 +418,13 @@ type DeploymentStatus struct {
 // requests sent through the proxy.
 type Service struct {
 	// Service's name (can be omitted)
-	meta.ObjectMeta `json:"metadata,omitempty"`
+	meta.ObjectMeta `json:"metadata,omitempty" yaml:"metadata,omitempty" mapstructure:"metadata"`
 
 	// Service's kind is Service
-	Kind string `json:"kind"`
+	Kind string `json:"kind" yaml:"kind"`
 
 	// Spec defines the behavior of a service.
-	Spec ServiceSpec `json:"spec"`
+	Spec ServiceSpec `json:"spec" yaml:"spec"`
 }
 
 // ServicePort represents the port on which the service is exposed
@@ -433,13 +433,13 @@ type ServicePort struct {
 	// name of this port within the service.  This must be a DNS_LABEL.
 	// All ports within a ServiceSpec must have unique names.  This maps to
 	// the 'Name' field in EndpointPort objects.
-	Name string `json:"name"`
+	Name string `json:"name" yaml:"name"`
 
 	// The IP protocol for this port.  Supports "TCP", "UDP", and "SCTP".
-	Protocol Protocol `json:"protocol,omitempty"`
+	Protocol Protocol `json:"protocol,omitempty" yaml:"protocol,omitempty"`
 
 	// The port that will be exposed on the service.
-	Port int32 `json:"port,omitempty"`
+	Port int32 `json:"port,omitempty" yaml:"port,omitempty"`
 
 	// Optional: The target port on pods selected by this service.  If this
 	// is a string, it will be looked up as a named port in the target
@@ -447,29 +447,29 @@ type ServicePort struct {
 	// of the 'port' field is used (an identity map).
 	// This field is ignored for services with clusterIP=None, and should be
 	// omitted or set equal to the 'port' field.
-	TargetPort int32 `json:"targetPort,omitempty"`
+	TargetPort int32 `json:"targetPort,omitempty" yaml:"targetPort,omitempty"`
 }
 
 // ServiceSpec describes the attributes that a user creates on a service
 type ServiceSpec struct {
 	// Type determines how the Service is exposed. Defaults to ClusterIP. Valid
 	// options are ExternalName, ClusterIP, NodePort, and LoadBalancer.
-	Type string `json:"type,omitempty"`
+	Type string `json:"type,omitempty" yaml:"type,omitempty"`
 
 	// Required: The list of ports that are exposed by this service.
-	Ports []ServicePort `json:"ports,omitempty"`
+	Ports []ServicePort `json:"ports,omitempty" yaml:"ports,omitempty"`
 
 	// Route service traffic to pods with label keys and values matching this
 	// selector. If empty or not present, the service is assumed to have an
 	// external process managing its endpoints, which Kubernetes will not
 	// modify. Only applies to types ClusterIP, NodePort, and LoadBalancer.
 	// Ignored if type is ExternalName.
-	Selector map[string]string `json:"selector,omitempty"`
+	Selector map[string]string `json:"selector,omitempty" yaml:"selector,omitempty"`
 
 	// ClusterIP is the IP address of the service and is usually assigned
 	// randomly by the master. If an address is specified manually and is not in
 	// use by others, it will be allocated to the service
-	ClusterIP string `json:"clusterIP,omitempty"`
+	ClusterIP string `json:"clusterIP,omitempty" yaml:"clusterIP,omitempty"`
 }
 
 

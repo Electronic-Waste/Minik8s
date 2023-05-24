@@ -9,6 +9,7 @@ import (
 	"log"
 	apiurl "minik8s.io/pkg/apiserver/util/url"
 	"net/http"
+	"minik8s.io/pkg/apis/core"
 )
 
 // return: error
@@ -45,6 +46,27 @@ func HttpApply(objType string, obj any) error {
 		if response.StatusCode != http.StatusOK {
 			return errors.New("apply fail")
 		}
+	case "Service":
+		var service core.Service
+		json.Unmarshal([]byte(payload), &service)
+		// fmt.Printf("httpclient: service is : %v\n", service)
+		// fmt.Printf("httpclinet: service name is : %v\n", service.Name)
+		postURL := apiurl.Prefix + apiurl.ServiceApplyURL + fmt.Sprintf("?namespace=default&name=%s", service.Name)
+		fmt.Printf("httpclient: send request to %s\n", postURL)
+		request, err := http.NewRequest("POST", postURL, bytes.NewReader(payload))
+		if err != nil {
+			log.Fatal(err)
+		}
+		fmt.Println("http apply service")
+		response, err := client.Do(request)
+		if err != nil {
+			log.Fatal(err)
+		}
+		if response.StatusCode != http.StatusOK {
+			return errors.New("apply fail")
+		}
+		body, _ := ioutil.ReadAll(response.Body)
+		fmt.Printf("Response: %s\n", string(body))
 	}
 	return nil
 }

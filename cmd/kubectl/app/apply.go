@@ -76,6 +76,19 @@ func ApplyHandler(path string) error {
 		if err != nil{
 			return err
 		}
+	case "Service":
+		service := core.Service{}
+		err := viper.Unmarshal(&service)
+		if err != nil {
+			fmt.Printf("Error in unmarshaling service yaml file: %v", err)
+			return err
+		}
+		fmt.Printf("service name: %s\n", service.Name)
+		err = applyService(service)
+		if err != nil {
+			fmt.Printf("Error in sending service to apiserver: %v", err)
+			return err
+		}
 	}
 	return nil
 }
@@ -88,6 +101,11 @@ func applyPod(pod core.Pod) error {
 func applyDeployment(deployment core.Deployment) error {
 	fmt.Println("apply deployment")
 	return clientutil.HttpApply("Deployment", deployment)
+}
+
+func applyService(service core.Service) error {
+	fmt.Println("apply service")
+	return clientutil.HttpApply("Service", service)
 }
 
 func init() {

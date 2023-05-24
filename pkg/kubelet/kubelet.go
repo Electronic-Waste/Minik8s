@@ -71,6 +71,7 @@ func bindWatchHandler() {
 func ApplyPodHanlder(msg *redis.Message) {
 	var podSpec core.Pod
 	json.Unmarshal([]byte(msg.Payload), &podSpec)
+	podSpec.ContainerConvert()
 	fmt.Printf("Kubelet receive msg: %s", msg.Payload)
 	podmanager.RunPod(&podSpec)
 }
