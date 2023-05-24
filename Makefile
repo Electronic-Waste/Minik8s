@@ -1,4 +1,4 @@
-.PHONY:all build clean help check test vctl kubeadm nervctl kubelet
+.PHONY:all build clean help check test vctl kubeadm nervctl kubelet listener
 BIN=bin
 PATH=./cmd
 ADM=kubeadm
@@ -8,6 +8,7 @@ NCTL=nervctl
 CTLM=kube-controller-manager
 CTL=kubectl
 KUBELET=kubelet
+LISTENER=listener
 CMD=app/cmd
 GO=$(shell which go)
 CLEAN=$(shell rm -rf ${BIN})
@@ -60,3 +61,6 @@ kube-controller-manager:
 kubectl:
 	@echo "$(FOLD)"
 	$(GO) build -o "${BIN}/${CTL}" "${PATH}/${CTL}/${CTL}.go"
+listener:
+	@echo "$(FOLD)"
+	$(GO) build -o "${BIN}/${LISTENER}" "${PATH}/${LISTENER}/${LISTENER}.go"
