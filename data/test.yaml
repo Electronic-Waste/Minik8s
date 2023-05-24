@@ -1,6 +1,8 @@
 kind: Pod
 metadata:
   name: test
+  labels:
+    app: test-pod
 spec:
   volumes:
   - name: shared-data
@@ -20,7 +22,7 @@ spec:
         mountPath: /mnt
     ports:
       - containerPort: 8080
-    command:
+    command: 
       - bash
 
   - name: go2
@@ -35,5 +37,6 @@ spec:
         mountPath: /go/src
     ports:
       - containerPort: 80
-    command:
+
+    command: 
       - bash
