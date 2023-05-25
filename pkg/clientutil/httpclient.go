@@ -89,7 +89,7 @@ func HttpApply(objType string, obj any) error {
 	return nil
 }
 
-func HttpApplyPlus(objType string, obj any, url string) error {
+func HttpPlus(objType string, obj any, url string) error {
 	fmt.Println("http apply")
 	client := http.Client{}
 	payload, _ := json.Marshal(obj)

@@ -17,10 +17,29 @@ var (
 	Port      string = ":3000"
 	PodPrefix string = "/Pod"
 	RunPodUrl string = PodPrefix + "/run"
+	DelPodRul string = PodPrefix + "/del"
 	PodMap           = map[string]HttpHandler{
 		RunPodUrl: HandlePodRun,
+		DelPodRul: HandlePodDel,
 	}
 )
+
+func HandlePodDel(resp http.ResponseWriter, req *http.Request) {
+	body, _ := ioutil.ReadAll(req.Body)
+
+	pod := core.Pod{}
+	json.Unmarshal(body, &pod)
+	fmt.Println("in kubelet http server")
+	fmt.Println(pod)
+	err := podmanager.DelPod(pod.Name)
+	if err != nil {
+		resp.WriteHeader(http.StatusNotFound)
+		resp.Write([]byte(err.Error()))
+		return
+	}
+	resp.WriteHeader(http.StatusOK)
+	resp.Header().Set("Content-Type", "application/json")
+}
 
 func HandlePodRun(resp http.ResponseWriter, req *http.Request) {
 	body, _ := ioutil.ReadAll(req.Body)
