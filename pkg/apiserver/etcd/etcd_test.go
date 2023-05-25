@@ -22,6 +22,13 @@ func TestCrud(t *testing.T) {
 	if exp_value != actual_value {
 		t.Error("Actual value mismatches with expected value")
 	}
+	/* Test: GetAll */
+	var values []string
+	values, err = GetWithPrefix("vmeet")
+	t.Log(values)
+	if len(values) != 1 {
+		t.Errorf("Should only have one value but its len is %d", len(values))
+	}
 	/* Test: Delete */
 	err = Del("vmeet")
 	if err != nil {
