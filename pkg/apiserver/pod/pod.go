@@ -67,6 +67,35 @@ func HandleGetAllPodStatus(resp http.ResponseWriter, req *http.Request) {
 	// return
 }
 
+// Return statuses of pods with prefix 
+// uri: /pods/status/getwithprefix
+func HandleGetWithPrefixPodStatus(resp http.ResponseWriter, req *http.Request) {
+	vars := req.URL.Query()
+	namespace := vars.Get("namespace")
+	prefix := vars.Get("prefix")
+	etcdPrefix := path.Join(url.PodStatus, namespace, prefix)
+	var podStatusArr []string
+	podStatusArr, err := etcd.GetWithPrefix(etcdPrefix)
+	// Error occur in etcd: return error to client
+	if err != nil {
+		resp.WriteHeader(http.StatusNotFound)
+		resp.Write([]byte(err.Error()))
+		return
+	}
+	var jsonVal []byte
+	jsonVal, err = json.Marshal(podStatusArr)
+	// Error occur in json parsing: return error to client
+	if err != nil {
+		resp.WriteHeader(http.StatusInternalServerError)
+		resp.Write([]byte(err.Error()))
+		return
+	}
+	resp.WriteHeader(http.StatusOK)
+	resp.Header().Set("Content-Type", "application/json")
+	resp.Write(jsonVal)
+	// return
+}
+
 
 // Apply a pod's status in etcd
 // uri: /pods/status/apply?namespace=...&name=...

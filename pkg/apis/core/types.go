@@ -407,7 +407,7 @@ type DeploymentSpec struct {
 
 type DeploymentStatus struct {
 	//ObservedGeneration int
-	AvailableReplicas int
+	AvailableReplicas 	int
 	//for later use
 	//UpdatedReplicas int
 	//ReadyReplicas   int
@@ -472,7 +472,6 @@ type ServiceSpec struct {
 	ClusterIP string `json:"clusterIP,omitempty" yaml:"clusterIP,omitempty"`
 }
 
-
 // KubeproxyServiceParam is received by kuebproxy, which is used for creating service
 type KubeproxyServiceParam struct {
 	// Service's name
@@ -493,3 +492,31 @@ type KubeproxyServiceParam struct {
 	PodIPs 			[]string		`json:"podIPs,omitempty"`
 }
 
+
+type Autoscaler struct {
+	Metadata meta.ObjectMeta
+	Spec	AutoscalerSpec
+}
+
+type AutoscalerSpec struct {
+	MaxReplicas		int
+	MinReplicas		int
+	ScaleInterval	int
+	ScaleTargetRef	AutoscalerTarget
+	Metrics			[]AutoscalerMetrics
+}
+
+type AutoscalerTarget struct {
+	Kind 	string
+	Name 	string		//should be Deplolyment
+}
+
+type AutoscalerMetrics struct {
+	Resource 	AutoscalerResource
+}
+
+type AutoscalerResource struct {
+	Name 			string	//cpu or memory
+	Strategy		string	//max or avarage 
+	Utilization		int		//e.g. 50
+}

@@ -1,4 +1,4 @@
-package deployment
+package autoscaler
 
 import (
 	"encoding/json"
@@ -14,21 +14,21 @@ import (
 	"minik8s.io/pkg/apis/core"
 )
 
-// Return certain deployment's status
-// uri: /deployments/status/get?namespace=...&name=...
-// @namespace: namespace requested; @name: deployment name
-func HandleGetDeploymentStatus(resp http.ResponseWriter, req *http.Request) {
+// Return certain autoscaler's status
+// uri: /autoscalers/status/get?namespace=...&name=...
+// @namespace: namespace requested; @name: autoscaler name
+func HandleGetAutoscalerStatus(resp http.ResponseWriter, req *http.Request) {
 	vars := req.URL.Query()
 	namespace := vars.Get("namespace")
-	deploymentName := vars.Get("name")
+	autoscalerName := vars.Get("name")
 	// Param miss: return error to client
-	if namespace == "" || deploymentName == "" {
+	if namespace == "" || autoscalerName == "" {
 		resp.WriteHeader(http.StatusBadRequest)
 		resp.Write([]byte("Name is missing"))
 		return
 	}
-	etcdKey := path.Join(url.DeploymentStatus, namespace, deploymentName)
-	DeploymentStatus, err := etcd.Get(etcdKey)
+	etcdKey := path.Join(url.AutoscalerStatus, namespace, autoscalerName)
+	AutoscalerStatus, err := etcd.Get(etcdKey)
 	// Error occur in etcd: return error to client
 	if err != nil {
 		resp.WriteHeader(http.StatusNotFound)
@@ -37,17 +37,16 @@ func HandleGetDeploymentStatus(resp http.ResponseWriter, req *http.Request) {
 	}
 	resp.WriteHeader(http.StatusOK)
 	resp.Header().Set("Content-Type", "application/json")
-	resp.Write([]byte(DeploymentStatus))
+	resp.Write([]byte(AutoscalerStatus))
 	return
 }
 
-// Return all deployments' statuses
-// uri: /deployments/status/getall
-func HandleGetAllDeploymentStatus(resp http.ResponseWriter, req *http.Request) {
-	etcdPrefix := url.DeploymentStatus
-	var deploymentStatusArr []string
-	deploymentStatusArr, err := etcd.GetWithPrefix(etcdPrefix)
-	//err := etcd.DelWithPrefix(etcdPrefix)
+// Return all autoscalers' statuses
+// uri: /autoscalers/status/getall
+func HandleGetAllAutoscalerStatus(resp http.ResponseWriter, req *http.Request) {
+	etcdPrefix := url.AutoscalerStatus
+	var autoscalerStatusArr []string
+	autoscalerStatusArr, err := etcd.GetWithPrefix(etcdPrefix)
 	// Error occur in etcd: return error to client
 	if err != nil {
 		resp.WriteHeader(http.StatusNotFound)
@@ -55,7 +54,7 @@ func HandleGetAllDeploymentStatus(resp http.ResponseWriter, req *http.Request) {
 		return
 	}
 	var jsonVal []byte
-	jsonVal, err = json.Marshal(deploymentStatusArr)
+	jsonVal, err = json.Marshal(autoscalerStatusArr)
 	// Error occur in json parsing: return error to client
 	if err != nil {
 		resp.WriteHeader(http.StatusInternalServerError)
@@ -68,30 +67,30 @@ func HandleGetAllDeploymentStatus(resp http.ResponseWriter, req *http.Request) {
 	// return
 }
 
-// Apply a deployment's status in etcd
-// uri: /deployments/status/apply?namespace=...&name=...
-// @namespace: namespace requested; @name: deployment name
-// body: core.Deployment in JSON form
-func HandleApplyDeploymentStatus(resp http.ResponseWriter, req *http.Request) {
-	fmt.Println("receive http apply deployment request")
+// Apply a autoscaler's status in etcd
+// uri: /autoscalers/status/apply?namespace=...&name=...
+// @namespace: namespace requested; @name: autoscaler name
+// body: core.Autoscaler in JSON form
+func HandleApplyAutoscalerStatus(resp http.ResponseWriter, req *http.Request) {
+	fmt.Println("receive http apply autoscaler request")
 	vars := req.URL.Query()
 	namespace := vars.Get("namespace")
-	//deploymentName := vars.Get("name")
+	//autoscalerName := vars.Get("name")
 	body, _ := ioutil.ReadAll(req.Body)
 
-	deployment := core.Deployment{}
-	json.Unmarshal(body, &deployment)
-	deploymentName := deployment.Metadata.Name
+	autoscaler := core.Autoscaler{}
+	json.Unmarshal(body, &autoscaler)
+	autoscalerName := autoscaler.Metadata.Name
 	//namespace := "default"
 
 	// Param miss: return error to client
-	if namespace == "" || deploymentName == "" {
-		fmt.Println("deploymentName or namespace is missing")
+	if namespace == "" || autoscalerName == "" {
+		fmt.Println("autoscalerName or namespace is missing")
 		resp.WriteHeader(http.StatusBadRequest)
 		resp.Write([]byte("Name is missing"))
 		return
 	}
-	etcdURL := path.Join(url.DeploymentStatus, namespace, deploymentName)
+	etcdURL := path.Join(url.AutoscalerStatus, namespace, autoscalerName)
 	err := etcd.Put(etcdURL, string(body))
 	// Error occur in etcd: return error to client
 	if err != nil {
@@ -100,11 +99,11 @@ func HandleApplyDeploymentStatus(resp http.ResponseWriter, req *http.Request) {
 		return
 	}
 	// Success!
-	fmt.Println("etcd apply deployment successfully")
-	pubURL := path.Join(url.DeploymentStatus, "apply")
+	fmt.Println("etcd apply autoscaler successfully")
+	pubURL := path.Join(url.AutoscalerStatus, "apply")
 	watchres := listwatch.WatchResult{}
 	watchres.ActionType = "apply"
-	watchres.ObjectType = "Deployment"
+	watchres.ObjectType = "Autoscaler"
 	watchres.Payload = body
 
 	bytes,_ := json.Marshal(watchres)
@@ -112,27 +111,22 @@ func HandleApplyDeploymentStatus(resp http.ResponseWriter, req *http.Request) {
 	resp.WriteHeader(http.StatusOK)
 }
 
-// Update a deployment's status in etcd
-// uri: /deployments/status/update?namespace=...&name=...
-// @namespace: namespace requested; @name: deployment name
-// body: core.Deployment in JSON form
-func HandleUpdateDeploymentStatus(resp http.ResponseWriter, req *http.Request) {
+// Update a autoscaler's status in etcd
+// uri: /autoscalers/status/update?namespace=...&name=...
+// @namespace: namespace requested; @name: autoscaler name
+// body: core.Autoscaler in JSON form
+func HandleUpdateAutoscalerStatus(resp http.ResponseWriter, req *http.Request) {
 	vars := req.URL.Query()
 	namespace := vars.Get("namespace")
-	//deploymentName := vars.Get("name")
+	autoscalerName := vars.Get("name")
 	body, _ := ioutil.ReadAll(req.Body)
-
-	deployment := core.Deployment{}
-	json.Unmarshal(body, &deployment)
-	deploymentName := deployment.Metadata.Name
-	
 	// Param miss: return error to client
-	if namespace == "" || deploymentName == "" {
+	if namespace == "" || autoscalerName == "" {
 		resp.WriteHeader(http.StatusBadRequest)
 		resp.Write([]byte("Name is missing"))
 		return
 	}
-	etcdURL := path.Join(url.DeploymentStatus, namespace, deploymentName)
+	etcdURL := path.Join(url.AutoscalerStatus, namespace, autoscalerName)
 	err := etcd.Put(etcdURL, string(body))
 	// Error occur in etcd: return error to client
 	if err != nil {
@@ -141,10 +135,10 @@ func HandleUpdateDeploymentStatus(resp http.ResponseWriter, req *http.Request) {
 		return
 	}
 	// Success!
-	pubURL := path.Join(url.DeploymentStatus, "update")
+	pubURL := path.Join(url.AutoscalerStatus, "update")
 	watchres := listwatch.WatchResult{}
 	watchres.ActionType = "update"
-	watchres.ObjectType = "Deployment"
+	watchres.ObjectType = "Autoscaler"
 	watchres.Payload = body
 
 	bytes,_ := json.Marshal(watchres)
@@ -152,20 +146,20 @@ func HandleUpdateDeploymentStatus(resp http.ResponseWriter, req *http.Request) {
 	resp.WriteHeader(http.StatusOK)
 }
 
-// Delete a deployment's status in etcd
-// uri: /deployments/status/del?namespace=...&name=...
-// @namespace: namespace requested; @name: deployment name
-func HandleDelDeploymentStatus(resp http.ResponseWriter, req *http.Request) {
+// Delete a autoscaler's status in etcd
+// uri: /autoscalers/status/del?namespace=...&name=...
+// @namespace: namespace requested; @name: autoscaler name
+func HandleDelAutoscalerStatus(resp http.ResponseWriter, req *http.Request) {
 	vars := req.URL.Query()
 	namespace := vars.Get("namespace")
-	deploymentName := vars.Get("name")
+	autoscalerName := vars.Get("name")
 	// Param miss: return error to client
-	if namespace == "" || deploymentName == "" {
+	if namespace == "" || autoscalerName == "" {
 		resp.WriteHeader(http.StatusBadRequest)
 		resp.Write([]byte("Name is missing"))
 		return
 	}
-	etcdURL := path.Join(url.DeploymentStatus, namespace, deploymentName)
+	etcdURL := path.Join(url.AutoscalerStatus, namespace, autoscalerName)
 	err := etcd.Del(etcdURL)
 	// Error occur in etcd: return error to client
 	if err != nil {
@@ -174,11 +168,11 @@ func HandleDelDeploymentStatus(resp http.ResponseWriter, req *http.Request) {
 		return
 	}
 	// Success!
-	pubURL := path.Join(url.DeploymentStatus, "del", namespace, deploymentName)
+	pubURL := path.Join(url.AutoscalerStatus, "del", namespace, autoscalerName)
 	watchres := listwatch.WatchResult{}
 	watchres.ActionType = "delete"
-	watchres.ObjectType = "Deployment"
-	watchres.Payload, _ = json.Marshal(deploymentName)
+	watchres.ObjectType = "Autoscaler"
+	watchres.Payload, _ = json.Marshal(autoscalerName)
 
 	bytes,_ := json.Marshal(watchres)
 	listwatch.Publish(pubURL, bytes)

@@ -1,3 +1,0 @@
-kind: Deployment
-metadata:
-  name: deploy

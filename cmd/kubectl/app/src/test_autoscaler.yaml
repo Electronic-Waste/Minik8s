@@ -1,0 +1,19 @@
+kind: HorizontalPodAutoscaler
+metadata: 
+  name: autoscaler_test
+spec:
+  maxReplicas: 6
+  minReplicas: 1
+  scaleIntervel: 15
+  scaleTargetRef:
+    kind: Deployment
+    name: deployment_test
+  metrics:
+  - resource:
+      name: cpu
+      strategy: average
+      utilization: 50
+  - resource:
+      name: memory
+      strategy: average
+      utilization: 50

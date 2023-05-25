@@ -13,6 +13,7 @@ const (
 	PodStatusDelURL 	string = PodStatus + "/del"
 	PodStatusApplyURL 	string = PodStatus + "/apply"
 	PodStatusUpdateURL 	string = PodStatus + "/update"
+	PodStatusGetWithPrefixURL	string = PodStatus + "/getwithprefix"
 
 	Service				string = "/service"
 	ServiceGetURL		string = Service + "/get"
@@ -27,5 +28,12 @@ const (
 	DeploymentStatusDelURL    string = DeploymentStatus + "/del"
 	DeploymentStatusApplyURL  string = DeploymentStatus + "/apply"
 	DeploymentStatusUpdateURL string = DeploymentStatus + "/update"
+
+	AutoscalerStatus          string = "/autoscaler/status"
+	AutoscalerStatusGetURL    string = AutoscalerStatus + "/get"
+	AutoscalerStatusGetAllURL string = AutoscalerStatus + "/getall"
+	AutoscalerStatusDelURL    string = AutoscalerStatus + "/del"
+	AutoscalerStatusApplyURL  string = AutoscalerStatus + "/apply"
+	AutoscalerStatusUpdateURL string = AutoscalerStatus + "/update"
 )
 

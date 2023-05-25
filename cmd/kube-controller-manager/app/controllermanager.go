@@ -43,6 +43,7 @@ type InitFunc func(ctx context.Context) (err error)
 func NewControllerInitializers() map[string]InitFunc {
 	controller := map[string]InitFunc{}
 	controller["deployment"] = StartDeploymentController
+	controller["autoscaler"] = StartAutoSclaerController
 	return controller
 }
 
@@ -53,5 +54,6 @@ func StartControllers(ctx context.Context, controllers map[string]InitFunc) erro
 			return err
 		}
 	}
+	<-ctx.Done()
 	return nil
 }
