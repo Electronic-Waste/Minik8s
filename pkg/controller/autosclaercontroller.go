@@ -148,6 +148,8 @@ func (ac *AutoscalerController) worker (autoscaler core.Autoscaler) {
 		timeout = time.Second * 5
 	}
 	for {
+		time.Sleep(timeout)
+
 		fmt.Println("ac working")
 		//fmt.Println("ac list numbers: ", len(ac.autoscalerList))
 		fmt.Printf("process autoscaler: %s\n", autoscaler.Metadata.Name)
@@ -170,7 +172,7 @@ func (ac *AutoscalerController) worker (autoscaler core.Autoscaler) {
 		if err != nil {
 			continue
 		}
-		//fmt.Printf("get deployment name: %s\n",deployment.Metadata.Name)
+		fmt.Printf("get deployment name: %s\n",deployment.Metadata.Name)
 		//get pods
 		pods, err := GetReplicaPods(deployment.Metadata.Name)
 		if err != nil{
@@ -187,29 +189,75 @@ func (ac *AutoscalerController) worker (autoscaler core.Autoscaler) {
 			statusList = append(statusList, status)
 			//fmt.Println(status)
 		}
-		metricsMap = ac.calculateMetrics(autoscaler, statusList, deployment.Spec.Replicas)
+		metricsMap := ac.calculateMetrics(autoscaler, statusList)
+		//currentReplicas := deployment.Spec.Replicas
+		minreplicas := autoscaler.Spec.MinReplicas
+		maxreplicas := autoscaler.Spec.MaxReplicas
 
-		for metric,value := range metricsMap{
-			if metric == "cpu"{
-				auto
-			}else if metric == "memory"{
-
+		metricsnum := len(metricsMap)
+		if metricsnum == 1{
+			for name,value := range metricsMap{
+				if name == "cpu"{
+					if value.Utilization < value.Metrics{
+						fmt.Println("cpu increase replicas")
+						IncreaseReplicas(deployment,maxreplicas,minreplicas)
+					}else{
+						fmt.Println("cpu decrease replicas")
+						DecreaseReplicas(deployment,maxreplicas,minreplicas)
+					}
+				}else if name == "memory"{
+					if value.Utilization < value.Metrics{
+						fmt.Println("memory increase replicas")
+						IncreaseReplicas(deployment,maxreplicas,minreplicas)
+					}else{
+						fmt.Println("memory decrease replicas")
+						DecreaseReplicas(deployment,maxreplicas,minreplicas)
+					}
+				}else{
+					fmt.Println("error: unknown metric")
+				}
+			}
+		}else{
+			cpuvalue := metricsMap["cpu"]
+			memoryvalue := metricsMap["memory"]
+			fmt.Println("metrics: ",cpuvalue.Metrics," ",memoryvalue.Metrics)
+			fmt.Println("Utilization: ",cpuvalue.Utilization," ",memoryvalue.Utilization)
+			flag1 := cpuvalue.Metrics > cpuvalue.Utilization
+			flag2 := memoryvalue.Metrics > memoryvalue.Utilization
+			if flag1 == flag2{
+				if flag1 == false{
+					fmt.Println("cpu and memory increase replicas")
+					IncreaseReplicas(deployment,maxreplicas,minreplicas)
+				}else{
+					fmt.Println("cpu and memory decrease replicas")
+					DecreaseReplicas(deployment,maxreplicas,minreplicas)
+				}
+			}else if flag1 == true{	//cpu increase but memory decrease
+				if cpuvalue.Metrics > 80{
+					DecreaseReplicas(deployment,maxreplicas,minreplicas)
+				}else{
+					IncreaseReplicas(deployment,maxreplicas,minreplicas)
+				}
+			}else{	//cpu decrease but memory increase
+				if memoryvalue.Metrics > 80{
+					DecreaseReplicas(deployment,maxreplicas,minreplicas)
+				}else{
+					IncreaseReplicas(deployment,maxreplicas,minreplicas)
+				}
 			}
 		}
-		
-		time.Sleep(timeout)
 	}
 }
 
-type metricsCompare struct{
-	Metrics		float64	//actual usage
-	Utilization	int		//spec
+type MetricsCompare struct{
+	Metrics		float64		//actual usage
+	Utilization	float64		//spec
 }
 
 //exapmle return: {"cpu":2,"memory":3} or {"cpu":6}
-func (ac *AutoscalerController) calculateMetrics(autoscaler core.Autoscaler, status []stats.PodStats, currReplicas int) map[string]float64 {
+func (ac *AutoscalerController) calculateMetrics(autoscaler core.Autoscaler, status []stats.PodStats) map[string]MetricsCompare {
 	metrics := autoscaler.Spec.Metrics
-	metricsMap := make(map[string]float64)
+	metricsMap := make(map[string]MetricsCompare)
 	for _,r := range metrics{
 		switch r.Resource.Name{
 		case "cpu":
@@ -220,11 +268,11 @@ func (ac *AutoscalerController) calculateMetrics(autoscaler core.Autoscaler, sta
 			}
 			totalcpu *= 100
 			fmt.Println("cpu:", totalcpu)
-			compare := metricsCompare{
+			compare := MetricsCompare{
 				Metrics: totalcpu,
-				Utilization: autoscaler.Spec.Metrics.Resource.Utilization
+				Utilization: float64(r.Resource.Utilization),
 			}
-			metricsMap["cpu"] = totalcpu
+			metricsMap["cpu"] = compare
 		case "memory":
 			totalmemory := 0.0
 			for _,s := range status{
@@ -237,7 +285,11 @@ func (ac *AutoscalerController) calculateMetrics(autoscaler core.Autoscaler, sta
 				totalmemory = 0
 			}
 			fmt.Println("memory:", totalmemory)
-			metricsMap["memory"] = totalmemory
+			compare := MetricsCompare{
+				Metrics: totalmemory,
+				Utilization: float64(r.Resource.Utilization),
+			}
+			metricsMap["memory"] = compare
 		}
 	}
 	return metricsMap
@@ -268,3 +320,25 @@ func GetReplicaPods(deploymentname string) ([]core.Pod,error) {
 	}
 	return pods,nil
 }
+
+func IncreaseReplicas(deployment core.Deployment, maxreplicas int, minreplicas int){
+	if deployment.Spec.Replicas == maxreplicas{
+		fmt.Println("reach maxreplicas")
+		return
+	}
+	deployment.Spec.Replicas = deployment.Spec.Replicas + 1
+	fmt.Println("increase deployment ",deployment.Metadata.Name," to ",deployment.Spec.Replicas)
+	clientutil.HttpUpdate("Deployment",deployment)
+}
+
+func DecreaseReplicas(deployment core.Deployment, maxreplicas int, minreplicas int){
+	if deployment.Spec.Replicas == minreplicas{
+		fmt.Println("reach minreplicas")
+		return
+	}
+	deployment.Spec.Replicas = deployment.Spec.Replicas - 1
+	fmt.Println("decrease deployment ",deployment.Metadata.Name," to ",deployment.Spec.Replicas)
+	clientutil.HttpUpdate("Deployment",deployment)
+}
+
+func

@@ -6,7 +6,7 @@ import (
 	"path"
 	"io/ioutil"
 	// "github.com/go-redis/redis/v8"
-
+	"fmt"
 	"minik8s.io/pkg/util/listwatch"
 	"minik8s.io/pkg/apiserver/etcd"
 	"minik8s.io/pkg/apiserver/util/url"
@@ -164,6 +164,7 @@ func HandleUpdatePodStatus(resp http.ResponseWriter, req *http.Request) {
 // uri: /pods/status/del?namespace=...&name=...
 // @namespace: namespace requested; @name: pod name
 func HandleDelPodStatus(resp http.ResponseWriter, req *http.Request) {
+	fmt.Println("http del")
 	vars := req.URL.Query()
 	namespace := vars.Get("namespace")
 	podName := vars.Get("name")
@@ -185,5 +186,6 @@ func HandleDelPodStatus(resp http.ResponseWriter, req *http.Request) {
 	pubURL := path.Join(url.PodStatus, "del")
 	listwatch.Publish(pubURL, podName)	
 	resp.WriteHeader(http.StatusOK)
+	fmt.Println("http del success")
 }
 

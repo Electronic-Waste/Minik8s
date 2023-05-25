@@ -36,7 +36,7 @@ type DeploymentController struct {
 func NewDeploymentController(ctx context.Context) (*DeploymentController, error) {
 	dc := &DeploymentController{
 		queue:   new(queue.Queue),
-		d2pMap: make(map[interface{}]interface{}),
+		d2pMap: make(map[interface{}]interface{}),	//deploymentname: []podname
 		p2dMap:	make(map[interface{}]interface{}),
 	}
 	print("new deployment controller\n")
@@ -118,7 +118,7 @@ func (dc *DeploymentController) syncDeployment(ctx context.Context, watchres lis
 		switch actiontype {
 		case "apply":
 			fmt.Println("apply deployment pods")
-			did := uid.NewUid()
+			//did := uid.NewUid()
 			prefix := deployment.Metadata.Name
 			replicas := deployment.Spec.Replicas
 			//label := map[string]string{}
@@ -149,16 +149,33 @@ func (dc *DeploymentController) syncDeployment(ctx context.Context, watchres lis
 			nameSet := dc.d2pMap[deployment.Metadata.Name].([]string)
 			oldReplicas := len(nameSet)
 			newReplicas := deployment.Spec.Replicas
+
+			pod := deployment.Spec.Template
+			var containerNameSet []string
+			for _,c := range pod.Spec.Containers{
+				containerNameSet = append(containerNameSet, c.Name)
+			}
 			if oldReplicas < newReplicas{
 				num := newReplicas - oldReplicas
+				prefix := deployment.Metadata.Name
 				for i := 0; i < num; i++{
-					//pid := uid.NewUid()
+					pid := uid.NewUid()
+					podname := prefix + "-" + pid
+					dc.d2pMap[deployment.Metadata.Name] = append(nameSet, podname)
+					pod.Name = podname
+					for i,_ := range pod.Spec.Containers{
+						cid := uid.NewUid()
+						pod.Spec.Containers[i].Name = containerNameSet[i] + "-" + cid
+					}
+					AddPod(pod)
 					fmt.Println("deployment update add pod")
 				}
 			}else{
 				num := oldReplicas - newReplicas
 				for i := 0; i < num; i++{
-					//pid := uid.NewUid()
+					podname := nameSet[0]
+					dc.d2pMap[deployment.Metadata.Name] = nameSet[1:]
+					DelPod(podname)
 					fmt.Println("deployment update delete pod")
 				}
 			}
@@ -320,7 +337,6 @@ func (dc *DeploymentController) replicaWatcher() {
 				}
 			}
 		}
-		
 		time.Sleep(timeout)
 	}
 	
@@ -338,7 +354,12 @@ func AddPod(pod core.Pod) {
 
 func DelPod(podname string) {
 	fmt.Printf("del pod %s\n",podname)
-	podmanager.DelPod(podname)
+	params := map[string]string{
+		"namespcae": "default",
+		"name": podname,
+	}
+	clientutil.HttpDel("Pod",params)
+	//podmanager.DelPod(podname)
 }
 
 func GetDeployment(name string) core.Deployment {
