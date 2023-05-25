@@ -11,6 +11,7 @@ import(
 	apiurl "minik8s.io/pkg/apiserver/util/url"
 	"encoding/json"
 	"fmt"
+	"minik8s.io/pkg/kubelet/cadvisor/stats"
 )
 
 type AutoscalerController struct {
@@ -130,10 +131,10 @@ func (ac *AutoscalerController) deletelistener (msg *redis.Message) {
 
 //polling to get deployments
 func (ac *AutoscalerController) worker () {
-	timeout := time.Second * 3
+	timeout := time.Second * 5
 	for {
-		fmt.Println("ac working")
-		fmt.Println("ac list numbers: ", len(ac.autoscalerList))
+		//fmt.Println("ac working")
+		//fmt.Println("ac list numbers: ", len(ac.autoscalerList))
 		for i,autoscaler := range ac.autoscalerList{
 			fmt.Printf("process autoscaler: %s\n", autoscaler.Metadata.Name)
 			//check validity of autoscaler first
@@ -162,20 +163,36 @@ func (ac *AutoscalerController) worker () {
 				continue
 			}
 			fmt.Println("get pod status:")
+			statusList := []stats.PodStats{}
 			for _,pod := range pods{
 				status, err := ac.cadvisor.GetPodMetric(pod.Name)
 				if err != nil{
 					fmt.Println(err)
 					continue
 				}
-				fmt.Println(status)
+				statusList = append(statusList, status)
+				//fmt.Println(status)
 			}
+			
 		}
 		time.Sleep(timeout)
 	}
 }
 
-func (ac *AutoscalerController) manageReplicas(deployment core.Deployment, targetnum int) {
+//exapmle return: {"cpu":2,"memory":3} or {"cpu":6}
+func (ac *AutoscalerController) calculateMetrics(autoscaler core.Autoscaler, []stats.PodStats) map[string]int {
+	metrics := autoscaler.Spec.Metrics
+	metricsMap := make(map[string]int)
+	for _,r := range metrics{
+		switch r.Resource.Name{
+		case "cpu":
+			target := r.Resource.Utilization
+			total := 0
+		}
+	}
+}
+
+func (ac *AutoscalerController) manageReplicas(deployment core.Deployment, targetnum int, ) {
 
 }
 
@@ -191,6 +208,9 @@ func GetReplicaPods(deploymentname string) ([]core.Pod,error) {
 		return nil,err
 	}
 	for _,s := range strs{
+		if s == ""{
+			continue
+		}
 		pod := core.Pod{}
 		err = json.Unmarshal([]byte(s), &pod)
 		if err != nil {

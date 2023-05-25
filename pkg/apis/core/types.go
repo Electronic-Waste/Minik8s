@@ -486,8 +486,8 @@ type AutoscalerSpec struct {
 }
 
 type AutoscalerTarget struct {
-	Kind string
-	Name string		//should be Deplolyment
+	Kind 	string
+	Name 	string		//should be Deplolyment
 }
 
 type AutoscalerMetrics struct {
@@ -495,7 +495,7 @@ type AutoscalerMetrics struct {
 }
 
 type AutoscalerResource struct {
-	Name 				string
-	Strategy			string
-	AverageUtilization	int
+	Name 			string	//cpu or memory
+	Strategy		string	//max or avarage 
+	Utilization		int		//e.g. 50
 }

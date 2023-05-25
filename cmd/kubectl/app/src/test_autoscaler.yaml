@@ -12,8 +12,8 @@ spec:
   - resource:
       name: cpu
       strategy: average
-      averageUtilization: 50
+      utilization: 50
   - resource:
       name: memory
       strategy: average
-      averageUtilization: 50
+      utilization: 50

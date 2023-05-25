@@ -23,6 +23,7 @@ build:
 	$(GO) build -o "${BIN}/${KUBELET}" "${PATH}/${KUBELET}/${KUBELET}.go"
 	$(GO) build -o "${BIN}/${CTLM}" "${PATH}/${CTLM}/${CTLM}.go"
 	$(GO) build -o "${BIN}/${CTL}" "${PATH}/${CTL}/${CTL}.go"
+	$(GO) build -o "${BIN}/${LISTENER}" "${PATH}/${LISTENER}/${LISTENER}.go"
 clean:
 	$(GO) clean
 	$(CLEAN)
