@@ -5,7 +5,7 @@ import (
 	scheduler2 "minik8s.io/pkg/scheduler"
 )
 
-func NewKubeletCommand() *cobra.Command {
+func NewSchedulerCommand() *cobra.Command {
 	var rootCmd = &cobra.Command{
 		Use:   "scheduler",
 		Short: "scheduler is a tools for Pod scheduling",

@@ -1,7 +1,12 @@
 package apiserver
 
 import (
+	"encoding/json"
+	"fmt"
+	"github.com/go-redis/redis/v8"
+	"minik8s.io/pkg/apis/core"
 	"minik8s.io/pkg/apiserver/node"
+	"minik8s.io/pkg/util/listwatch"
 	"net/http"
 
 	"minik8s.io/pkg/apiserver/deployment"
@@ -43,7 +48,14 @@ var nodeHandlerMap = map[string]HttpHandler{
 }
 
 func bindWatchHandler() {
+	go listwatch.Watch(url.SchedApplyURL, HitNode)
+}
 
+func HitNode(msg *redis.Message) {
+	pod := core.Pod{}
+	json.Unmarshal([]byte(msg.Payload), &pod)
+	fmt.Println("good job")
+	fmt.Println(pod)
 }
 
 var kubeProxyManager *kubeproxy.KubeproxyManager

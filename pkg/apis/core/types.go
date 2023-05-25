@@ -177,6 +177,7 @@ type Container struct {
 	// +optional
 	Resources ResourceRequirements `json:"resources,omitempty" protobuf:"bytes,8,opt,name=resources" yaml:"resources""`
 
+	// ------------------------------- next are params that will not in the yaml config file ----------------------------------------//
 	Mounts []Mount
 	// TODO(wjl) : add functional function step by step(such as volume and network and so on .......)
 }
@@ -200,6 +201,8 @@ type PodSpec struct {
 
 	// List of containers belonging to the pod.
 	Containers []Container
+
+	RunningNode Node
 }
 
 // ensure a variable which can identify a Pod
@@ -504,4 +507,9 @@ type KubeproxyServiceParam struct {
 
 	// Pods' IPs
 	PodIPs []string `json:"podIPs,omitempty"`
+}
+
+type ScheduleParam struct {
+	RunPod   Pod
+	NodeList []Node
 }

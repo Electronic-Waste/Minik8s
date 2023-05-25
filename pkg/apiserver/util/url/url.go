@@ -32,6 +32,6 @@ const (
 	Node             string = "/node"
 	NodeRergisterUrl string = Node + "/register"
 
-	Sched        string = "/sched"
-	SchedPostURL        = Sched + "/post"
+	Sched         string = "/sched"
+	SchedApplyURL        = Sched + "/apply"
 )

@@ -1,4 +1,4 @@
-.PHONY:all build clean help check test vctl kubeadm nervctl kubelet listener
+.PHONY:all build clean help check test vctl kubeadm nervctl kubelet listener scheduler
 BIN=bin
 PATH=./cmd
 ADM=kubeadm
@@ -10,6 +10,7 @@ LISTENER=listener
 CTLM=kube-controller-manager
 CTL=kubectl
 CMD=app/cmd
+SCH=scheduler
 GO=$(shell which go)
 CLEAN=$(shell rm -rf ${BIN})
 FOLD=$(shell if [ -d "./$(BIN)/" ]; then echo "$(BIN) exits"; else mkdir $(BIN);echo "make $(BIN) folder"; fi)
@@ -23,6 +24,7 @@ build:
 	$(GO) build -o "${BIN}/${KUBELET}" "${PATH}/${KUBELET}/${KUBELET}.go"
 	$(GO) build -o "${BIN}/${CTLM}" "${PATH}/${CTLM}/${CTLM}.go"
 	$(GO) build -o "${BIN}/${CTL}" "${PATH}/${CTL}/${CTL}.go"
+	$(GO) build -o "${BIN}/${SCH}" "${PATH}/${SCH}/${SCH}.go"
 clean:
 	$(GO) clean
 	$(CLEAN)
@@ -64,4 +66,6 @@ kube-controller-manager:
 kubectl:
 	@echo "$(FOLD)"
 	$(GO) build -o "${BIN}/${CTL}" "${PATH}/${CTL}/${CTL}.go"
-
+scheduler:
+	@echo "$(FOLD)"
+	$(GO) build -o "${BIN}/${SCH}" "${PATH}/${SCH}/${SCH}.go"

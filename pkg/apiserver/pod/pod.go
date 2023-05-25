@@ -1,18 +1,17 @@
 package pod
 
 import (
-	"net/http"
 	"encoding/json"
-	"path"
 	"io/ioutil"
+	"net/http"
+	"path"
 	// "github.com/go-redis/redis/v8"
 
-	"minik8s.io/pkg/util/listwatch"
+	"minik8s.io/pkg/apis/core"
 	"minik8s.io/pkg/apiserver/etcd"
 	"minik8s.io/pkg/apiserver/util/url"
-	"minik8s.io/pkg/apis/core"
+	"minik8s.io/pkg/util/listwatch"
 )
-
 
 // Return certain pod's status
 // uri: /pods/status/get?namespace=...&name=...
@@ -67,7 +66,6 @@ func HandleGetAllPodStatus(resp http.ResponseWriter, req *http.Request) {
 	// return
 }
 
-
 // Apply a pod's status in etcd
 // uri: /pods/status/apply?namespace=...&name=...
 // @namespace: namespace requested; @name: pod name
@@ -98,7 +96,23 @@ func HandleApplyPodStatus(resp http.ResponseWriter, req *http.Request) {
 	}
 	// Success!
 	pubURL := path.Join(url.PodStatus, "apply")
-	listwatch.Publish(pubURL, string(body))	
+	Param := core.ScheduleParam{
+		RunPod: pod,
+	}
+	// get all node registered message
+	nodeStr, err := etcd.GetWithPrefix(url.NodeRergisterUrl)
+	for _, str := range nodeStr {
+		node := core.Node{}
+		json.Unmarshal([]byte(str), &node)
+		Param.NodeList = append(Param.NodeList, node)
+	}
+	body, err = json.Marshal(Param)
+	if err != nil {
+		resp.WriteHeader(http.StatusInternalServerError)
+		resp.Write([]byte(err.Error()))
+		return
+	}
+	listwatch.Publish(pubURL, string(body))
 	resp.WriteHeader(http.StatusOK)
 }
 
@@ -127,7 +141,7 @@ func HandleUpdatePodStatus(resp http.ResponseWriter, req *http.Request) {
 	}
 	// Success!
 	pubURL := path.Join(url.PodStatus, "update")
-	listwatch.Publish(pubURL, string(body))	
+	listwatch.Publish(pubURL, string(body))
 	resp.WriteHeader(http.StatusOK)
 }
 
@@ -154,7 +168,6 @@ func HandleDelPodStatus(resp http.ResponseWriter, req *http.Request) {
 	}
 	// Success!
 	pubURL := path.Join(url.PodStatus, "del")
-	listwatch.Publish(pubURL, podName)	
+	listwatch.Publish(pubURL, podName)
 	resp.WriteHeader(http.StatusOK)
 }
-
