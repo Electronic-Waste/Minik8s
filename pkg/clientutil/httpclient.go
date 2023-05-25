@@ -112,7 +112,7 @@ func HttpUpdate(objType string, obj any) error {
 	if err != nil {
 		log.Fatal(err)
 	}
-	
+
 	response, err := client.Do(request)
 	if err != nil {
 		log.Fatal(err)
@@ -125,7 +125,7 @@ func HttpUpdate(objType string, obj any) error {
 }
 
 // return: obj queried
-// @objType: type want to get; @params: query params: namespace & name
+// @objType: type want to get; @params: query params
 func HttpGet(objType string, params map[string]string) ([]byte, error) {
 	client := http.Client{}
 	urlparam := ""
@@ -141,11 +141,7 @@ func HttpGet(objType string, params map[string]string) ([]byte, error) {
 			i++
 		}
 	}
-	fmt.Printf("httpclient get params: %s\n",urlparam)
-	var requestUrl string
 	switch objType {
-	case "Autoscaler":
-		requestUrl = apiurl.Prefix + apiurl.AutoscalerStatusGetURL + urlparam
 	case "Deployment":
 		request, err := http.NewRequest("GET", apiurl.Prefix+apiurl.DeploymentStatusGetURL+urlparam, nil)
 		if err != nil {
@@ -173,25 +169,12 @@ func HttpGet(objType string, params map[string]string) ([]byte, error) {
 		}
 		if response.StatusCode != http.StatusOK {
 			return nil, errors.New("get fail")
-		requestUrl = apiurl.Prefix + apiurl.DeploymentStatusGetURL + urlparam
-	case "Pod":
-		requestUrl = apiurl.Prefix + apiurl.PodStatusGetURL + urlparam
+		}
+		data, err := ioutil.ReadAll(response.Body)
+		return data, nil
 	}
-	request, err := http.NewRequest("GET", requestUrl, nil)
-	if err != nil {
-		log.Fatal(err)
-		//return nil,err
-	}
-	response, err := client.Do(request)
-	if err != nil {
-		log.Fatal(err)
-		return nil,err
-	}
-	if response.StatusCode != http.StatusOK {
-		return nil, errors.New("get fail")
-	}
-	data, err := ioutil.ReadAll(response.Body)
-	return data, nil
+
+	return nil, errors.New("invalid request")
 }
 
 // return: obj queried
@@ -211,7 +194,7 @@ func HttpGetWithPrefix(objType string, params map[string]string) ([]byte, error)
 			i++
 		}
 	}
-	fmt.Printf("httpclient get params: %s\n",urlparam)
+	fmt.Printf("httpclient get params: %s\n", urlparam)
 	var requestUrl string
 	switch objType {
 	case "Pod":
@@ -225,7 +208,7 @@ func HttpGetWithPrefix(objType string, params map[string]string) ([]byte, error)
 	response, err := client.Do(request)
 	if err != nil {
 		log.Fatal(err)
-		return nil,err
+		return nil, err
 	}
 	if response.StatusCode != http.StatusOK {
 		return nil, errors.New("get fail")
@@ -233,8 +216,6 @@ func HttpGetWithPrefix(objType string, params map[string]string) ([]byte, error)
 	data, err := ioutil.ReadAll(response.Body)
 	return data, nil
 }
-
-
 
 // return: obj queried
 // @objType: type want to get
@@ -267,7 +248,7 @@ func HttpGetAll(objType string) ([]byte, error) {
 
 // return: error
 // @objType: type want to get; @params: query params: namespace & name
-func HttpDel(objType string, params map[string]string)  error {
+func HttpDel(objType string, params map[string]string) error {
 	client := http.Client{}
 	urlparam := ""
 	//if there are params, construct get url
