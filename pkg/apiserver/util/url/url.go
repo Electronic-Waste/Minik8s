@@ -21,6 +21,13 @@ const (
 	ServiceApplyURL		string = Service + "/apply"
 	ServiceUpdateURL	string = Service + "/update"
 
+	DNS					string = "/dns"
+	DNSGetURL			string = DNS + "/get"
+	DNSGetAllURL		string = DNS + "/getall"
+	DNSDelURL			string = DNS + "/del"
+	DNSApplyURL   		string = DNS + "/apply"
+	DNSUpdateURL		string = DNS + "/update"
+
 	DeploymentStatus          string = "/deployment/status"
 	DeploymentStatusGetURL    string = DeploymentStatus + "/get"
 	DeploymentStatusGetAllURL string = DeploymentStatus + "/getall"

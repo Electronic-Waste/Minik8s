@@ -10,6 +10,7 @@ import (
 	"minik8s.io/pkg/util/iptables"
 	"minik8s.io/pkg/util/listwatch"
 	"minik8s.io/pkg/kubeproxy/meta"
+	"minik8s.io/pkg/apiserver/util/url"
 )
 
 type Manager interface{
@@ -20,6 +21,12 @@ type Manager interface{
 
 	// Delete a service by deleting relevant chains and rule from iptables
 	DelService(serviceName string) error
+
+	// Create a DNS rule to enable visiting service by domain name
+	CreateDNS(dnsName string, host string, paths []core.DNSSubpath) error
+	
+	// Delete a DNS rule by Host path
+	DelDNS(host string) error
 
 	// Processing request from redis: apply service
 	HandleApplyService(msg *redis.Message)
@@ -66,8 +73,10 @@ func (manager *KubeproxyManager) Run() {
 	if err != nil {
 		fmt.Printf("Error occured in init SerivceIPtables: %v", err)
 	}
-	go listwatch.Watch("/service/apply", manager.HandleApplyService)
-	go listwatch.Watch("/service/del", manager.HandleDelService)
+	go listwatch.Watch(url.ServiceApplyURL, manager.HandleApplyService)
+	go listwatch.Watch(url.ServiceDelURL, manager.HandleDelService)
+	go listwatch.Watch(url.DNSApplyURL, manager.HandleApplyDNS)
+	go listwatch.Watch(url.DNSDelURL, manager.HandleDelDNS)
 }
 
 func (manager *KubeproxyManager) CreateService(
@@ -210,5 +219,24 @@ func (manager *KubeproxyManager) HandleDelService(msg *redis.Message) {
 	if err != nil {
 		fmt.Printf("Handle delete service error: %v", err)
 	}
+}
+
+func (manager *KubeproxyManager) CreateDNS(
+	dnsName string, 
+	host string, 
+	paths []core.DNSSubpath) error {
+	return nil
+}
+
+func (manager *KubeproxyManager) DelDNS(host string) error {
+	return nil
+}
+
+func (manager *KubeproxyManager) HandleApplyDNS(msg *redis.Message) {
+
+}
+
+func (manager *KubeproxyManager) HandleDelDNS(msg *redis.Message) {
+
 }
 
