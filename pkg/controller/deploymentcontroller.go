@@ -52,7 +52,7 @@ func (dc *DeploymentController) Run(ctx context.Context) {
 }
 
 func (dc *DeploymentController) register() {
-	print("register\n")
+	print("dc register\n")
 	go listwatch.Watch(apiurl.DeploymentStatusApplyURL, dc.listener)
 	go listwatch.Watch(apiurl.DeploymentStatusUpdateURL, dc.listener)
 	go listwatch.Watch(apiurl.DeploymentStatusDelURL, dc.listener)
@@ -61,7 +61,7 @@ func (dc *DeploymentController) register() {
 }
 
 func (dc *DeploymentController) listener(msg *redis.Message) {
-	print("listening\n")
+	print("dc listening\n")
 	bytes := []byte(msg.Payload)
 	watchres := listwatch.WatchResult{}
 	err := json.Unmarshal(bytes, &watchres)
@@ -72,7 +72,7 @@ func (dc *DeploymentController) listener(msg *redis.Message) {
 }
 
 func (dc *DeploymentController) worker(ctx context.Context) {
-	print("working\n")
+	print("dc working\n")
 	for {
 		if !dc.queue.Empty() {
 			print("receive msg!\n")
@@ -129,7 +129,6 @@ func (dc *DeploymentController) syncDeployment(ctx context.Context, watchres lis
 			for _,c := range pod.Spec.Containers{
 				containerNameSet = append(containerNameSet, c.Name)
 			}
-
 			for i := 0; i < replicas; i++ {
 				//give pod names
 				pid := uid.NewUid()
@@ -255,14 +254,14 @@ func (dc *DeploymentController) replicaWatcher() {
 						//fmt.Println("deployment recorded:")
 						//fmt.Println(replica)
 						numMap[deploymentname.(string)] = replica
-						nameSet := dc.d2pMap[deploymentname.(string)]
+						nameSet := dc.d2pMap[deploymentname.(string)].([]string)
 						nameSet = append(nameSet, pod.Name)
 						dc.d2pMap[deploymentname.(string)] = nameSet
 					}else{
 						//fmt.Println("deployment unrecorded:")
 						//fmt.Println(1)
 						numMap[deploymentname.(string)] = 1
-						nameSet := make([]string)
+						nameSet := make([]string,0)
 						nameSet = append(nameSet, pod.Name)
 						dc.d2pMap[deploymentname.(string)] = nameSet
 					}
@@ -317,7 +316,8 @@ func AddPod(pod core.Pod) {
 	//for _,c := range pod.Spec.Containers{
 	//	fmt.Printf("pod container %s\n", c.Name)
 	//}
-	podmanager.RunPod(&pod)
+	//podmanager.RunPod(&pod)
+	clientutil.HttpApply("Pod",pod)
 }
 
 func DelPod(podname string) {

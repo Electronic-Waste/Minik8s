@@ -4,13 +4,16 @@ metadata:
 spec:
   maxReplicas: 6
   minReplicas: 1
+  scaleIntervel: 15
   scaleTargetRef:
     kind: Deployment
     name: deployment_test
   metrics:
   - resource:
       name: cpu
+      strategy: average
       averageUtilization: 50
   - resource:
       name: memory
+      strategy: average
       averageUtilization: 50

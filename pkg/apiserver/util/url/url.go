@@ -15,6 +15,7 @@ const (
 	PodStatusDelURL    string = PodStatus + "/del"
 	PodStatusApplyURL  string = PodStatus + "/apply"
 	PodStatusUpdateURL string = PodStatus + "/update"
+	PodStatusGetWithPrefixURL	string = PodStatus + "/getwithprefix"
 
 	DeploymentStatus          string = "/deployment/status"
 	DeploymentStatusGetURL    string = DeploymentStatus + "/get"

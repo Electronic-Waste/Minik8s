@@ -45,8 +45,42 @@ func HttpApply(objType string, obj any) error {
 	return nil
 }
 
+// return: error
+// @objType: type want to update; @obj: the obj to be updated
+func HttpUpdate(objType string, obj any) error {
+	fmt.Println("http update")
+	client := http.Client{}
+	payload, _ := json.Marshal(obj)
+	urlparam := "?namespace=default"
+	var requestUrl string
+	switch objType {
+	case "Autoscaler":
+		requestUrl = apiurl.Prefix + apiurl.AutoscalerStatusUpdateURL + urlparam
+		fmt.Println("http update autoscaler")
+	case "Deployment":
+		requestUrl = apiurl.Prefix + apiurl.DeploymentStatusUpdateURL + urlparam
+		fmt.Println("http update deployment")
+	case "Pod":
+		requestUrl = apiurl.Prefix + apiurl.PodStatusUpdateURL + urlparam
+		fmt.Println("http update pod")
+	}
+	request, err := http.NewRequest("POST", requestUrl, bytes.NewReader(payload))
+	if err != nil {
+		log.Fatal(err)
+	}
+	
+	response, err := client.Do(request)
+	if err != nil {
+		log.Fatal(err)
+	}
+	if response.StatusCode != http.StatusOK {
+		return errors.New("update fail")
+	}
+	return nil
+}
+
 // return: obj queried
-// @objType: type want to get; @params: query params
+// @objType: type want to get; @params: query params: namespace & name
 func HttpGet(objType string, params map[string]string) ([]byte, error) {
 	client := http.Client{}
 	urlparam := ""
@@ -62,6 +96,7 @@ func HttpGet(objType string, params map[string]string) ([]byte, error) {
 			i++
 		}
 	}
+	fmt.Printf("http get params: %s\n",urlparam)
 	var requestUrl string
 	switch objType {
 	case "Autoscaler":
@@ -74,11 +109,52 @@ func HttpGet(objType string, params map[string]string) ([]byte, error) {
 	request, err := http.NewRequest("GET", requestUrl, nil)
 	if err != nil {
 		log.Fatal(err)
+		//return nil,err
 	}
 	response, err := client.Do(request)
 	if err != nil {
 		log.Fatal(err)
-		//return errors.New("")
+		return nil,err
+	}
+	if response.StatusCode != http.StatusOK {
+		return nil, errors.New("get fail")
+	}
+	data, err := ioutil.ReadAll(response.Body)
+	return data, nil
+}
+
+// return: obj queried
+// @objType: type want to get; @params: query params: namespace & prefix
+func HttpGetWithPrefix(objType string, params map[string]string) ([]byte, error) {
+	client := http.Client{}
+	urlparam := ""
+	//if there are params, construct get url
+	if len(params) != 0 {
+		urlparam += "?"
+		i := 0
+		for k, v := range params {
+			urlparam += k + "=" + v
+			if i != len(params)-1 {
+				urlparam += "&"
+			}
+			i++
+		}
+	}
+	fmt.Printf("http get params: %s\n",urlparam)
+	var requestUrl string
+	switch objType {
+	case "Pod":
+		requestUrl = apiurl.Prefix + apiurl.PodStatusGetWithPrefixURL + urlparam
+	}
+	request, err := http.NewRequest("GET", requestUrl, nil)
+	if err != nil {
+		log.Fatal(err)
+		//return nil,err
+	}
+	response, err := client.Do(request)
+	if err != nil {
+		log.Fatal(err)
+		return nil,err
 	}
 	if response.StatusCode != http.StatusOK {
 		return nil, errors.New("get fail")
@@ -117,7 +193,7 @@ func HttpGetAll(objType string) ([]byte, error) {
 }
 
 // return: error
-// @objType: type want to get; @params: query params
+// @objType: type want to get; @params: query params: namespace & name
 func HttpDel(objType string, params map[string]string)  error {
 	client := http.Client{}
 	urlparam := ""

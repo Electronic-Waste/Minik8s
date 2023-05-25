@@ -407,7 +407,7 @@ type DeploymentSpec struct {
 
 type DeploymentStatus struct {
 	//ObservedGeneration int
-	AvailableReplicas int
+	AvailableReplicas 	int
 	//for later use
 	//UpdatedReplicas int
 	//ReadyReplicas   int
@@ -480,13 +480,14 @@ type Autoscaler struct {
 type AutoscalerSpec struct {
 	MaxReplicas		int
 	MinReplicas		int
+	ScaleInterval	int
 	ScaleTargetRef	AutoscalerTarget
 	Metrics			[]AutoscalerMetrics
 }
 
 type AutoscalerTarget struct {
 	Kind string
-	Name string
+	Name string		//should be Deplolyment
 }
 
 type AutoscalerMetrics struct {
@@ -495,5 +496,6 @@ type AutoscalerMetrics struct {
 
 type AutoscalerResource struct {
 	Name 				string
+	Strategy			string
 	AverageUtilization	int
 }
