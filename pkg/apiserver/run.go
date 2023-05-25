@@ -6,8 +6,11 @@ import (
 	"github.com/go-redis/redis/v8"
 	"minik8s.io/pkg/apis/core"
 	"minik8s.io/pkg/apiserver/node"
+	"minik8s.io/pkg/clientutil"
+	"minik8s.io/pkg/kubelet/config"
 	"minik8s.io/pkg/util/listwatch"
 	"net/http"
+	"path"
 
 	"minik8s.io/pkg/apiserver/autoscaler"
 	"minik8s.io/pkg/apiserver/deployment"
@@ -64,8 +67,22 @@ func HitNode(msg *redis.Message) {
 	pod := core.Pod{}
 	json.Unmarshal([]byte(msg.Payload), &pod)
 	fmt.Println(pod)
+	podName := pod.Name
+	namespace := "default"
+	etcdURL := path.Join(url.PodStatus, namespace, podName)
+	body, err := json.Marshal(pod)
+	if err != nil {
+		fmt.Println(err)
+	}
+	err = etcd.Put(etcdURL, string(body))
+	if err != nil {
+		fmt.Println(err)
+	}
 	// inform core kubelet to apply the Pod
-
+	err = clientutil.HttpApplyPlus("Pod", pod, url.HttpScheme+pod.Spec.RunningNode.Spec.MasterIp+config.Port+config.RunPodUrl)
+	if err != nil {
+		fmt.Println(err)
+	}
 }
 
 var kubeProxyManager *kubeproxy.KubeproxyManager
