@@ -57,7 +57,7 @@ func (dc *DeploymentController) register() {
 	go listwatch.Watch(apiurl.DeploymentStatusUpdateURL, dc.listener)
 	go listwatch.Watch(apiurl.DeploymentStatusDelURL, dc.listener)
 	//not reach here
-	print("registered\n")
+	print("dc registered\n")
 }
 
 func (dc *DeploymentController) listener(msg *redis.Message) {

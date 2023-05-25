@@ -59,7 +59,7 @@ func ApplyHandler(path string) error {
 		if err != nil {
 			return err
 		}
-		fmt.Printf("autoscaler:")
+		fmt.Printf("autoscaler: %s\n", autoscaler.Metadata.Name)
 		//bytes,_ := json.Marshal(autoscaler)
 		//fmt.Println(string(bytes))
 		err = applyAutoscaler(autoscaler)

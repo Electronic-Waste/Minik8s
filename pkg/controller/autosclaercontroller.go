@@ -20,7 +20,7 @@ type AutoscalerController struct {
 
 func NewAutoscalerController(ctx context.Context) (*AutoscalerController, error) {
 	ac := &AutoscalerController{
-		autoscalerList: make([]core.Autoscaler,0),
+		autoscalerList: []core.Autoscaler{},
 		cadvisor: 		cadvisor.GetCAdvisor(),
 	}
 	return ac, nil
@@ -38,6 +38,8 @@ func (ac *AutoscalerController) register() {
 	go listwatch.Watch(apiurl.AutoscalerStatusApplyURL, ac.applylistener)
 	go listwatch.Watch(apiurl.AutoscalerStatusUpdateURL, ac.updatelistener)
 	go listwatch.Watch(apiurl.AutoscalerStatusDelURL, ac.deletelistener)
+	//not reach here
+	print("ac registerd\n")
 }
 
 func (ac *AutoscalerController) applylistener (msg *redis.Message) {
@@ -64,7 +66,22 @@ func (ac *AutoscalerController) applylistener (msg *redis.Message) {
 			return
 		}
 	}
+	//start supervise
+	pods, err := GetReplicaPods(autoscaler.Spec.ScaleTargetRef.Name)
+	if err != nil{
+		fmt.Println(err)
+		return
+	}
+	for _,pod := range pods{
+		err = ac.cadvisor.RegisterPod(pod.Name)
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+	}
+	//add autoscaler
 	ac.autoscalerList = append(ac.autoscalerList, autoscaler)
+	fmt.Println("ac apply new autoscaler success")
 }
 
 func (ac *AutoscalerController) updatelistener (msg *redis.Message) {
@@ -113,8 +130,10 @@ func (ac *AutoscalerController) deletelistener (msg *redis.Message) {
 
 //polling to get deployments
 func (ac *AutoscalerController) worker () {
-	timeout := time.Second * 5
+	timeout := time.Second * 3
 	for {
+		fmt.Println("ac working")
+		fmt.Println("ac list numbers: ", len(ac.autoscalerList))
 		for i,autoscaler := range ac.autoscalerList{
 			fmt.Printf("process autoscaler: %s\n", autoscaler.Metadata.Name)
 			//check validity of autoscaler first
@@ -127,7 +146,7 @@ func (ac *AutoscalerController) worker () {
 			params["namespace"] = "default"
 			params["name"] = autoscaler.Spec.ScaleTargetRef.Name
 			bytes, err := clientutil.HttpGet("Deployment",params)
-			if(err != nil){
+			if err != nil{
 				fmt.Println("get deployment fail")
 				continue
 			}
@@ -138,27 +157,47 @@ func (ac *AutoscalerController) worker () {
 			}
 			fmt.Printf("get deployment name: %s\n",deployment.Metadata.Name)
 			//get pods
-			params = make(map[string]string)
-			params["namespace"] = "default"
-			params["prefix"] = deployment.Metadata.Name
-			bytes,err = clientutil.HttpGetWithPrefix("Pod",params)
-			var strs []string
-			var pods []core.Pod
-			err = json.Unmarshal(bytes, &strs)
-			if err != nil {
+			pods, err := GetReplicaPods(deployment.Metadata.Name)
+			if err != nil{
 				continue
 			}
-			for _,s := range strs{
-				pod := core.Pod{}
-				err = json.Unmarshal([]byte(s), &pod)
-				if err != nil {
+			fmt.Println("get pod status:")
+			for _,pod := range pods{
+				status, err := ac.cadvisor.GetPodMetric(pod.Name)
+				if err != nil{
+					fmt.Println(err)
 					continue
 				}
-				fmt.Printf("get pod name: %s\n", pod.Name)
-				pods = append(pods, pod)
+				fmt.Println(status)
 			}
 		}
 		time.Sleep(timeout)
 	}
-	
+}
+
+func (ac *AutoscalerController) manageReplicas(deployment core.Deployment, targetnum int) {
+
+}
+
+func GetReplicaPods(deploymentname string) ([]core.Pod,error) {
+	params := make(map[string]string)
+	params["namespace"] = "default"
+	params["prefix"] = deploymentname
+	bytes,err := clientutil.HttpGetWithPrefix("Pod",params)
+	var strs []string
+	var pods []core.Pod
+	err = json.Unmarshal(bytes, &strs)
+	if err != nil {
+		return nil,err
+	}
+	for _,s := range strs{
+		pod := core.Pod{}
+		err = json.Unmarshal([]byte(s), &pod)
+		if err != nil {
+			return nil,err
+		}
+		fmt.Printf("get pod name: %s\n", pod.Name)
+		pods = append(pods, pod)
+	}
+	return pods,nil
 }
