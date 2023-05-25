@@ -173,23 +173,43 @@ func (ac *AutoscalerController) worker () {
 				statusList = append(statusList, status)
 				//fmt.Println(status)
 			}
-			
+			_ = ac.calculateMetrics(autoscaler, statusList, deployment.Spec.Replicas)
 		}
 		time.Sleep(timeout)
 	}
 }
 
 //exapmle return: {"cpu":2,"memory":3} or {"cpu":6}
-func (ac *AutoscalerController) calculateMetrics(autoscaler core.Autoscaler, []stats.PodStats) map[string]int {
+func (ac *AutoscalerController) calculateMetrics(autoscaler core.Autoscaler, status []stats.PodStats, currReplicas int) map[string]int {
 	metrics := autoscaler.Spec.Metrics
 	metricsMap := make(map[string]int)
 	for _,r := range metrics{
 		switch r.Resource.Name{
 		case "cpu":
 			target := r.Resource.Utilization
-			total := 0
+			totalcpu := 0.0
+			for _,s := range status{
+				cpu := s.CPUPercentage
+				totalcpu += cpu
+			}
+			totalcpu *= 100
+			cpuReplicas := totalcpu * float64(currReplicas) / float64(target) 
+			fmt.Println("cpu:", cpuReplicas)
+			metricsMap["cpu"] = int(cpuReplicas)
+		case "memory":
+			target := r.Resource.Utilization
+			totalmemory := 0.0
+			for _,s := range status{
+				memory := s.MemoryPercentage
+				totalmemory += memory
+			}
+			totalmemory *= 100
+			memoryReplicas := totalmemory * float64(currReplicas) / float64(target) 
+			fmt.Println("memory:", memoryReplicas)
+			metricsMap["memory"] = int(memoryReplicas)
 		}
 	}
+	return metricsMap
 }
 
 func (ac *AutoscalerController) manageReplicas(deployment core.Deployment, targetnum int, ) {
