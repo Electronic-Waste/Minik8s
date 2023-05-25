@@ -122,7 +122,23 @@ func HttpGet(objType string, params map[string]string) ([]byte, error) {
 		}
 		data, err := ioutil.ReadAll(response.Body)
 		return data, nil
+	case "nodes":
+		request, err := http.NewRequest("GET", apiurl.HttpScheme+"192.168.1.6"+apiurl.Port+apiurl.NodesGetUrl+urlparam, nil)
+		if err != nil {
+			log.Fatal(err)
+		}
+		response, err := client.Do(request)
+		if err != nil {
+			log.Fatal(err)
+			//return errors.New("")
+		}
+		if response.StatusCode != http.StatusOK {
+			return nil, errors.New("get fail")
+		}
+		data, err := ioutil.ReadAll(response.Body)
+		return data, nil
 	}
+
 	return nil, errors.New("invalid request")
 }
 

@@ -45,6 +45,7 @@ func HandleGetNodes(resp http.ResponseWriter, req *http.Request) {
 		return
 	}
 	nodeList := []core.Node{}
+	fmt.Printf("the length of nodeStr is %d\n", len(NodeStrs))
 	for _, str := range NodeStrs {
 		node := core.Node{}
 		json.Unmarshal([]byte(str), &node)
