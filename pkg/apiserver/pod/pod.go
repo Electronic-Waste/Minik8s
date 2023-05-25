@@ -2,6 +2,7 @@ package pod
 
 import (
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"net/http"
 	"path"
@@ -100,12 +101,13 @@ func HandleApplyPodStatus(resp http.ResponseWriter, req *http.Request) {
 		RunPod: pod,
 	}
 	// get all node registered message
-	nodeStr, err := etcd.GetWithPrefix(url.NodeRergisterUrl)
+	nodeStr, err := etcd.GetWithPrefix(url.Node)
 	for _, str := range nodeStr {
 		node := core.Node{}
 		json.Unmarshal([]byte(str), &node)
 		Param.NodeList = append(Param.NodeList, node)
 	}
+	fmt.Println(Param)
 	body, err = json.Marshal(Param)
 	if err != nil {
 		resp.WriteHeader(http.StatusInternalServerError)

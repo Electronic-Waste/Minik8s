@@ -31,6 +31,7 @@ const (
 
 	Node             string = "/node"
 	NodeRergisterUrl string = Node + "/register"
+	NodesGetUrl      string = Node + "/getall"
 
 	Sched         string = "/sched"
 	SchedApplyURL        = Sched + "/apply"

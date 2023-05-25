@@ -224,6 +224,10 @@ type Node struct {
 	Spec NodeSpec `json:"spec" yaml:"spec"`
 }
 
+type NodeList struct {
+	NodeArray []Node
+}
+
 type NodeSpec struct {
 	MasterIp string `json:"masterIp" yaml:"masterIp"`
 

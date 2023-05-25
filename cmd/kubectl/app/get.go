@@ -27,6 +27,13 @@ var (
 )
 
 func GetHandler(resourceKind string) error {
+	switch resourceKind {
+	case "nodes":
+		{
+			// deal with 'kubectl get nodes'
+
+		}
+	}
 	return nil
 }
 

@@ -35,3 +35,32 @@ func HandleNodeRegister(resp http.ResponseWriter, req *http.Request) {
 	resp.WriteHeader(http.StatusOK)
 	resp.Header().Set("Content-Type", "application/json")
 }
+
+func HandleGetNodes(resp http.ResponseWriter, req *http.Request) {
+	// get all node first
+	NodeStrs, err := etcd.GetWithPrefix(apiurl.Node)
+	if err != nil {
+		resp.WriteHeader(http.StatusNotFound)
+		resp.Write([]byte(err.Error()))
+		return
+	}
+	nodeList := []core.Node{}
+	for _, str := range NodeStrs {
+		node := core.Node{}
+		json.Unmarshal([]byte(str), &node)
+		nodeList = append(nodeList, node)
+	}
+	nodeArray := core.NodeList{
+		NodeArray: nodeList,
+	}
+	jsonVal, err := json.Marshal(nodeArray)
+	// Error occur in json parsing: return error to client
+	if err != nil {
+		resp.WriteHeader(http.StatusInternalServerError)
+		resp.Write([]byte(err.Error()))
+		return
+	}
+	resp.WriteHeader(http.StatusOK)
+	resp.Header().Set("Content-Type", "application/json")
+	resp.Write(jsonVal)
+}

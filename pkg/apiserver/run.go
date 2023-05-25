@@ -35,6 +35,7 @@ var getHandlerMap = map[string]HttpHandler{
 	url.DeploymentStatusGetAllURL: deployment.HandleGetAllDeploymentStatus,
 	url.ServiceGetURL:             service.HandleGetService,
 	url.ServiceGetAllURL:          service.HandleGetAllServices,
+	url.NodesGetUrl:               node.HandleGetNodes,
 }
 
 var deleteHandlerMap = map[string]HttpHandler{
@@ -54,8 +55,9 @@ func bindWatchHandler() {
 func HitNode(msg *redis.Message) {
 	pod := core.Pod{}
 	json.Unmarshal([]byte(msg.Payload), &pod)
-	fmt.Println("good job")
 	fmt.Println(pod)
+	// inform core kubelet to apply the Pod
+
 }
 
 var kubeProxyManager *kubeproxy.KubeproxyManager
