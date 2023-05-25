@@ -3,12 +3,19 @@ package prometheus
 import (
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"net/http"
+	//"context"
 	"testing"
+	//"fmt"
+	"log"
 )
 
 func TestPrometheus(t *testing.T) {
-	// register a new handler for the /metrics endpoint
+	//httpClient := &http.Client{}
+	//request, err := http.NewRequest("GET", "localhost:9090/api/v1/query?query=node_cpu_seconds_total")
+	//if err != nil {
+	//	log.Fatal(err)
+	//}
 	http.Handle("/metrics", promhttp.Handler())
-	// start an http server
-	http.ListenAndServe(":9001", nil)
+    log.Fatal(http.ListenAndServe(":8080", nil))
+
 }

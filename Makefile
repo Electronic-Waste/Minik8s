@@ -25,6 +25,7 @@ build:
 	$(GO) build -o "${BIN}/${CTLM}" "${PATH}/${CTLM}/${CTLM}.go"
 	$(GO) build -o "${BIN}/${CTL}" "${PATH}/${CTL}/${CTL}.go"
 	$(GO) build -o "${BIN}/${SCH}" "${PATH}/${SCH}/${SCH}.go"
+	$(GO) build -o "${BIN}/${LISTENER}" "${PATH}/${LISTENER}/${LISTENER}.go"
 clean:
 	$(GO) clean
 	$(CLEAN)
@@ -59,7 +60,7 @@ kubelet:
 	$(GO) build -o "${BIN}/${KUBELET}" "${PATH}/${KUBELET}/${KUBELET}.go"
 listener:
 	@echo "$(FOLD)"
-	$(GO) build -o "${BIN}/${LISTENER}" "${PATH}/${LISTENER}/${LISTENER}.go"
+	$(GO) build -o "${BIN}/${LISTENER}" "${PATH}/${LISTENER}/${LISTENER}.go"oscaler
 kube-controller-manager:
 	@echo "$(FOLD)"
 	$(GO) build -o "${BIN}/${CTLM}" "${PATH}/${CTLM}/${CTLM}.go"

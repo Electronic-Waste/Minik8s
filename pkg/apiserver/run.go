@@ -9,6 +9,7 @@ import (
 	"minik8s.io/pkg/util/listwatch"
 	"net/http"
 
+	"minik8s.io/pkg/apiserver/autoscaler"
 	"minik8s.io/pkg/apiserver/deployment"
 	"minik8s.io/pkg/apiserver/etcd"
 	"minik8s.io/pkg/apiserver/pod"
@@ -20,6 +21,7 @@ import (
 type HttpHandler func(http.ResponseWriter, *http.Request)
 
 var postHandlerMap = map[string]HttpHandler{
+
 	url.PodStatusApplyURL:         pod.HandleApplyPodStatus,
 	url.PodStatusUpdateURL:        pod.HandleUpdatePodStatus,
 	url.DeploymentStatusApplyURL:  deployment.HandleApplyDeploymentStatus,
@@ -36,16 +38,29 @@ var getHandlerMap = map[string]HttpHandler{
 	url.ServiceGetURL:             service.HandleGetService,
 	url.ServiceGetAllURL:          service.HandleGetAllServices,
 	url.NodesGetUrl:               node.HandleGetNodes,
+
+	url.PodStatusApplyURL:         pod.HandleApplyPodStatus,
+	url.PodStatusUpdateURL:        pod.HandleUpdatePodStatus,
+	url.DeploymentStatusApplyURL:  deployment.HandleApplyDeploymentStatus,
+	url.DeploymentStatusUpdateURL: deployment.HandleUpdateDeploymentStatus,
+	url.ServiceApplyURL:           service.HandleApplyService,
+	url.ServiceUpdateURL:          service.HandleUpdateService,
+	url.AutoscalerStatusApplyURL:  autoscaler.HandleApplyAutoscalerStatus,
+	url.AutoscalerStatusUpdateURL: autoscaler.HandleUpdateAutoscalerStatus,
 }
 
 var deleteHandlerMap = map[string]HttpHandler{
 	url.PodStatusDelURL:        pod.HandleDelPodStatus,
 	url.DeploymentStatusDelURL: deployment.HandleDelDeploymentStatus,
-	url.ServiceDelURL:          service.HandleDelService,
+
+	url.ServiceDelURL: service.HandleDelService,
 }
 
 var nodeHandlerMap = map[string]HttpHandler{
 	url.NodeRergisterUrl: node.HandleNodeRegister,
+
+	url.ServiceDelURL:          service.HandleDelService,
+	url.AutoscalerStatusDelURL: autoscaler.HandleDelAutoscalerStatus,
 }
 
 func bindWatchHandler() {

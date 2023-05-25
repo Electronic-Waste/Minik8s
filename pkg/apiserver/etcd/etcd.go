@@ -61,9 +61,11 @@ func GetWithPrefix(keyPrefix string) ([]string, error) {
 		fmt.Println(err)
 		return nil, err
 	}
-	retVals := make([]string, getResp.Count)
+	retVals := []string{}
 	for _, kv := range getResp.Kvs {
-		retVals = append(retVals, string(kv.Value))
+		if string(kv.Value) != "" {
+			retVals = append(retVals, string(kv.Value))
+		}
 	}
 	return retVals, nil
 }

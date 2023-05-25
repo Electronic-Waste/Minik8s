@@ -517,3 +517,65 @@ type ScheduleParam struct {
 	RunPod   Pod
 	NodeList []Node
 }
+type Autoscaler struct {
+	Metadata meta.ObjectMeta
+	Spec     AutoscalerSpec
+}
+
+type AutoscalerSpec struct {
+	MaxReplicas    int
+	MinReplicas    int
+	ScaleInterval  int
+	ScaleTargetRef AutoscalerTarget
+	Metrics        []AutoscalerMetrics
+}
+
+type AutoscalerTarget struct {
+	Kind string
+	Name string //should be Deplolyment
+}
+
+type AutoscalerMetrics struct {
+	Resource AutoscalerResource
+}
+
+type AutoscalerResource struct {
+	Name        string //cpu or memory
+	Strategy    string //max or avarage
+	Utilization int    //e.g. 50
+}
+
+// DNS is a set of mapping from URLs to service ports. Each DNS configuration can have just
+// one domain name (Host), but can have multiple paths. Paths must have unique prefixes.
+type DNS struct {
+	// DNS's name (can be omitted)
+	meta.ObjectMeta `json:"metadata,omitempty" yaml:"metadata,omitempty" mapstructure:"metadata"`
+
+	// DNS's kind is DNS
+	Kind string `json:"kind" yaml:"kind"`
+
+	// Spec defines the behavior of a DNS.
+	Spec DNSSpec `json:"spec" yaml:"spec"`
+}
+
+type DNSSpec struct {
+	// Host is the domain name
+	Host string `json:"host" yaml:"host"`
+
+	// Paths map subpaths to service ports
+	Paths []DNSSubpath `json:"subpaths" yaml:"subpaths"`
+}
+
+type DNSSubpath struct {
+	// Path is the subpath
+	Path string `json:"path" yaml:"path"`
+
+	// ServiceName is the name of service
+	ServiceName string `json:"service" yaml:"service"`
+
+	// ClusterIP is the ip of service
+	ClusterIP string `json:"clusterIP,omitempty" yaml:"clusterIP,omitempty" `
+
+	// ServicePort is the exposed port of service
+	ServicePort string `json:"port" yaml:"port"`
+}
