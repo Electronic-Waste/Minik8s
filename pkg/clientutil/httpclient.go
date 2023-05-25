@@ -96,7 +96,7 @@ func HttpGet(objType string, params map[string]string) ([]byte, error) {
 			i++
 		}
 	}
-	fmt.Printf("httpclient get params: %s\n",urlparam)
+	//fmt.Printf("httpclient get params: %s\n",urlparam)
 	var requestUrl string
 	switch objType {
 	case "Autoscaler":
@@ -140,7 +140,7 @@ func HttpGetWithPrefix(objType string, params map[string]string) ([]byte, error)
 			i++
 		}
 	}
-	fmt.Printf("httpclient get params: %s\n",urlparam)
+	//fmt.Printf("httpclient get params: %s\n",urlparam)
 	var requestUrl string
 	switch objType {
 	case "Pod":

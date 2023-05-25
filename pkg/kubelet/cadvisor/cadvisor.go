@@ -239,7 +239,7 @@ func (c *CAdvisor) GetPodMetric(name string) (stats.PodStats, error) {
 	walker := &containerwalker.ContainerWalker{
 		Client: cli.Client(),
 		OnFound: func(ctx context.Context, found containerwalker.Found) error {
-			fmt.Println(found.Container.ID())
+			//fmt.Println(found.Container.ID())
 			ConStats := c.containerListener.GetStats(found.Container.ID())
 			cpuPer += ConStats.CPUPercentage
 			mem += ConStats.Memory

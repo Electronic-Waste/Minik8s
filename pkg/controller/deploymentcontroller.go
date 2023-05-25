@@ -98,8 +98,8 @@ func (dc *DeploymentController) syncDeployment(ctx context.Context, watchres lis
 		actiontype string
 		objecttype string
 	)
-	//format: pod: deployment-rsuid-poduid
-	//expample:	deployment-123456-789456
+	//format: pod: deployment-poduid
+	//expample:	deployment-789456
 	fmt.Println("sync deployment")
 	actiontype = watchres.ActionType
 	objecttype = watchres.ObjectType
@@ -119,7 +119,7 @@ func (dc *DeploymentController) syncDeployment(ctx context.Context, watchres lis
 		case "apply":
 			fmt.Println("apply deployment pods")
 			did := uid.NewUid()
-			prefix := deployment.Metadata.Name + "-" + did
+			prefix := deployment.Metadata.Name
 			replicas := deployment.Spec.Replicas
 			//label := map[string]string{}
 			//label["app"] = "test"
@@ -145,12 +145,28 @@ func (dc *DeploymentController) syncDeployment(ctx context.Context, watchres lis
 				AddPod(pod)
 			}
 			dc.d2pMap[deployment.Metadata.Name] = nameSet
-		case "update":
+		case "update"://should only modify replicas
+			nameSet := dc.d2pMap[deployment.Metadata.Name].([]string)
+			oldReplicas := len(nameSet)
+			newReplicas := deployment.Spec.Replicas
+			if oldReplicas < newReplicas{
+				num := newReplicas - oldReplicas
+				for i := 0; i < num; i++{
+					//pid := uid.NewUid()
+					fmt.Println("deployment update add pod")
+				}
+			}else{
+				num := oldReplicas - newReplicas
+				for i := 0; i < num; i++{
+					//pid := uid.NewUid()
+					fmt.Println("deployment update delete pod")
+				}
+			}
 		case "delete":
 			//client.addPod(pod)
 			//var nameSet []string
 			nameSet := dc.d2pMap[deployment.Metadata.Name].([]string)
-			for i := 0; i < deployment.Status.AvailableReplicas; i++ {
+			for i := 0; i < len(nameSet); i++ {
 				podname := nameSet[i]
 				fmt.Println(podname)
 				DelPod(podname)
@@ -158,7 +174,7 @@ func (dc *DeploymentController) syncDeployment(ctx context.Context, watchres lis
 			}
 			delete(dc.d2pMap,deployment.Metadata.Name)
 		}
-	case "Pod":
+	case "Pod":	//abandoned
 		pod := core.Pod{}
 		err = json.Unmarshal(watchres.Payload, &pod)
 		if err != nil {

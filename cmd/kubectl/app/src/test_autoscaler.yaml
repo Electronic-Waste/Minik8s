@@ -4,7 +4,7 @@ metadata:
 spec:
   maxReplicas: 6
   minReplicas: 1
-  scaleIntervel: 15
+  scaleIntervel: 5
   scaleTargetRef:
     kind: Deployment
     name: deployment_test
