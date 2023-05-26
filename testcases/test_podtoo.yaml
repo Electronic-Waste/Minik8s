@@ -1,6 +1,6 @@
 kind: Pod
 metadata:
-  name: Test
+  name: podTest
   labels:
     app: test-pod
 spec:
@@ -10,7 +10,7 @@ spec:
 
   containers:
 
-    - name: m1
+    - name: t1
       image: docker.io/library/golang:latest
       resources:
         limits:
@@ -25,7 +25,7 @@ spec:
       command:
         - bash
 
-    - name: m2
+    - name: t2
       image: docker.io/library/golang:latest
       resources:
         limits:
