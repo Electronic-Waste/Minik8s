@@ -55,7 +55,7 @@ func (controller *NginxController) ApplyNginxServer(hostName string, paths []cor
 	// Read original nginx.conf file
 	content, err := ioutil.ReadFile(controller.NginxConfPath)
 	if err != nil {
-		return fmt.Errorf("Error in ApplyNginxServer: %v", err)
+		// return fmt.Errorf("Error in ApplyNginxServer: %v", err)
 	}
 
 	// Parse file content to []stiring & Find inserting position

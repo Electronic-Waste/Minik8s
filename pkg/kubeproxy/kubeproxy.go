@@ -11,6 +11,9 @@ import (
 	"minik8s.io/pkg/util/listwatch"
 	"minik8s.io/pkg/kubeproxy/meta"
 	"minik8s.io/pkg/apiserver/util/url"
+	"minik8s.io/pkg/kubeproxy/dns"
+	"minik8s.io/pkg/kubeproxy/nginx"
+	"minik8s.io/pkg/kubeproxy/path"
 )
 
 type Manager interface{
@@ -23,10 +26,10 @@ type Manager interface{
 	DelService(serviceName string) error
 
 	// Create a DNS rule to enable visiting service by domain name
-	CreateDNS(dnsName string, host string, paths []core.DNSSubpath) error
+	CreateDNS(hostName string, paths []core.DNSSubpath) error
 	
 	// Delete a DNS rule by Host path
-	DelDNS(host string) error
+	DelDNS(hostName string) error
 
 	// Processing request from redis: apply service
 	HandleApplyService(msg *redis.Message)
@@ -47,23 +50,37 @@ type Manager interface{
 type KubeproxyManager struct {
 	iptablesCli 	*iptables.IPTablesClient
 	metaController 	*meta.MetaController
+	dnsController	*dns.DNSController
+	nginxController *nginx.NginxController
 }
 
 func NewKubeProxy() (*KubeproxyManager, error) {
 	var cli *iptables.IPTablesClient
-	var controller *meta.MetaController
+	var metaCtl *meta.MetaController
+	var dnsCtl *dns.DNSController
+	var nginxCtl *nginx.NginxController
 	var err error
 	cli, err = iptables.NewIPTablesClient("127.0.0.1")
 	if err != nil {
 		return nil, fmt.Errorf("Error occurred in creating new KubeProxy: %v", err)
 	}
-	controller, err = meta.NewMetaController()
+	metaCtl, err = meta.NewMetaController()
+	if err != nil {
+		return nil, fmt.Errorf("Error occurred in creating new KubeProxy: %v", err)
+	}
+	dnsCtl, err = dns.NewDNSController(path.HostsFile)
+	if err != nil {
+		return nil, fmt.Errorf("Error occurred in creating new KubeProxy: %v", err)
+	}
+	nginxCtl, err = nginx.NewNginxController(path.NginxConfFile)
 	if err != nil {
 		return nil, fmt.Errorf("Error occurred in creating new KubeProxy: %v", err)
 	}
 	return &KubeproxyManager{
 		iptablesCli: 	cli,
-		metaController:	controller,
+		metaController:	metaCtl,
+		dnsController: dnsCtl,
+		nginxController: nginxCtl,
 	}, nil
 }
 
@@ -209,7 +226,7 @@ func (manager *KubeproxyManager) HandleApplyService(msg *redis.Message) {
 		params.PodIPs,
 	)
 	if err != nil {
-		fmt.Printf("Hanlde apply service error: %v", err)
+		fmt.Printf("Hanlde apply service error: %v\n", err)
 	}
 }
 
@@ -217,26 +234,51 @@ func (manager *KubeproxyManager) HandleDelService(msg *redis.Message) {
 	serviceName := msg.Payload
 	err := manager.DelService(serviceName)
 	if err != nil {
-		fmt.Printf("Handle delete service error: %v", err)
+		fmt.Printf("Handle delete service error: %v\n", err)
 	}
 }
 
-func (manager *KubeproxyManager) CreateDNS(
-	dnsName string, 
-	host string, 
-	paths []core.DNSSubpath) error {
+func (manager *KubeproxyManager) CreateDNS(hostName string, paths []core.DNSSubpath) error {
+	err := manager.dnsController.CreateDNSRule(path.NginxIP, hostName)
+	if err != nil {
+		return err
+	}
+	err = manager.nginxController.ApplyNginxServer(hostName, paths)
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
-func (manager *KubeproxyManager) DelDNS(host string) error {
+func (manager *KubeproxyManager) DelDNS(hostName string) error {
+	err := manager.dnsController.DelDNSRule(path.NginxIP, hostName)
+	if err != nil {
+		return err
+	}
+	err = manager.nginxController.DelNginxServer(hostName)
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
 func (manager *KubeproxyManager) HandleApplyDNS(msg *redis.Message) {
-
+	var dnsParams core.DNS
+	json.Unmarshal([]byte(msg.Payload), &dnsParams)
+	err := manager.CreateDNS(
+		dnsParams.Spec.Host,
+		dnsParams.Spec.Paths,
+	)
+	if err != nil {
+		fmt.Printf("Handle apply dns error: %v\n", err)
+	}
 }
 
 func (manager *KubeproxyManager) HandleDelDNS(msg *redis.Message) {
-
+	hostName := msg.Payload
+	err := manager.DelDNS(hostName)
+	if err != nil {
+		fmt.Printf("Handle delete dns error: %v\n", err)
+	}
 }
 

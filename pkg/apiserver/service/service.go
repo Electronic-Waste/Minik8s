@@ -166,8 +166,7 @@ func HandleApplyService(resp http.ResponseWriter, req *http.Request) {
 	// Publish to redis:
 	// - topic: /service/apply
 	// - payload: <KubeproxyServiceParam>
-	pubURL := path.Join(url.Service, "apply")
-	listwatch.Publish(pubURL, string(serviceParamJsonVal))	
+	listwatch.Publish(url.ServiceApplyURL, string(serviceParamJsonVal))	
 	resp.WriteHeader(http.StatusOK)
 }
 
@@ -210,7 +209,7 @@ func HandleDelService(resp http.ResponseWriter, req *http.Request) {
 	vars := req.URL.Query()
 	namespace := vars.Get("namespace")
 	serviceName := vars.Get("name")
-	fmt.Printf("HandleApplyService receive msg: namespace is %s, serviceName is %s\n", namespace, serviceName)
+	fmt.Printf("HandleDelService receive msg: namespace is %s, serviceName is %s\n", namespace, serviceName)
 	// Param miss: return error to client
 	if namespace == "" || serviceName == "" {
 		resp.WriteHeader(http.StatusBadRequest)
@@ -229,7 +228,6 @@ func HandleDelService(resp http.ResponseWriter, req *http.Request) {
 	// Publish to redis:
 	// 1. topic: /service/del
 	// 2. payload: <serviceName>
-	pubURL := path.Join(url.Service, "del")
-	listwatch.Publish(pubURL, serviceName)
+	listwatch.Publish(url.ServiceDelURL, serviceName)
 	resp.WriteHeader(http.StatusOK)
 }

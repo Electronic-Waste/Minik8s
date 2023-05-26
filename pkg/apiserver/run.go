@@ -7,8 +7,8 @@ import (
 	"minik8s.io/pkg/apiserver/etcd"
 	"minik8s.io/pkg/apiserver/pod"
 	"minik8s.io/pkg/apiserver/service"
+	"minik8s.io/pkg/apiserver/dns"
 	"minik8s.io/pkg/apiserver/util/url"
-	"minik8s.io/pkg/kubeproxy"
 )
 
 type HttpHandler func(http.ResponseWriter, *http.Request)
@@ -20,6 +20,7 @@ var postHandlerMap = map[string]HttpHandler{
 	url.DeploymentStatusUpdateURL: 	deployment.HandleUpdateDeploymentStatus,
 	url.ServiceApplyURL:		   	service.HandleApplyService,
 	url.ServiceUpdateURL:			service.HandleUpdateService,
+	url.DNSApplyURL:				dns.HandleApplyDNS,
 }
 
 var getHandlerMap = map[string]HttpHandler{
@@ -29,29 +30,27 @@ var getHandlerMap = map[string]HttpHandler{
 	url.DeploymentStatusGetAllURL: 	deployment.HandleGetAllDeploymentStatus,
 	url.ServiceGetURL:				service.HandleGetService,
 	url.ServiceGetAllURL:			service.HandleGetAllServices,
+	url.DNSGetURL:					dns.HandleGetDNS,
+	url.DNSGetAllURL:				dns.HandleGetAllDNS,
 }
 
 var deleteHandlerMap = map[string]HttpHandler{
 	url.PodStatusDelURL:        pod.HandleDelPodStatus,
 	url.DeploymentStatusDelURL: deployment.HandleDelDeploymentStatus,
 	url.ServiceDelURL:			service.HandleDelService,
+	url.DNSDelURL:				dns.HandleDelDNS,
 }
 
 func bindWatchHandler() {
 
 }
 
-var kubeProxyManager *kubeproxy.KubeproxyManager
-
 func Run() {
 	// Initialize etcd client
 	etcd.InitializeEtcdKVStore()
 	
-	// Init clusterIPGen in service
+	// Init clusterIPGen in service module
 	service.InitServiceController()
-
-	kubeProxyManager, _ = kubeproxy.NewKubeProxy()
-	kubeProxyManager.Run()
 
 	// Bind POST request with handler
 	for url, handler := range postHandlerMap {
