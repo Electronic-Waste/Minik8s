@@ -267,7 +267,7 @@ func (manager *KubeproxyManager) HandleApplyDNS(msg *redis.Message) {
 	json.Unmarshal([]byte(msg.Payload), &dnsParams)
 	err := manager.CreateDNS(
 		dnsParams.Spec.Host,
-		dnsParams.Spec.Paths,
+		dnsParams.Spec.Subpaths,
 	)
 	if err != nil {
 		fmt.Printf("Handle apply dns error: %v\n", err)

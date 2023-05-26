@@ -77,7 +77,7 @@ func (controller *NginxController) ApplyNginxServer(hostName string, paths []cor
 	newLines = append(newLines, fmt.Sprintf("\t\tserver_name %s", hostName))
 	for _, subpath := range paths {
 		newLines = append(newLines, fmt.Sprintf("\t\tlocation %s {", subpath.Path))
-		newLines = append(newLines, fmt.Sprintf("\t\t\t\tproxy_pass http://%s:%s;", subpath.ClusterIP, subpath.ServicePort))
+		newLines = append(newLines, fmt.Sprintf("\t\t\t\tproxy_pass http://%s:%d;", subpath.ClusterIP, subpath.Port))
 		newLines = append(newLines, "\t\t}")
 	}
 	newLines = append(newLines, "\t}")

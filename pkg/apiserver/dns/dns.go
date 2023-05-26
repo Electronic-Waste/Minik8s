@@ -77,6 +77,7 @@ func HandleApplyDNS(resp http.ResponseWriter, req *http.Request) {
 	namespace := vars.Get("namespace")
 	dnsName := vars.Get("name")
 	body, _ := ioutil.ReadAll(req.Body)
+	fmt.Printf("HandleApplyDNS receive request: %v\n", string(body))
 
 	dns := core.DNS{}
 	json.Unmarshal(body, &dns)
@@ -87,9 +88,9 @@ func HandleApplyDNS(resp http.ResponseWriter, req *http.Request) {
 		return
 	}
 	// 1. Query etcd to get clutserIP related to serviceName
-	for i, subpath := range dns.Spec.Paths {
+	for i, subpath := range dns.Spec.Subpaths {
 		var service core.Service
-		serviceURL := path.Join(url.Service, namespace, subpath.ServiceName)
+		serviceURL := path.Join(url.Service, namespace, subpath.Service)
 		serviceString, err := etcd.Get(serviceURL)
 		if err != nil {
 			resp.WriteHeader(http.StatusInternalServerError)
@@ -97,7 +98,7 @@ func HandleApplyDNS(resp http.ResponseWriter, req *http.Request) {
 			return
 		}
 		json.Unmarshal([]byte(serviceString), &service)
-		dns.Spec.Paths[i].ClusterIP = service.Spec.ClusterIP
+		dns.Spec.Subpaths[i].ClusterIP = service.Spec.ClusterIP
 	}
 	// 2. Persist to etcd
 	etcdURL := path.Join(url.DNS, namespace, dnsName)

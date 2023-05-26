@@ -511,7 +511,7 @@ type DNSSpec struct {
 	Host string	`json:"host" yaml:"host"`
 
 	// Paths map subpaths to service ports
-	Paths	[]DNSSubpath	`json:"subpaths" yaml:"subpaths"`
+	Subpaths	[]DNSSubpath	`json:"subpaths,omitempty" yaml:"subpaths,omitempty"`
 }
 
 type DNSSubpath struct {
@@ -519,12 +519,12 @@ type DNSSubpath struct {
 	Path 		string  `json:"path" yaml:"path"`
 
 	// ServiceName is the name of service
-	ServiceName	string	`json:"service" yaml:"service"`
+	Service		string	`json:"service" yaml:"service"`
 
 	// ClusterIP is the ip of service
 	ClusterIP	string `json:"clusterIP,omitempty" yaml:"clusterIP,omitempty" `
 
 	// ServicePort is the exposed port of service
-	ServicePort string	`json:"port" yaml:"port"`
+	Port 		int32	`json:"port" yaml:"port"`
 }
 

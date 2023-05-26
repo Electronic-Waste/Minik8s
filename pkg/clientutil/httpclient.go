@@ -67,6 +67,24 @@ func HttpApply(objType string, obj any) error {
 		}
 		body, _ := ioutil.ReadAll(response.Body)
 		fmt.Printf("Response: %s\n", string(body))
+	case "DNS":
+		var dns core.DNS
+		json.Unmarshal([]byte(payload), &dns)
+		postURL := apiurl.Prefix + apiurl.DNSApplyURL + fmt.Sprintf("?namespace=default&name=%s", dns.Name)
+		request, err := http.NewRequest("POST", postURL, bytes.NewReader(payload))
+		if err != nil {
+			log.Fatal(err)
+		}
+		fmt.Println("http apply dns")
+		response, err := client.Do(request)
+		if err != nil {
+			log.Fatal(err)
+		}
+		if response.StatusCode != http.StatusOK {
+			return errors.New("apply fail")
+		}
+		body, _ := ioutil.ReadAll(response.Body)
+		fmt.Printf("Response: %s\n", string(body))
 	}
 	return nil
 }
@@ -109,11 +127,8 @@ func HttpGet(objType string, params map[string]string) ([]byte, error) {
 }
 
 // return: error
-// @objType: type want to get; @params: query params
-func HttpDel(objType string, params map[string]string) ([]byte, error) {
-	var(
-		data []byte
-	)
+// @objType: type want to get; @params: query params: namespace & name
+func HttpDel(objType string, params map[string]string) error {
 	client := http.Client{}
 	urlparam := ""
 	//if there are params, construct get url
@@ -128,32 +143,30 @@ func HttpDel(objType string, params map[string]string) ([]byte, error) {
 			i++
 		}
 	}
+	var requestUrl string
 	switch objType {
+	// case "Autoscaler":
+	// 	requestUrl = apiurl.Prefix + apiurl.AutoscalerStatusDelURL + urlparam
 	case "Deployment":
-		request, err := http.NewRequest("DELETE", apiurl.Prefix + apiurl.DeploymentStatusDelURL+urlparam, nil)
-		if err != nil {
-			log.Fatal(err)
-		}
-		response, err := client.Do(request)
-		if err != nil {
-			log.Fatal(err)
-			//return errors.New("")
-		}
-		if response.StatusCode != http.StatusOK {
-			return nil, errors.New("del fail")
-		}
-		data, err = ioutil.ReadAll(response.Body)
+		requestUrl = apiurl.Prefix + apiurl.DeploymentStatusDelURL + urlparam
 	case "Service":
-		request, _ := http.NewRequest("DELETE", apiurl.Prefix + apiurl.ServiceDelURL + urlparam, nil)
-		fmt.Printf("URL is %s\n", request.URL)
-		response, err := client.Do(request)
-		if err != nil {
-			return []byte{}, err
-		}
-		if response.StatusCode != http.StatusOK {
-			return nil, fmt.Errorf("del service fail")
-		}
-		data, err = ioutil.ReadAll(response.Body)
+		requestUrl = apiurl.Prefix + apiurl.ServiceDelURL + urlparam
+	case "Pod":
+		requestUrl = apiurl.Prefix + apiurl.PodStatusDelURL + urlparam
+	case "DNS":
+		requestUrl = apiurl.Prefix + apiurl.DNSDelURL + urlparam
 	}
-	return data, nil
+	request, err := http.NewRequest("DELETE", requestUrl, nil)
+	if err != nil {
+		log.Fatal(err)
+	}
+	response, err := client.Do(request)
+	if err != nil {
+		log.Fatal(err)
+		//return errors.New("")
+	}
+	if response.StatusCode != http.StatusOK {
+		return errors.New("del fail")
+	}
+	return nil
 }

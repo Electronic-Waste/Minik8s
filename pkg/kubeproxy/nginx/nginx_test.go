@@ -25,13 +25,13 @@ func TestApplyNginxServer(t *testing.T) {
 			Path: "/test1",
 			ServiceName: "test-service",
 			ClusterIP: "222.222.0.1",
-			ServicePort: "80",
+			ServicePort: 80,
 		},
 		{
 			Path: "/test2",
 			ServiceName: "test-service",
 			ClusterIP: "222.222.0.1",
-			ServicePort: "8080",
+			ServicePort: 8080,
 		},
 	}
 	controller.ApplyNginxServer(hostName, paths)

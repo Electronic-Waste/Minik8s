@@ -23,34 +23,34 @@ var (
 )
 
 func DeleteHandler(resourceKind, resourceName string) error {
+	var err error
 	switch resourceKind {
 	case "replicaset":
 		return nil
 		//add more
 		//...
 	case "service":
-		fmt.Printf("Delete service name: %s\n", resourceName)
-		err := deleteService(resourceName)
-		if err != nil {
-			fmt.Printf("Error in sending del service msg to apiserver: %v", err)
-		}
+		err = deleteService(resourceName)
+	case "dns":
+		err = deleteDNS(resourceName)
 	}
-
-	return nil
+	return err
 }
 
 func deleteService(serviceName string) error {
 	fmt.Println("del service")
-	params := map[string]string {
-		"namespace"	: "default",
-		"name"		: serviceName,
-	}
-	rawResp, err := clientutil.HttpDel("Service", params)
-	if err != nil {
-		return fmt.Errorf("Error in clientutil: %v", err)
-	}
-	fmt.Printf("deleteService response body: %s\n", string(rawResp))
-	return nil;
+	params := make(map[string]string)
+	params["namespace"] = "default"
+	params["name"] = serviceName
+	return clientutil.HttpDel("Service", params)
+}
+
+func deleteDNS(dnsName string) error {
+	fmt.Println("del dns")
+	params := make(map[string]string)
+	params["namespace"] = "default"
+	params["name"] = dnsName
+	return clientutil.HttpDel("DNS", params)
 }
 
 func init() {

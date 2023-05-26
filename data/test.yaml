@@ -2,7 +2,7 @@ kind: Pod
 metadata:
   name: test
   labels:
-    app: test-pod
+    app: test-pod-ws
 spec:
   volumes:
   - name: shared-data
