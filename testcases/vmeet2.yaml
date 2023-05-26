@@ -2,5 +2,5 @@ kind: Node
 metadata:
   name: vmeet2
 spec:
-  masterIp: 192.168.1.6
-  nodeIp: 192.168.1.6
+  masterIp: 192.168.1.5
+  nodeIp: 192.168.1.5
