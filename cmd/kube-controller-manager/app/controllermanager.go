@@ -43,7 +43,7 @@ type InitFunc func(ctx context.Context) (err error)
 func NewControllerInitializers() map[string]InitFunc {
 	controller := map[string]InitFunc{}
 	controller["deployment"] = StartDeploymentController
-	controller["autoscaler"] = StartAutoSclaerController
+	//controller["autoscaler"] = StartAutoSclaerController
 	return controller
 }
 

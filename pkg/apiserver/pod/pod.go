@@ -9,12 +9,10 @@ import (
 	"net/http"
 	"path"
 	// "github.com/go-redis/redis/v8"
-	"fmt"
 	"minik8s.io/pkg/util/listwatch"
 	"minik8s.io/pkg/apis/core"
 	"minik8s.io/pkg/apiserver/etcd"
 	"minik8s.io/pkg/apiserver/util/url"
-	"minik8s.io/pkg/util/listwatch"
 )
 
 // Return certain pod's status

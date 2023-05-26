@@ -340,5 +340,3 @@ func DecreaseReplicas(deployment core.Deployment, maxreplicas int, minreplicas i
 	fmt.Println("decrease deployment ",deployment.Metadata.Name," to ",deployment.Spec.Replicas)
 	clientutil.HttpUpdate("Deployment",deployment)
 }
-
-func
