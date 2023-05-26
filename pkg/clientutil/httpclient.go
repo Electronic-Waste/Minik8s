@@ -103,10 +103,11 @@ func HttpApply(objType string, obj any) error {
 	return nil
 }
 
-func HttpPlus(objType string, obj any, url string) error {
+func HttpPlus(objType string, obj any, url string) (error, string) {
 	fmt.Println("http apply")
 	client := http.Client{}
 	payload, _ := json.Marshal(obj)
+	var res string
 	switch objType {
 	case "Deployment":
 		urlparam := "?namespace=default"
@@ -120,7 +121,7 @@ func HttpPlus(objType string, obj any, url string) error {
 			log.Fatal(err)
 		}
 		if response.StatusCode != http.StatusOK {
-			return errors.New("apply fail")
+			return errors.New("apply fail"), ""
 		}
 	case "Pod":
 		request, err := http.NewRequest("POST", url, bytes.NewReader(payload))
@@ -133,8 +134,11 @@ func HttpPlus(objType string, obj any, url string) error {
 			log.Fatal(err)
 		}
 		if response.StatusCode != http.StatusOK {
-			return errors.New("apply fail")
+			return errors.New("apply fail"), ""
 		}
+		body, _ := ioutil.ReadAll(response.Body)
+		fmt.Printf("Response: %s\n", string(body))
+		res = string(body)
 	case "Service":
 		var service core.Service
 		json.Unmarshal([]byte(payload), &service)
@@ -152,7 +156,7 @@ func HttpPlus(objType string, obj any, url string) error {
 			log.Fatal(err)
 		}
 		if response.StatusCode != http.StatusOK {
-			return errors.New("apply fail")
+			return errors.New("apply fail"), ""
 		}
 		body, _ := ioutil.ReadAll(response.Body)
 		fmt.Printf("Response: %s\n", string(body))
@@ -169,13 +173,13 @@ func HttpPlus(objType string, obj any, url string) error {
 			log.Fatal(err)
 		}
 		if response.StatusCode != http.StatusOK {
-			return errors.New("register fail")
+			return errors.New("register fail"), ""
 		}
 		body, _ := ioutil.ReadAll(response.Body)
 		fmt.Printf("Response: %s\n", string(body))
 	}
 
-	return nil
+	return nil, res
 }
 
 // return: error

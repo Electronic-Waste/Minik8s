@@ -185,6 +185,9 @@ type Container struct {
 type PodStatus struct {
 	// +optional
 	Phase PodPhase
+
+	// the Ip of Pod
+	PodIp string
 }
 
 type Volume struct {

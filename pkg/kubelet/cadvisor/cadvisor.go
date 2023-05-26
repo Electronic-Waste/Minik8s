@@ -35,6 +35,10 @@ func GetNewListener() *ContainerListener {
 func (c *ContainerListener) RegisterContainer(id string) error {
 	// start a new thread to listen to the container state
 	// collect prestats first
+	if _, ok := c.PreStats[id]; ok {
+		// register more one time
+		return nil
+	}
 	conStats, _, err := c.GetContainerStats(id)
 	if err != nil {
 		return err

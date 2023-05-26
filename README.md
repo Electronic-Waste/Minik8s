@@ -41,3 +41,7 @@
 
 `./bin/kubectl apply <filename>`(expmple: `./bin/kubectl apply ./cmd/kubectl/app/src/test_deployment.yaml`)创建deployment实例  
 `nerdctl ps`可以看到启动了`replicas`数量的pod和container  
+
+## Autoscaler Controller 流程
+
+启动Deployment controller，然后`./bin/kubectl apply <filename>`(expmple: `./bin/kubectl apply ./cmd/kubectl/app/src/test_autoscaler.yaml`)
