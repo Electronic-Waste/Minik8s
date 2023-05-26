@@ -111,7 +111,7 @@ func TestPodRunning(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-	fmt.Println("have start a new pod")
+	fmt.Printf("have start a new pod and ip is %s\n", pod.Status.PodIp)
 	is_exist := IsPodRunning("test")
 	if !is_exist {
 		t.Error("error start up a Pod")
