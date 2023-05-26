@@ -222,7 +222,35 @@ func (c *CAdvisor) RegisterPod(name string) error {
 }
 
 func (c *CAdvisor) GetAllPodMetric() map[string]stats.PodStats {
-	return nil
+	// register all the container in the Pod to containerListener
+	cli, err := remote_cli.NewRemoteRuntimeService(remote_cli.IdenticalErrorDelay)
+	if err != nil {
+		fmt.Println(err)
+		return nil
+	}
+	// !!! : need to specify the namespace of finding container
+	ctx := namespaces.WithNamespace(context.Background(), "default")
+	resMap := make(map[string]stats.PodStats)
+	walker := &containerwalker.ContainerWalker{
+		Client: cli.Client(),
+		OnFound: func(ctx context.Context, found containerwalker.Found) error {
+			labels, err := found.Container.Labels(ctx)
+			if err != nil {
+				return err
+			}
+			fmt.Printf("try to register pod %s\n", labels["nerdctl/name"])
+			status, err := c.GetPodMetric(labels["nerdctl/name"])
+			resMap[labels["nerdctl/name"]] = status
+			return err
+		},
+	}
+
+	_, err = walker.WalkPod(ctx, "pause")
+	if err != nil {
+		fmt.Println(err)
+		return nil
+	}
+	return resMap
 }
 
 // given a Pod name

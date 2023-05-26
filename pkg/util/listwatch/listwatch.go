@@ -18,7 +18,7 @@ type WatchResult struct {
 
 // TODO(shaowang): Expand to multiple machines in the future
 var rdb = redis.NewClient(&redis.Options{
-	Addr:     "localhost:6379",
+	Addr:     "192.168.1.6:6379",
 	Password: "", // no password set
 	DB:       0,  // use default DB
 })

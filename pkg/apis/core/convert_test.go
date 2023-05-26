@@ -14,3 +14,12 @@ func TestPodParse(t *testing.T) {
 	}
 	fmt.Println(*pod)
 }
+
+func TestNodeParse(t *testing.T) {
+	path := constant.SysPodDir + "/../testcases/vmeet2.yaml"
+	node, err := ParseNode(path)
+	if err != nil {
+		t.Error(err)
+	}
+	fmt.Println(*node)
+}

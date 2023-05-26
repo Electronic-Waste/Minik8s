@@ -1,15 +1,16 @@
-.PHONY:all build clean help check test vctl kubeadm nervctl kubelet listener
+.PHONY:all build clean help check test vctl kubeadm nervctl kubelet listener scheduler
 BIN=bin
 PATH=./cmd
 ADM=kubeadm
 SERVER=apiserver
 VCTL=vctl
 NCTL=nervctl
-CTLM=kube-controller-manager
-CTL=kubectl
 KUBELET=kubelet
 LISTENER=listener
+CTLM=kube-controller-manager
+CTL=kubectl
 CMD=app/cmd
+SCH=scheduler
 GO=$(shell which go)
 CLEAN=$(shell rm -rf ${BIN})
 FOLD=$(shell if [ -d "./$(BIN)/" ]; then echo "$(BIN) exits"; else mkdir $(BIN);echo "make $(BIN) folder"; fi)
@@ -23,6 +24,7 @@ build:
 	$(GO) build -o "${BIN}/${KUBELET}" "${PATH}/${KUBELET}/${KUBELET}.go"
 	$(GO) build -o "${BIN}/${CTLM}" "${PATH}/${CTLM}/${CTLM}.go"
 	$(GO) build -o "${BIN}/${CTL}" "${PATH}/${CTL}/${CTL}.go"
+	$(GO) build -o "${BIN}/${SCH}" "${PATH}/${SCH}/${SCH}.go"
 	$(GO) build -o "${BIN}/${LISTENER}" "${PATH}/${LISTENER}/${LISTENER}.go"
 clean:
 	$(GO) clean
@@ -56,12 +58,15 @@ apiserver:
 kubelet:
 	@echo "$(FOLD)"
 	$(GO) build -o "${BIN}/${KUBELET}" "${PATH}/${KUBELET}/${KUBELET}.go"
+listener:
+	@echo "$(FOLD)"
+	$(GO) build -o "${BIN}/${LISTENER}" "${PATH}/${LISTENER}/${LISTENER}.go"oscaler
 kube-controller-manager:
 	@echo "$(FOLD)"
 	$(GO) build -o "${BIN}/${CTLM}" "${PATH}/${CTLM}/${CTLM}.go"
 kubectl:
 	@echo "$(FOLD)"
 	$(GO) build -o "${BIN}/${CTL}" "${PATH}/${CTL}/${CTL}.go"
-listener:
+scheduler:
 	@echo "$(FOLD)"
-	$(GO) build -o "${BIN}/${LISTENER}" "${PATH}/${LISTENER}/${LISTENER}.go"
+	$(GO) build -o "${BIN}/${SCH}" "${PATH}/${SCH}/${SCH}.go"

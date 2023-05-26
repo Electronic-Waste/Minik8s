@@ -1,12 +1,13 @@
 package clientutil
 
 import (
-	"fmt"
 	"bytes"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io/ioutil"
 	"log"
+	"minik8s.io/pkg/apis/core"
 	apiurl "minik8s.io/pkg/apiserver/util/url"
 	"net/http"
 )
@@ -17,31 +18,149 @@ func HttpApply(objType string, obj any) error {
 	fmt.Println("http apply")
 	client := http.Client{}
 	payload, _ := json.Marshal(obj)
-	urlparam := "?namespace=default"
-	var requestUrl string
 	switch objType {
-	case "Autoscaler":
-		requestUrl = apiurl.Prefix + apiurl.AutoscalerStatusApplyURL + urlparam
-		fmt.Println("http apply autoscaler")
 	case "Deployment":
-		requestUrl = apiurl.Prefix + apiurl.DeploymentStatusApplyURL + urlparam
+		urlparam := "?namespace=default"
+		request, err := http.NewRequest("POST", apiurl.Prefix+apiurl.DeploymentStatusApplyURL+urlparam, bytes.NewReader(payload))
+		if err != nil {
+			log.Fatal(err)
+		}
 		fmt.Println("http apply deployment")
+		response, err := client.Do(request)
+		if err != nil {
+			log.Fatal(err)
+		}
+		if response.StatusCode != http.StatusOK {
+			return errors.New("apply fail")
+		}
 	case "Pod":
-		requestUrl = apiurl.Prefix + apiurl.PodStatusApplyURL + urlparam
+		request, err := http.NewRequest("POST", apiurl.Prefix+apiurl.PodStatusApplyURL, bytes.NewReader(payload))
+		if err != nil {
+			log.Fatal(err)
+		}
 		fmt.Println("http apply pod")
+		response, err := client.Do(request)
+		if err != nil {
+			log.Fatal(err)
+		}
+		if response.StatusCode != http.StatusOK {
+			return errors.New("apply fail")
+		}
+	case "Service":
+		var service core.Service
+		json.Unmarshal([]byte(payload), &service)
+		// fmt.Printf("httpclient: service is : %v\n", service)
+		// fmt.Printf("httpclinet: service name is : %v\n", service.Name)
+		postURL := apiurl.Prefix + apiurl.ServiceApplyURL + fmt.Sprintf("?namespace=default&name=%s", service.Name)
+		fmt.Printf("httpclient: send request to %s\n", postURL)
+		request, err := http.NewRequest("POST", postURL, bytes.NewReader(payload))
+		if err != nil {
+			log.Fatal(err)
+		}
+		fmt.Println("http apply service")
+		response, err := client.Do(request)
+		if err != nil {
+			log.Fatal(err)
+		}
+		if response.StatusCode != http.StatusOK {
+			return errors.New("apply fail")
+		}
+		body, _ := ioutil.ReadAll(response.Body)
+		fmt.Printf("Response: %s\n", string(body))
+	case "Node":
+		var node core.Node
+		json.Unmarshal([]byte(payload), &node)
+		postURL := apiurl.HttpScheme + node.Spec.MasterIp + apiurl.Port + apiurl.NodeRergisterUrl
+		request, err := http.NewRequest("POST", postURL, bytes.NewReader(payload))
+		if err != nil {
+			log.Fatal(err)
+		}
+		response, err := client.Do(request)
+		if err != nil {
+			log.Fatal(err)
+		}
+		if response.StatusCode != http.StatusOK {
+			return errors.New("register fail")
+		}
+		body, _ := ioutil.ReadAll(response.Body)
+		fmt.Printf("Response: %s\n", string(body))
 	}
-	request, err := http.NewRequest("POST", requestUrl, bytes.NewReader(payload))
-	if err != nil {
-		log.Fatal(err)
+
+	return nil
+}
+
+func HttpPlus(objType string, obj any, url string) error {
+	fmt.Println("http apply")
+	client := http.Client{}
+	payload, _ := json.Marshal(obj)
+	switch objType {
+	case "Deployment":
+		urlparam := "?namespace=default"
+		request, err := http.NewRequest("POST", url+urlparam, bytes.NewReader(payload))
+		if err != nil {
+			log.Fatal(err)
+		}
+		fmt.Println("http apply deployment")
+		response, err := client.Do(request)
+		if err != nil {
+			log.Fatal(err)
+		}
+		if response.StatusCode != http.StatusOK {
+			return errors.New("apply fail")
+		}
+	case "Pod":
+		request, err := http.NewRequest("POST", url, bytes.NewReader(payload))
+		if err != nil {
+			log.Fatal(err)
+		}
+		fmt.Println("http apply pod")
+		response, err := client.Do(request)
+		if err != nil {
+			log.Fatal(err)
+		}
+		if response.StatusCode != http.StatusOK {
+			return errors.New("apply fail")
+		}
+	case "Service":
+		var service core.Service
+		json.Unmarshal([]byte(payload), &service)
+		// fmt.Printf("httpclient: service is : %v\n", service)
+		// fmt.Printf("httpclinet: service name is : %v\n", service.Name)
+		postURL := url + fmt.Sprintf("?namespace=default&name=%s", service.Name)
+		fmt.Printf("httpclient: send request to %s\n", postURL)
+		request, err := http.NewRequest("POST", postURL, bytes.NewReader(payload))
+		if err != nil {
+			log.Fatal(err)
+		}
+		fmt.Println("http apply service")
+		response, err := client.Do(request)
+		if err != nil {
+			log.Fatal(err)
+		}
+		if response.StatusCode != http.StatusOK {
+			return errors.New("apply fail")
+		}
+		body, _ := ioutil.ReadAll(response.Body)
+		fmt.Printf("Response: %s\n", string(body))
+	case "Node":
+		var node core.Node
+		json.Unmarshal([]byte(payload), &node)
+		postURL := url
+		request, err := http.NewRequest("POST", postURL, bytes.NewReader(payload))
+		if err != nil {
+			log.Fatal(err)
+		}
+		response, err := client.Do(request)
+		if err != nil {
+			log.Fatal(err)
+		}
+		if response.StatusCode != http.StatusOK {
+			return errors.New("register fail")
+		}
+		body, _ := ioutil.ReadAll(response.Body)
+		fmt.Printf("Response: %s\n", string(body))
 	}
-	
-	response, err := client.Do(request)
-	if err != nil {
-		log.Fatal(err)
-	}
-	if response.StatusCode != http.StatusOK {
-		return errors.New("apply fail")
-	}
+
 	return nil
 }
 
@@ -68,7 +187,7 @@ func HttpUpdate(objType string, obj any) error {
 	if err != nil {
 		log.Fatal(err)
 	}
-	
+
 	response, err := client.Do(request)
 	if err != nil {
 		log.Fatal(err)
@@ -76,11 +195,12 @@ func HttpUpdate(objType string, obj any) error {
 	if response.StatusCode != http.StatusOK {
 		return errors.New("update fail")
 	}
+
 	return nil
 }
 
 // return: obj queried
-// @objType: type want to get; @params: query params: namespace & name
+// @objType: type want to get; @params: query params
 func HttpGet(objType string, params map[string]string) ([]byte, error) {
 	client := http.Client{}
 	urlparam := ""
@@ -101,26 +221,30 @@ func HttpGet(objType string, params map[string]string) ([]byte, error) {
 	switch objType {
 	case "Autoscaler":
 		requestUrl = apiurl.Prefix + apiurl.AutoscalerStatusGetURL + urlparam
-	case "Deployment":
-		requestUrl = apiurl.Prefix + apiurl.DeploymentStatusGetURL + urlparam
 	case "Pod":
 		requestUrl = apiurl.Prefix + apiurl.PodStatusGetURL + urlparam
+	case "Deployment":
+		requestUrl = apiurl.Prefix + apiurl.DeploymentStatusGetURL + urlparam
+	case "nodes":
+		requestUrl = apiurl.HttpScheme + "192.168.1.6" + apiurl.Port + apiurl.NodesGetUrl + urlparam
 	}
+
 	request, err := http.NewRequest("GET", requestUrl, nil)
 	if err != nil {
 		log.Fatal(err)
-		//return nil,err
 	}
 	response, err := client.Do(request)
 	if err != nil {
 		log.Fatal(err)
-		return nil,err
+		//return errors.New("")
 	}
 	if response.StatusCode != http.StatusOK {
 		return nil, errors.New("get fail")
 	}
 	data, err := ioutil.ReadAll(response.Body)
 	return data, nil
+
+	//return nil, errors.New("invalid request")
 }
 
 // return: obj queried
@@ -154,7 +278,7 @@ func HttpGetWithPrefix(objType string, params map[string]string) ([]byte, error)
 	response, err := client.Do(request)
 	if err != nil {
 		log.Fatal(err)
-		return nil,err
+		return nil, err
 	}
 	if response.StatusCode != http.StatusOK {
 		return nil, errors.New("get fail")
@@ -194,7 +318,7 @@ func HttpGetAll(objType string) ([]byte, error) {
 
 // return: error
 // @objType: type want to get; @params: query params: namespace & name
-func HttpDel(objType string, params map[string]string)  error {
+func HttpDel(objType string, params map[string]string) error {
 	client := http.Client{}
 	urlparam := ""
 	//if there are params, construct get url
@@ -215,6 +339,8 @@ func HttpDel(objType string, params map[string]string)  error {
 		requestUrl = apiurl.Prefix + apiurl.AutoscalerStatusDelURL + urlparam
 	case "Deployment":
 		requestUrl = apiurl.Prefix + apiurl.DeploymentStatusDelURL + urlparam
+	case "Service":
+		requestUrl = apiurl.Prefix + apiurl.ServiceDelURL + urlparam
 	case "Pod":
 		requestUrl = apiurl.Prefix + apiurl.PodStatusDelURL + urlparam
 	}

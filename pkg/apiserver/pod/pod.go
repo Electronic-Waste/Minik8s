@@ -1,18 +1,21 @@
 package pod
 
 import (
-	"net/http"
 	"encoding/json"
-	"path"
+	"fmt"
 	"io/ioutil"
+	"minik8s.io/pkg/clientutil"
+	"minik8s.io/pkg/kubelet/config"
+	"net/http"
+	"path"
 	// "github.com/go-redis/redis/v8"
 	"fmt"
 	"minik8s.io/pkg/util/listwatch"
+	"minik8s.io/pkg/apis/core"
 	"minik8s.io/pkg/apiserver/etcd"
 	"minik8s.io/pkg/apiserver/util/url"
-	"minik8s.io/pkg/apis/core"
+	"minik8s.io/pkg/util/listwatch"
 )
-
 
 // Return certain pod's status
 // uri: /pods/status/get?namespace=...&name=...
@@ -67,7 +70,7 @@ func HandleGetAllPodStatus(resp http.ResponseWriter, req *http.Request) {
 	// return
 }
 
-// Return statuses of pods with prefix 
+// Return statuses of pods with prefix
 // uri: /pods/status/getwithprefix
 func HandleGetWithPrefixPodStatus(resp http.ResponseWriter, req *http.Request) {
 	vars := req.URL.Query()
@@ -95,7 +98,6 @@ func HandleGetWithPrefixPodStatus(resp http.ResponseWriter, req *http.Request) {
 	resp.Write(jsonVal)
 	// return
 }
-
 
 // Apply a pod's status in etcd
 // uri: /pods/status/apply?namespace=...&name=...
@@ -127,7 +129,24 @@ func HandleApplyPodStatus(resp http.ResponseWriter, req *http.Request) {
 	}
 	// Success!
 	pubURL := path.Join(url.PodStatus, "apply")
-	listwatch.Publish(pubURL, string(body))	
+	Param := core.ScheduleParam{
+		RunPod: pod,
+	}
+	// get all node registered message
+	nodeStr, err := etcd.GetWithPrefix(url.Node)
+	for _, str := range nodeStr {
+		node := core.Node{}
+		json.Unmarshal([]byte(str), &node)
+		Param.NodeList = append(Param.NodeList, node)
+	}
+	fmt.Println(Param)
+	body, err = json.Marshal(Param)
+	if err != nil {
+		resp.WriteHeader(http.StatusInternalServerError)
+		resp.Write([]byte(err.Error()))
+		return
+	}
+	listwatch.Publish(pubURL, string(body))
 	resp.WriteHeader(http.StatusOK)
 }
 
@@ -156,7 +175,7 @@ func HandleUpdatePodStatus(resp http.ResponseWriter, req *http.Request) {
 	}
 	// Success!
 	pubURL := path.Join(url.PodStatus, "update")
-	listwatch.Publish(pubURL, string(body))	
+	listwatch.Publish(pubURL, string(body))
 	resp.WriteHeader(http.StatusOK)
 }
 
@@ -175,7 +194,15 @@ func HandleDelPodStatus(resp http.ResponseWriter, req *http.Request) {
 		return
 	}
 	etcdURL := path.Join(url.PodStatus, namespace, podName)
-	err := etcd.Del(etcdURL)
+	data, err := etcd.Get(etcdURL)
+	if err != nil {
+		resp.WriteHeader(http.StatusInternalServerError)
+		resp.Write([]byte(err.Error()))
+		return
+	}
+	pod := core.Pod{}
+	json.Unmarshal([]byte(data), &pod)
+	err = etcd.Del(etcdURL)
 	// Error occur in etcd: return error to client
 	if err != nil {
 		resp.WriteHeader(http.StatusInternalServerError)
@@ -183,9 +210,9 @@ func HandleDelPodStatus(resp http.ResponseWriter, req *http.Request) {
 		return
 	}
 	// Success!
-	pubURL := path.Join(url.PodStatus, "del")
-	listwatch.Publish(pubURL, podName)	
+	fmt.Printf("del pod name is %s\n", pod.Name)
+	clientutil.HttpPlus("Pod", pod, url.HttpScheme+pod.Spec.RunningNode.Spec.MasterIp+config.Port+config.DelPodRul)
+
 	resp.WriteHeader(http.StatusOK)
 	fmt.Println("http del success")
 }
-

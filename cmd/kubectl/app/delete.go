@@ -24,6 +24,12 @@ var (
 func DeleteHandler(resourceKind, resourceName string) error {
 	var err error
 	switch resourceKind {
+	case "service":
+		fmt.Printf("Delete service name: %s\n", resourceName)
+		err := deleteService(resourceName)
+		if err != nil {
+			fmt.Printf("Error in sending del service msg to apiserver: %v", err)
+		}
 	case "pod":
 		err = deletePod(resourceName)
 	case "deployment":
@@ -56,6 +62,20 @@ func deleteAutoscaler(resourceName string) error {
 	params["namespace"] = "default"
 	params["name"] = resourceName
 	return clientutil.HttpDel("Autoscaler", params)
+}
+
+func deleteService(serviceName string) error {
+	fmt.Println("del service")
+	params := map[string]string {
+		"namespace"	: "default",
+		"name"		: serviceName,
+	}
+	err := clientutil.HttpDel("Service", params)
+	if err != nil {
+		return fmt.Errorf("Error in clientutil: %v", err)
+	}
+	//fmt.Printf("deleteService response body: %s\n", string(rawResp))
+	return nil;
 }
 
 func init() {

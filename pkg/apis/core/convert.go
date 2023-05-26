@@ -54,3 +54,19 @@ func ParsePod(path string) (*Pod, error) {
 	}
 	return &pod, nil
 }
+
+func ParseNode(path string) (*Node, error) {
+	if !strings.HasSuffix(path, ".yaml") {
+		//get yaml file content
+		fmt.Println("error file type")
+		return nil, errors.New("error file type")
+	}
+	file, err := os.ReadFile(path)
+	node := Node{}
+	err = yaml.Unmarshal(file, &node)
+	fmt.Println(node)
+	if err != nil {
+		return nil, err
+	}
+	return &node, nil
+}

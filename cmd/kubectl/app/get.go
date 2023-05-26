@@ -1,12 +1,18 @@
 package app
 
 import (
+	"encoding/json"
 	"fmt"
 	"github.com/spf13/cobra"
-	"minik8s.io/pkg/podmanager"
-	"minik8s.io/pkg/clientutil"
 	"minik8s.io/pkg/apis/core"
-	"encoding/json"
+	"minik8s.io/pkg/clientutil"
+	"minik8s.io/pkg/podmanager"
+)
+
+var (
+	FormatNodes = []string{
+		"Name", "MasterIp", "NodeIp", "NodeStatus",
+	}
 )
 
 var (
@@ -16,16 +22,32 @@ var (
 		Long:    `get a resource from minik8s`,
 		Example: "get pod",
 		Run: func(cmd *cobra.Command, args []string) {
-			if err := GetHandler(args[0]); err != nil {
-				fmt.Println(err.Error())
+			if len(args) == 1 {
+				if err := GetHandler(args[0]); err != nil {
+					fmt.Println(err.Error())
+				}
+			} else {
+				if err := GetHandlerWithName(args[0], args[1]); err != nil {
+					fmt.Println(err.Error())
+				}
 			}
 		},
 	}
 )
 
 func GetHandler(resourceKind string) error {
-	fmt.Println("get handler")
-	switch resourceKind{
+	switch resourceKind {
+	case "nodes":
+		{
+			// deal with 'kubectl get nodes'
+			bytes, err := clientutil.HttpGet("nodes", map[string]string{})
+			if err != nil {
+				return err
+			}
+			nodeList := core.NodeList{}
+			json.Unmarshal(bytes, &nodeList)
+			FormatPrinting(FormatNodes, nodeList)
+		}
 	case "pod":
 		//fmt.Println("get pods")
 		//bytes,err := clientutil.HttpGetAll("Pod")
@@ -44,24 +66,24 @@ func GetHandler(resourceKind string) error {
 		//	_ = json.Unmarshal([]byte(s), &pod)
 		//	pods = append(pods, pod
 		//}
-		pods,_ := podmanager.GetPods()
+		pods, _ := podmanager.GetPods()
 		output := "NAMESPACE\tKIND\tNAME\t\t\t\t\tSTATUS\t\n"
-		for _,p := range pods{
+		for _, p := range pods {
 			output += "default\t\t" + "Pod\t" + p.Name + "\t" + string(p.Status.Phase) + "\n"
 		}
 		fmt.Println(output)
 	case "deployment":
 		//fmt.Println("get deployments")
-		bytes,err := clientutil.HttpGetAll("Deployment")
-		if err!=nil{
+		bytes, err := clientutil.HttpGetAll("Deployment")
+		if err != nil {
 			return err
 		}
 		var strs []string
 		err = json.Unmarshal(bytes, &strs)
 		fmt.Println("get deployment number: ", len(strs))
 		var deployments []core.Deployment
-		for _,s := range strs{
-			if s == ""{
+		for _, s := range strs {
+			if s == "" {
 				continue
 			}
 			deployment := core.Deployment{}
@@ -69,22 +91,22 @@ func GetHandler(resourceKind string) error {
 			deployments = append(deployments, deployment)
 		}
 		output := "NAMESPACE\tKIND\tNAME\tSTATUS\t\n"
-		for _,d := range deployments{
+		for _, d := range deployments {
 			output += "default\t\t" + "Deployment\t" + d.Metadata.Name + "\t" + "Running" + "\n"
 		}
 		fmt.Println(output)
 	case "autoscaler":
 		fmt.Println("get autoscalers")
-		bytes,err := clientutil.HttpGetAll("Autoscaler")
-		if err!=nil{
+		bytes, err := clientutil.HttpGetAll("Autoscaler")
+		if err != nil {
 			return err
 		}
 		var strs []string
 		err = json.Unmarshal(bytes, &strs)
 		fmt.Println("get autoscaler number: ", len(strs))
 		var autoscalers []core.Autoscaler
-		for _,s := range strs{
-			if s == ""{
+		for _, s := range strs {
+			if s == "" {
 				continue
 			}
 			autoscaler := core.Autoscaler{}
@@ -92,12 +114,23 @@ func GetHandler(resourceKind string) error {
 			autoscalers = append(autoscalers, autoscaler)
 		}
 		output := "NAMESPACE\tKIND\t\tNAME\t\tSTATUS\t\n"
-		for _,a := range autoscalers{
+		for _, a := range autoscalers {
 			output += "default\t\t" + "Autoscaler\t" + a.Metadata.Name + "\t" + "Running" + "\n"
 		}
 		fmt.Println(output)
 	}
 	return nil
+}
+
+func FormatPrinting(formarStr []string, any interface{}) {
+	for _, str := range formarStr {
+		fmt.Printf("%s       ", str)
+	}
+	nodeList := any.(core.NodeList)
+	for _, node := range nodeList.NodeArray {
+		fmt.Printf("\n%s    %s     %s      %s", node.MetaData.Name, node.Spec.MasterIp, node.Spec.NodeIp, "Ready")
+	}
+	fmt.Println("")
 }
 
 func GetHandlerWithName(resourceKind, resourceName string) error {

@@ -29,6 +29,8 @@ const (
 	ModeFlag			string = "--mode"
 	ModeParamNth		string = "nth"
 	EveryFlag			string = "--every"
+	PacketFlag			string = "--packet"
+	PacketFlagParam1	string = "0"
 	MarkFlag			string = "--mark"
 	CommentFlag     	string = "--comment"
 	DestPortFlag    	string = "--dport"
@@ -75,6 +77,8 @@ const (
 type Inteface interface {
 	// Creates iptables chains for all minik8s service
 	InitServiceIPTables() error
+	// Deinit iptabels chains for all minik8s service
+	DeinitServiceIPTables() error
 	// Creates an iptables chain for one service
 	CreateServiceChain() string
 	// Adds a rule to KUBE-SERVICES chain, jump to a service chain KUBE_SVC-<serviceChainID>
@@ -236,6 +240,79 @@ func (cli *IPTablesClient) InitServiceIPTables() error {
 	return nil
 }
 
+func (cli *IPTablesClient) DeinitServiceIPTables() error {
+	// 1. Delete the rule that jumps to KUBE-SERVICES chain in PREROUTING chain.
+	err := cli.iptables.DeleteIfExists(
+		NATTable,
+		PreroutingChain,
+		JumpFlag,
+		KubeServicesChainName,
+	)
+	if err != nil {
+		return fmt.Errorf(
+			"error %v in deleting the rule `-A %s -j %s`",
+			err, PreroutingChain, KubeServicesChainName,
+		)
+	}
+
+	// 2. Delete the rule that jumps to KUBE-SERVICES chain in OUTPUT chain
+	err = cli.iptables.DeleteIfExists(
+		NATTable,
+		OutputChain,
+		JumpFlag,
+		KubeServicesChainName,
+	)
+	if err != nil {
+		return fmt.Errorf(
+			"error %v in deleting the rule `-A %s -j %s`",
+			err, OutputChain, KubeServicesChainName,
+		)
+	}
+
+	// 3. Delete the rule that jumps to KUBE-POSTROUTING chain in POSTROUTING chain
+	err = cli.iptables.DeleteIfExists(
+		NATTable,
+		PostroutingChain,
+		JumpFlag,
+		KubePostroutingChainName,
+	)
+	if err != nil {
+		return fmt.Errorf(
+			"error %v in deleting the rule `-A %s -j %s`",
+			err, PostroutingChain, KubePostroutingChainName,
+		)
+	}
+
+	// 4. Delete and clear the KUBE-MARK-MASQ chain
+	err = cli.iptables.ClearAndDeleteChain(NATTable, KubeMarkChainName)
+	if err != nil {
+		return fmt.Errorf(
+			"error %v in deleting the %s chain",
+			err, KubeMarkChainName,
+		)
+	}
+
+	// 5. Delete and clear the KUBE-POSTROUTING chain
+	err = cli.iptables.ClearAndDeleteChain(NATTable, KubePostroutingChainName)
+	if err != nil {
+		return fmt.Errorf(
+			"error %v in deleting the %s chain",
+			err, KubePostroutingChainName,
+		)
+	}
+
+	// 6. Delete and clear the KUBE-SERVICES chain
+	err = cli.iptables.ClearAndDeleteChain(NATTable, KubeServicesChainName)
+	if err != nil {
+		return fmt.Errorf(
+			"error %v in deleting the %s chain",
+			err, KubeServicesChainName,
+		)
+	}
+	
+	return nil
+}
+
 func (cli *IPTablesClient) CreateServiceChain() string {
 	// Create a chain "KUBE-SVC-<serviceChainID>" in nat table.
 	serviceChainID := strings.ToUpper(uuid.New().String()[:8])
@@ -251,21 +328,23 @@ func (cli *IPTablesClient) ApplyServiceChain(serviceName string, clusterIP strin
 	}
 
 	// Adds a rule to KUBE-SERVICES chain, jump to a service chain
-	// -A <serviceChainName> --p tcp -d <clusterIP> -m comment --comment <serviceName> -dport <port> -j <serviceChainName>
+	// -A KUBE-SERVICES --p tcp -d <clusterIP> -m comment --comment <serviceName> -dport <port> -j <serviceChainName>
 	err := cli.iptables.Insert(
 		NATTable,
-		serviceChainName,
+		KubeServicesChainName,
 		1,
 		ProtocolFlag,
 		ProtocolTCP,
 		DestinationFlag,
 		clusterIP,
 		MatchFlag,
+		ProtocolTCP,
+		DestPortFlag,
+		fmt.Sprint(port),
+		MatchFlag,
 		MatchParamComment,
 		CommentFlag,
 		serviceName,
-		DestPortFlag,
-		fmt.Sprint(port),
 		JumpFlag,
 		serviceChainName,
 	)
@@ -318,8 +397,6 @@ func (cli *IPTablesClient) ApplyPodChainRules(podChainName string, podIP string,
 		podChainName,
 		ProtocolFlag,
 		ProtocolTCP,
-		MatchFlag,
-		ProtocolIPv4,
 		JumpFlag,
 		DnatTarget,
 		DNATdestFlag,
@@ -352,6 +429,8 @@ func (cli *IPTablesClient) ApplyPodChain(serviceName string, serviceChainName st
 		ModeParamNth,
 		EveryFlag,
 		fmt.Sprint(num),
+		PacketFlag,
+		PacketFlagParam1,
 		JumpFlag,
 		podChainName,
 	)
