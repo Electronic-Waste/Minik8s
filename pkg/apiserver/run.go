@@ -79,7 +79,7 @@ func HitNode(msg *redis.Message) {
 		fmt.Println(err)
 	}
 	// inform core kubelet to apply the Pod
-	err = clientutil.HttpPlus("Pod", pod, url.HttpScheme+pod.Spec.RunningNode.Spec.MasterIp+config.Port+config.RunPodUrl)
+	err = clientutil.HttpPlus("Pod", pod, url.HttpScheme+pod.Spec.RunningNode.Spec.NodeIp+config.Port+config.RunPodUrl)
 	if err != nil {
 		fmt.Println(err)
 	}
