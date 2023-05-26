@@ -45,7 +45,7 @@ func NewDeploymentController(ctx context.Context) (*DeploymentController, error)
 
 func (dc *DeploymentController) Run(ctx context.Context) {
 	go dc.register()		//register list watch handler
-	go dc.replicaWatcher()	//supervise pod replica numbers
+	//go dc.replicaWatcher()	//supervise pod replica numbers
 	go dc.worker(ctx)		//main thread processing messages
 	print("deployment controller running\n")
 	<-ctx.Done()
@@ -241,9 +241,11 @@ func (dc *DeploymentController) syncDeployment(ctx context.Context, watchres lis
 
 func (dc *DeploymentController) replicaWatcher() {
 	timeout := time.Second * 3
+	time.Sleep(time.Second * 30)
 	for {
 		fmt.Println("!!!watching replicas")
 		pods,err := podmanager.GetPods()
+		fmt.Println("replica watcher get pods:",len(pods))
 		if err!=nil{
 			fmt.Println(err.Error())
 			continue

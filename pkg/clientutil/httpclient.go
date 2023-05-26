@@ -19,6 +19,20 @@ func HttpApply(objType string, obj any) error {
 	client := http.Client{}
 	payload, _ := json.Marshal(obj)
 	switch objType {
+	case "Autoscaler":
+		urlparam := "?namespace=default"
+		request, err := http.NewRequest("POST", apiurl.Prefix+apiurl.AutoscalerStatusApplyURL+urlparam, bytes.NewReader(payload))
+		if err != nil {
+			log.Fatal(err)
+		}
+		fmt.Println("http apply deployment")
+		response, err := client.Do(request)
+		if err != nil {
+			log.Fatal(err)
+		}
+		if response.StatusCode != http.StatusOK {
+			return errors.New("apply fail")
+		}
 	case "Deployment":
 		urlparam := "?namespace=default"
 		request, err := http.NewRequest("POST", apiurl.Prefix+apiurl.DeploymentStatusApplyURL+urlparam, bytes.NewReader(payload))

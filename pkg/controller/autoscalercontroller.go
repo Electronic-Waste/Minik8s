@@ -46,6 +46,7 @@ func (ac *AutoscalerController) register() {
 
 func (ac *AutoscalerController) applylistener (msg *redis.Message) {
 	//get autoscaler from msg
+	fmt.Println("ac apply new autoscaler")
 	bytes := []byte(msg.Payload)
 	watchres := listwatch.WatchResult{}
 	err := json.Unmarshal(bytes, &watchres)
@@ -60,7 +61,7 @@ func (ac *AutoscalerController) applylistener (msg *redis.Message) {
 	if err != nil {
 		return
 	}
-	fmt.Println("ac apply new autoscaler")
+	
 	//apply
 	for _,a := range ac.autoscalerList{
 		if a.Metadata.Name == autoscaler.Metadata.Name{
@@ -178,7 +179,15 @@ func (ac *AutoscalerController) worker (autoscaler core.Autoscaler) {
 		if err != nil{
 			continue
 		}
-		//fmt.Println("get pod status:")
+		for _,pod := range pods{
+			err = ac.cadvisor.RegisterPod(pod.Name)
+			if err != nil {
+				fmt.Println(err)
+				continue
+			}
+			time.Sleep(time.Second * 5)
+		}
+		fmt.Println("get pod status:")
 		statusList := []stats.PodStats{}
 		for _,pod := range pods{
 			status, err := ac.cadvisor.GetPodMetric(pod.Name)
