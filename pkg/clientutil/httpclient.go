@@ -19,6 +19,20 @@ func HttpApply(objType string, obj any) error {
 	client := http.Client{}
 	payload, _ := json.Marshal(obj)
 	switch objType {
+	case "Autoscaler":
+		urlparam := "?namespace=default"
+		request, err := http.NewRequest("POST", apiurl.Prefix+apiurl.AutoscalerStatusApplyURL+urlparam, bytes.NewReader(payload))
+		if err != nil {
+			log.Fatal(err)
+		}
+		fmt.Println("http apply deployment")
+		response, err := client.Do(request)
+		if err != nil {
+			log.Fatal(err)
+		}
+		if response.StatusCode != http.StatusOK {
+			return errors.New("apply fail")
+		}
 	case "Deployment":
 		urlparam := "?namespace=default"
 		request, err := http.NewRequest("POST", apiurl.Prefix+apiurl.DeploymentStatusApplyURL+urlparam, bytes.NewReader(payload))
@@ -220,40 +234,35 @@ func HttpGet(objType string, params map[string]string) ([]byte, error) {
 			i++
 		}
 	}
+	//fmt.Printf("httpclient get params: %s\n",urlparam)
+	var requestUrl string
 	switch objType {
+	case "Autoscaler":
+		requestUrl = apiurl.Prefix + apiurl.AutoscalerStatusGetURL + urlparam
+	case "Pod":
+		requestUrl = apiurl.Prefix + apiurl.PodStatusGetURL + urlparam
 	case "Deployment":
-		request, err := http.NewRequest("GET", apiurl.Prefix+apiurl.DeploymentStatusGetURL+urlparam, nil)
-		if err != nil {
-			log.Fatal(err)
-		}
-		response, err := client.Do(request)
-		if err != nil {
-			log.Fatal(err)
-			//return errors.New("")
-		}
-		if response.StatusCode != http.StatusOK {
-			return nil, errors.New("get fail")
-		}
-		data, err := ioutil.ReadAll(response.Body)
-		return data, nil
+		requestUrl = apiurl.Prefix + apiurl.DeploymentStatusGetURL + urlparam
 	case "nodes":
-		request, err := http.NewRequest("GET", apiurl.HttpScheme+"192.168.1.6"+apiurl.Port+apiurl.NodesGetUrl+urlparam, nil)
-		if err != nil {
-			log.Fatal(err)
-		}
-		response, err := client.Do(request)
-		if err != nil {
-			log.Fatal(err)
-			//return errors.New("")
-		}
-		if response.StatusCode != http.StatusOK {
-			return nil, errors.New("get fail")
-		}
-		data, err := ioutil.ReadAll(response.Body)
-		return data, nil
+		requestUrl = apiurl.HttpScheme + "192.168.1.6" + apiurl.Port + apiurl.NodesGetUrl + urlparam
 	}
 
-	return nil, errors.New("invalid request")
+	request, err := http.NewRequest("GET", requestUrl, nil)
+	if err != nil {
+		log.Fatal(err)
+	}
+	response, err := client.Do(request)
+	if err != nil {
+		log.Fatal(err)
+		//return errors.New("")
+	}
+	if response.StatusCode != http.StatusOK {
+		return nil, errors.New("get fail")
+	}
+	data, err := ioutil.ReadAll(response.Body)
+	return data, nil
+
+	//return nil, errors.New("invalid request")
 }
 
 // return: obj queried
@@ -273,7 +282,7 @@ func HttpGetWithPrefix(objType string, params map[string]string) ([]byte, error)
 			i++
 		}
 	}
-	fmt.Printf("httpclient get params: %s\n", urlparam)
+	//fmt.Printf("httpclient get params: %s\n",urlparam)
 	var requestUrl string
 	switch objType {
 	case "Pod":

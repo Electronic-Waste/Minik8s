@@ -24,11 +24,12 @@ import (
 type HttpHandler func(http.ResponseWriter, *http.Request)
 
 var postHandlerMap = map[string]HttpHandler{
-
 	url.PodStatusApplyURL:         pod.HandleApplyPodStatus,
 	url.PodStatusUpdateURL:        pod.HandleUpdatePodStatus,
 	url.DeploymentStatusApplyURL:  deployment.HandleApplyDeploymentStatus,
 	url.DeploymentStatusUpdateURL: deployment.HandleUpdateDeploymentStatus,
+	url.AutoscalerStatusApplyURL:  autoscaler.HandleApplyAutoscalerStatus,
+	url.AutoscalerStatusUpdateURL: autoscaler.HandleUpdateAutoscalerStatus,
 	url.ServiceApplyURL:           service.HandleApplyService,
 	url.ServiceUpdateURL:          service.HandleUpdateService,
 }
@@ -38,25 +39,22 @@ var getHandlerMap = map[string]HttpHandler{
 	url.PodStatusGetAllURL:        pod.HandleGetAllPodStatus,
 	url.DeploymentStatusGetURL:    deployment.HandleGetDeploymentStatus,
 	url.DeploymentStatusGetAllURL: deployment.HandleGetAllDeploymentStatus,
+	url.AutoscalerStatusGetURL:    autoscaler.HandleGetAutoscalerStatus,
+	url.AutoscalerStatusGetAllURL: autoscaler.HandleGetAllAutoscalerStatus,
 	url.ServiceGetURL:             service.HandleGetService,
 	url.ServiceGetAllURL:          service.HandleGetAllServices,
 	url.NodesGetUrl:               node.HandleGetNodes,
-
-	url.AutoscalerStatusApplyURL:  autoscaler.HandleApplyAutoscalerStatus,
-	url.AutoscalerStatusUpdateURL: autoscaler.HandleUpdateAutoscalerStatus,
 }
 
 var deleteHandlerMap = map[string]HttpHandler{
-	url.PodStatusDelURL:        pod.HandleDelPodStatus,
-	url.DeploymentStatusDelURL: deployment.HandleDelDeploymentStatus,
-
-	url.ServiceDelURL: service.HandleDelService,
+	url.PodStatusDelURL:        	pod.HandleDelPodStatus,
+	url.DeploymentStatusDelURL: 	deployment.HandleDelDeploymentStatus,
+	url.AutoscalerStatusDelURL: 	autoscaler.HandleDelAutoscalerStatus,
+	url.ServiceDelURL: 				service.HandleDelService,
 }
 
 var nodeHandlerMap = map[string]HttpHandler{
 	url.NodeRergisterUrl: node.HandleNodeRegister,
-
-	url.AutoscalerStatusDelURL: autoscaler.HandleDelAutoscalerStatus,
 }
 
 func bindWatchHandler() {

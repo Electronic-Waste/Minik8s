@@ -2,7 +2,7 @@ kind: Deployment
 metadata:
   name: deployment_test
 spec: 
-  replicas: 3
+  replicas: 2
   selector: test
   template: 
     kind: Pod
