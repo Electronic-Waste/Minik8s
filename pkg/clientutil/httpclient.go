@@ -126,6 +126,39 @@ func HttpGet(objType string, params map[string]string) ([]byte, error) {
 	return nil, errors.New("invalid request")
 }
 
+// return: obj queried
+// @objType: type want to get
+func HttpGetAll(objType string) ([]byte, error) {
+	client := http.Client{}
+	var requestUrl string
+	switch objType {
+	// case "Autoscaler":
+	// 	requestUrl = apiurl.Prefix + apiurl.AutoscalerStatusGetAllURL
+	case "Deployment":
+		requestUrl = apiurl.Prefix + apiurl.DeploymentStatusGetAllURL
+	case "Pod":
+		requestUrl = apiurl.Prefix + apiurl.PodStatusGetAllURL
+	case "Service":
+		requestUrl = apiurl.Prefix + apiurl.ServiceGetAllURL
+	case "DNS":
+		requestUrl = apiurl.Prefix + apiurl.DNSGetAllURL
+	}
+	request, err := http.NewRequest("GET", requestUrl, nil)
+	if err != nil {
+		log.Fatal(err)
+	}
+	response, err := client.Do(request)
+	if err != nil {
+		log.Fatal(err)
+		//return errors.New("")
+	}
+	if response.StatusCode != http.StatusOK {
+		return nil, errors.New("get fail")
+	}
+	data, err := ioutil.ReadAll(response.Body)
+	return data, nil
+}
+
 // return: error
 // @objType: type want to get; @params: query params: namespace & name
 func HttpDel(objType string, params map[string]string) error {
