@@ -127,7 +127,6 @@ func FormatPrinting(formarStr []string, any interface{}) {
 		fmt.Printf("%s       ", str)
 	}
 	nodeList := any.(core.NodeList)
-	fmt.Printf("the num of node is %d\n", len(nodeList.NodeArray))
 	for _, node := range nodeList.NodeArray {
 		fmt.Printf("\n%s    %s     %s      %s", node.MetaData.Name, node.Spec.MasterIp, node.Spec.NodeIp, "Ready")
 	}

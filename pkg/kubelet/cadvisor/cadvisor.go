@@ -225,10 +225,7 @@ func (c *CAdvisor) GetAllPodMetric() map[string]stats.PodStats {
 	// register all the container in the Pod to containerListener
 	cli, err := remote_cli.NewRemoteRuntimeService(remote_cli.IdenticalErrorDelay)
 	if err != nil {
-<<<<<<< HEAD
 		fmt.Println(err)
-=======
->>>>>>> 2b2df8301f69d16c66e716990a86247423ba0861
 		return nil
 	}
 	// !!! : need to specify the namespace of finding container

@@ -27,6 +27,7 @@ type Kubelet struct {
 func (k *Kubelet) Run(update chan kubetypes.PodUpdate) {
 	// wait for new event caused by listening source
 	//bindWatchHandler()
+	go config.Run()
 	k.syncLoop(update)
 }
 

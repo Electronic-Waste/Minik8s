@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"minik8s.io/pkg/clientutil"
+	"minik8s.io/pkg/kubelet/config"
 	"net/http"
 	"path"
 	// "github.com/go-redis/redis/v8"
@@ -190,7 +192,15 @@ func HandleDelPodStatus(resp http.ResponseWriter, req *http.Request) {
 		return
 	}
 	etcdURL := path.Join(url.PodStatus, namespace, podName)
-	err := etcd.Del(etcdURL)
+	data, err := etcd.Get(etcdURL)
+	if err != nil {
+		resp.WriteHeader(http.StatusInternalServerError)
+		resp.Write([]byte(err.Error()))
+		return
+	}
+	pod := core.Pod{}
+	json.Unmarshal([]byte(data), &pod)
+	err = etcd.Del(etcdURL)
 	// Error occur in etcd: return error to client
 	if err != nil {
 		resp.WriteHeader(http.StatusInternalServerError)
@@ -198,7 +208,8 @@ func HandleDelPodStatus(resp http.ResponseWriter, req *http.Request) {
 		return
 	}
 	// Success!
-	pubURL := path.Join(url.PodStatus, "del")
-	listwatch.Publish(pubURL, podName)
+	fmt.Printf("del pod name is %s\n", pod.Name)
+	clientutil.HttpPlus("Pod", pod, url.HttpScheme+pod.Spec.RunningNode.Spec.MasterIp+config.Port+config.DelPodRul)
+
 	resp.WriteHeader(http.StatusOK)
 }

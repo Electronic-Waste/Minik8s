@@ -89,6 +89,81 @@ func HttpApply(objType string, obj any) error {
 	return nil
 }
 
+func HttpPlus(objType string, obj any, url string) error {
+	fmt.Println("http apply")
+	client := http.Client{}
+	payload, _ := json.Marshal(obj)
+	switch objType {
+	case "Deployment":
+		urlparam := "?namespace=default"
+		request, err := http.NewRequest("POST", url+urlparam, bytes.NewReader(payload))
+		if err != nil {
+			log.Fatal(err)
+		}
+		fmt.Println("http apply deployment")
+		response, err := client.Do(request)
+		if err != nil {
+			log.Fatal(err)
+		}
+		if response.StatusCode != http.StatusOK {
+			return errors.New("apply fail")
+		}
+	case "Pod":
+		request, err := http.NewRequest("POST", url, bytes.NewReader(payload))
+		if err != nil {
+			log.Fatal(err)
+		}
+		fmt.Println("http apply pod")
+		response, err := client.Do(request)
+		if err != nil {
+			log.Fatal(err)
+		}
+		if response.StatusCode != http.StatusOK {
+			return errors.New("apply fail")
+		}
+	case "Service":
+		var service core.Service
+		json.Unmarshal([]byte(payload), &service)
+		// fmt.Printf("httpclient: service is : %v\n", service)
+		// fmt.Printf("httpclinet: service name is : %v\n", service.Name)
+		postURL := url + fmt.Sprintf("?namespace=default&name=%s", service.Name)
+		fmt.Printf("httpclient: send request to %s\n", postURL)
+		request, err := http.NewRequest("POST", postURL, bytes.NewReader(payload))
+		if err != nil {
+			log.Fatal(err)
+		}
+		fmt.Println("http apply service")
+		response, err := client.Do(request)
+		if err != nil {
+			log.Fatal(err)
+		}
+		if response.StatusCode != http.StatusOK {
+			return errors.New("apply fail")
+		}
+		body, _ := ioutil.ReadAll(response.Body)
+		fmt.Printf("Response: %s\n", string(body))
+	case "Node":
+		var node core.Node
+		json.Unmarshal([]byte(payload), &node)
+		postURL := url
+		request, err := http.NewRequest("POST", postURL, bytes.NewReader(payload))
+		if err != nil {
+			log.Fatal(err)
+		}
+		response, err := client.Do(request)
+		if err != nil {
+			log.Fatal(err)
+		}
+		if response.StatusCode != http.StatusOK {
+			return errors.New("register fail")
+		}
+		body, _ := ioutil.ReadAll(response.Body)
+		fmt.Printf("Response: %s\n", string(body))
+	}
+
+	return nil
+}
+
 // return: error
 // @objType: type want to update; @obj: the obj to be updated
 func HttpUpdate(objType string, obj any) error {

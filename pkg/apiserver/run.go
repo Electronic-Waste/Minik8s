@@ -6,8 +6,11 @@ import (
 	"github.com/go-redis/redis/v8"
 	"minik8s.io/pkg/apis/core"
 	"minik8s.io/pkg/apiserver/node"
+	"minik8s.io/pkg/clientutil"
+	"minik8s.io/pkg/kubelet/config"
 	"minik8s.io/pkg/util/listwatch"
 	"net/http"
+	"path"
 
 	"minik8s.io/pkg/apiserver/autoscaler"
 	"minik8s.io/pkg/apiserver/deployment"
@@ -39,12 +42,6 @@ var getHandlerMap = map[string]HttpHandler{
 	url.ServiceGetAllURL:          service.HandleGetAllServices,
 	url.NodesGetUrl:               node.HandleGetNodes,
 
-	url.PodStatusApplyURL:         pod.HandleApplyPodStatus,
-	url.PodStatusUpdateURL:        pod.HandleUpdatePodStatus,
-	url.DeploymentStatusApplyURL:  deployment.HandleApplyDeploymentStatus,
-	url.DeploymentStatusUpdateURL: deployment.HandleUpdateDeploymentStatus,
-	url.ServiceApplyURL:           service.HandleApplyService,
-	url.ServiceUpdateURL:          service.HandleUpdateService,
 	url.AutoscalerStatusApplyURL:  autoscaler.HandleApplyAutoscalerStatus,
 	url.AutoscalerStatusUpdateURL: autoscaler.HandleUpdateAutoscalerStatus,
 }
@@ -59,7 +56,6 @@ var deleteHandlerMap = map[string]HttpHandler{
 var nodeHandlerMap = map[string]HttpHandler{
 	url.NodeRergisterUrl: node.HandleNodeRegister,
 
-	url.ServiceDelURL:          service.HandleDelService,
 	url.AutoscalerStatusDelURL: autoscaler.HandleDelAutoscalerStatus,
 }
 
@@ -71,8 +67,22 @@ func HitNode(msg *redis.Message) {
 	pod := core.Pod{}
 	json.Unmarshal([]byte(msg.Payload), &pod)
 	fmt.Println(pod)
+	podName := pod.Name
+	namespace := "default"
+	etcdURL := path.Join(url.PodStatus, namespace, podName)
+	body, err := json.Marshal(pod)
+	if err != nil {
+		fmt.Println(err)
+	}
+	err = etcd.Put(etcdURL, string(body))
+	if err != nil {
+		fmt.Println(err)
+	}
 	// inform core kubelet to apply the Pod
-
+	err = clientutil.HttpPlus("Pod", pod, url.HttpScheme+pod.Spec.RunningNode.Spec.NodeIp+config.Port+config.RunPodUrl)
+	if err != nil {
+		fmt.Println(err)
+	}
 }
 
 var kubeProxyManager *kubeproxy.KubeproxyManager
