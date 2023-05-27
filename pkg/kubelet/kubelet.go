@@ -9,6 +9,9 @@ import (
 	"net/http"
 	"time"
 	"encoding/json"
+	"github.com/go-redis/redis/v8"
+	"minik8s.io/pkg/util/listwatch"
+	apiurl "minik8s.io/pkg/apiserver/util/url"
 )
 
 // that is a object that admin the control plane
@@ -26,7 +29,7 @@ type Bootstrap interface {
 
 type Kubelet struct {
 	// TODO(wjl) : add some object need by kubelet to admin the Pod or Deployment
-	cadvisor *cadvisor.CAdvisor
+	Cadvisor *cadvisor.CAdvisor
 }
 
 func (k *Kubelet) Run(update chan kubetypes.PodUpdate) {
@@ -37,7 +40,8 @@ func (k *Kubelet) Run(update chan kubetypes.PodUpdate) {
 		config.DelPodRul: 		config.HandlePodDel,
 	    config.PodMetricsUrl:	k.HandlePodGetMetrics,
 	}
-	go k.PodRegister()
+	go listwatch.Watch(apiurl.PodStatusGetMetricsUrl, k.PodRegister)
+	//go k.PodRegister()
 	go config.Run(PodMap)
 	k.syncLoop(update)
 }
@@ -46,14 +50,15 @@ func (k *Kubelet) HandlePodGetMetrics(resp http.ResponseWriter, req *http.Reques
 	fmt.Println("kubelet get pod metrics")
 	vars := req.URL.Query()
 	podName := vars.Get("name")
-	stats,err := k.cadvisor.GetPodMetric(podName)
+	fmt.Println("get pod: ", podName)
+	stats,err := k.Cadvisor.GetPodMetric(podName)
+	fmt.Println(stats)
 	if err != nil{
 		resp.WriteHeader(http.StatusNotFound)
 		resp.Write([]byte(err.Error()))
 		return
 	}
 	data,err := json.Marshal(stats)
-	fmt.Println(string(data))
 	if err != nil{
 		resp.WriteHeader(http.StatusNotFound)
 		resp.Write([]byte(err.Error()))
@@ -64,11 +69,20 @@ func (k *Kubelet) HandlePodGetMetrics(resp http.ResponseWriter, req *http.Reques
 	resp.Write([]byte(data))
 }
 
-func (k *Kubelet) PodRegister () {
-	timeout := time.Second * 10
-	for{
-		time.Sleep(timeout)
-		k.cadvisor.RegisterAllPod()
+func (k *Kubelet) PodRegister (msg *redis.Message) {
+	time.Sleep(time.Millisecond * 500)
+	bytes := []byte(msg.Payload)
+	var podname string
+	err := json.Unmarshal(bytes, &podname)
+	fmt.Println("register pod: ",podname)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	err = k.Cadvisor.RegisterPod(podname)
+	if err != nil {
+		fmt.Println(err)
+		return
 	}
 }
 
@@ -90,7 +104,7 @@ func NewMainKubelet(podConfig **config.PodConfig) (*Kubelet, error) {
 	// return a new Kubelet Object
 	*podConfig = makePodSourceConfig()
 	return &Kubelet{
-		cadvisor: cadvisor.GetCAdvisor(),
+		Cadvisor: cadvisor.GetCAdvisor(),
 	}, nil
 }
 

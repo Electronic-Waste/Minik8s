@@ -14,8 +14,6 @@ import (
 type HttpHandler func(http.ResponseWriter, *http.Request)
 
 var (
-	//PodAddWatchUrl string = "/Pod/Metrics"
-
 	Port      string = ":3000"
 	PodPrefix string = "/Pod"
 	RunPodUrl string = PodPrefix + "/run"
@@ -67,6 +65,7 @@ func HandlePodRun(resp http.ResponseWriter, req *http.Request) {
 
 func Run(PodMap map[string]HttpHandler) error {
 	for url, handler := range PodMap {
+		fmt.Println("kubelet http server: ",url)
 		http.HandleFunc(url, handler)
 	}
 

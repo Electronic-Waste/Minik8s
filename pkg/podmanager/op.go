@@ -18,12 +18,15 @@ import (
 	"os/exec"
 	"strings"
 	"time"
+	"minik8s.io/pkg/util/listwatch"
+	apiurl "minik8s.io/pkg/apiserver/util/url"
 )
 
 // here just finish some operation need by pod running and deleting
 
 // need the image need by the Pod have been pull
 func RunPod(pod *core.Pod) error {
+	fmt.Println("podmanager run pod")
 	cli, err := remote_cli.NewRemoteRuntimeService(remote_cli.IdenticalErrorDelay)
 	if err != nil {
 		return err
@@ -42,6 +45,9 @@ func RunPod(pod *core.Pod) error {
 		}
 	}
 	genPodIp(pod)
+
+	listwatch.Publish(apiurl.PodStatusGetMetricsUrl, pod.Name)
+
 	return nil
 }
 
