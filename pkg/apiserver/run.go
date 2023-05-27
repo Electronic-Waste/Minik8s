@@ -35,15 +35,17 @@ var postHandlerMap = map[string]HttpHandler{
 }
 
 var getHandlerMap = map[string]HttpHandler{
-	url.PodStatusGetURL:           pod.HandleGetPodStatus,
-	url.PodStatusGetAllURL:        pod.HandleGetAllPodStatus,
-	url.DeploymentStatusGetURL:    deployment.HandleGetDeploymentStatus,
-	url.DeploymentStatusGetAllURL: deployment.HandleGetAllDeploymentStatus,
-	url.AutoscalerStatusGetURL:    autoscaler.HandleGetAutoscalerStatus,
-	url.AutoscalerStatusGetAllURL: autoscaler.HandleGetAllAutoscalerStatus,
-	url.ServiceGetURL:             service.HandleGetService,
-	url.ServiceGetAllURL:          service.HandleGetAllServices,
-	url.NodesGetUrl:               node.HandleGetNodes,
+	url.PodStatusGetURL:           	pod.HandleGetPodStatus,
+	url.PodStatusGetAllURL:        	pod.HandleGetAllPodStatus,
+	url.PodStatusGetWithPrefixURL: 	pod.HandleGetWithPrefixPodStatus,
+	url.DeploymentStatusGetURL:    	deployment.HandleGetDeploymentStatus,
+	url.DeploymentStatusGetAllURL: 	deployment.HandleGetAllDeploymentStatus,
+	url.AutoscalerStatusGetURL:    	autoscaler.HandleGetAutoscalerStatus,
+	url.AutoscalerStatusGetAllURL: 	autoscaler.HandleGetAllAutoscalerStatus,
+	url.ServiceGetURL:             	service.HandleGetService,
+	url.ServiceGetAllURL:          	service.HandleGetAllServices,
+	url.NodesGetUrl:               	node.HandleGetNodes,
+	url.MetricsGetUrl:				pod.HandleGetPodMetrics,
 }
 
 var deleteHandlerMap = map[string]HttpHandler{

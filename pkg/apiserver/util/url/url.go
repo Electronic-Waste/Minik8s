@@ -50,4 +50,11 @@ const (
 
 	Sched         string = "/sched"
 	SchedApplyURL        = Sched + "/apply"
+
+	Metrics 		string = "/metrics"
+	MetricsGetUrl 	string = Metrics + "/get"
+
+	Vmeet1IP string = "192.168.1.5"
+	Vmeet2IP string = "192.168.1.6"
+	Vmeet3IP string = "192.168.1.7"
 )

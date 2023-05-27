@@ -178,6 +178,25 @@ func HttpPlus(objType string, obj any, url string) error {
 	return nil
 }
 
+//get from kubelet
+func HttpGetPlus(objType string, url string) ([]byte,error) {
+	client := http.Client{}
+	request, err := http.NewRequest("POST", url, nil)
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println("http get pod metrics")
+	response, err := client.Do(request)
+	if err != nil {
+		log.Fatal(err)
+	}
+	if response.StatusCode != http.StatusOK {
+		return nil,errors.New("get plus fail")
+	}
+	data, err := ioutil.ReadAll(response.Body)
+	return data, nil
+}
+
 // return: error
 // @objType: type want to update; @obj: the obj to be updated
 func HttpUpdate(objType string, obj any) error {
@@ -241,6 +260,9 @@ func HttpGet(objType string, params map[string]string) ([]byte, error) {
 		requestUrl = apiurl.Prefix + apiurl.DeploymentStatusGetURL + urlparam
 	case "nodes":
 		requestUrl = apiurl.HttpScheme + "192.168.1.6" + apiurl.Port + apiurl.NodesGetUrl + urlparam
+	case "metrics":	//params: name, nodeip
+		//requestUrl = apiurl.HttpScheme + apiurl.Vmeet1IP + apiurl.Port + apiurl.MetricsGetUrl + urlparam
+		requestUrl = apiurl.Prefix + apiurl.MetricsGetUrl + urlparam
 	}
 
 	request, err := http.NewRequest("GET", requestUrl, nil)
@@ -278,7 +300,7 @@ func HttpGetWithPrefix(objType string, params map[string]string) ([]byte, error)
 			i++
 		}
 	}
-	//fmt.Printf("httpclient get params: %s\n",urlparam)
+	fmt.Printf("httpclient get params: %s\n",urlparam)
 	var requestUrl string
 	switch objType {
 	case "Pod":
@@ -295,9 +317,11 @@ func HttpGetWithPrefix(objType string, params map[string]string) ([]byte, error)
 		return nil, err
 	}
 	if response.StatusCode != http.StatusOK {
+		fmt.Println("get with prefix not ok")
 		return nil, errors.New("get fail")
 	}
 	data, err := ioutil.ReadAll(response.Body)
+	//fmt.Println(data)
 	return data, nil
 }
 
