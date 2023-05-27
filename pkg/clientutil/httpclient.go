@@ -194,6 +194,7 @@ func HttpPlus(objType string, obj any, url string) (error, string) {
 		fmt.Printf("Response: %s\n", string(body))
 	case "Job":
 		job := obj.(core.Job)
+		fmt.Printf("job name is %s\n", job.Meta.Name)
 		postURL := url
 		request, err := http.NewRequest("POST", postURL, bytes.NewReader(payload))
 		if err != nil {

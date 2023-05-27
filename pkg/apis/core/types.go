@@ -586,7 +586,7 @@ type DNSSubpath struct {
 type Job struct {
 	Kind string `json:"kind" yaml:"kind"`
 
-	Meta meta.ObjectMeta `json:"metadata" yaml:"metadata"`
+	Meta meta.ObjectMeta `json:"metadata" yaml:"metadata" mapstructure:"metadata"`
 
 	Spec JobSpec `json:"spec" yaml:"spec"`
 
@@ -600,11 +600,11 @@ type JobSpec struct {
 
 	TaskPerNode int `json:"taskPerNode" yaml:"taskPerNode"`
 
-	CPUPerTask int `json:"cpu_per_task" yaml:"cpu_per_task"`
+	CPUPerTask int `json:"cpu_per_task" yaml:"cpu_per_task" mapstructure:"cpu_per_task"`
 
-	GPUNum int `json:"gpu-num" yaml:"gpu-num"`
+	GPUNum int `json:"gpu-num" yaml:"gpu-num" mapstructure:"gpu-num"`
 
-	FileName string `json:"file" yaml:"file"`
+	FileName string `json:"file" yaml:"file" mapstructure:"file"`
 
 	CodePath string `json:"codePath" yaml:"codePath"`
 }

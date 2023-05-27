@@ -106,6 +106,8 @@ func ApplyHandler(path string) error {
 	case "Job":
 		job := core.Job{}
 		err := viper.Unmarshal(&job)
+		fmt.Println("printf job")
+		fmt.Println(job)
 		if err != nil {
 			fmt.Printf("Error in unmarshaling service yaml file: %v", err)
 			return err

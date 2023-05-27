@@ -44,7 +44,7 @@ func NewControllerInitializers() map[string]InitFunc {
 	controller := map[string]InitFunc{}
 	controller["deployment"] = StartDeploymentController
 	controller["autoscaler"] = StartAutoSclaerController
-	controller["job"] = nil
+	controller["job"] = StartJobController
 	return controller
 }
 

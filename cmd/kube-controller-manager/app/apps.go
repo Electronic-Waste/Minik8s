@@ -22,6 +22,7 @@ func StartAutoSclaerController(ctx context.Context) error {
 
 func StartJobController(ctx context.Context) error {
 	fmt.Printf("start job controller\n")
-	
+	jobcontroller, _ := controller.NewJobController()
+	go jobcontroller.Run(ctx)
 	return nil
 }
