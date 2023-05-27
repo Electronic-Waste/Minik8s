@@ -9,4 +9,4 @@ else
     echo "\$1 未提供."
 fi
 
-sshpass -p 'h4L&$IQW' ssh stu1642@pilogin.hpc.sjtu.edu.cn  "cd data && sbatch $1"
+sshpass -p 'h4L&$IQW' ssh stu1642@pilogin.hpc.sjtu.edu.cn  "cd test && sbatch $1"
