@@ -32,14 +32,16 @@ const (
 	PacketFlag			string = "--packet"
 	PacketFlagParam1	string = "0"
 	MarkFlag			string = "--mark"
+	NotFlag				string = "!"
 	CommentFlag     	string = "--comment"
 	DestPortFlag    	string = "--dport"
 	SourcePortFlag		string = "--sport"
 	DNATdestFlag		string = "--to-destination"
 	SNATdestFlag		string = "--to-source"
 	SetXMarkFlag    	string = "--set-xmark"
-	KubeMarkParam1		string = "0x4000/0x4000"
-	KubeMarkParam2		string = "0x8000/0x8000"
+	KubeMarkParamPod	string = "0x4000/0x4000"
+	KubeMarkParamHost	string = "0x6000/0x6000"
+	KubeMarkParamDrop	string = "0x8000/0x8000"
 
 	KubeServicesChainName        string = "KUBE-SERVICES"
 	KubePostroutingChainName     string = "KUBE-POSTROUTING"
@@ -100,16 +102,24 @@ type Inteface interface {
 
 type IPTablesClient struct {
 	hostIP		string
+	flannelIP	string
 	iptables	*iptables.IPTables
 }
 
-func NewIPTablesClient(hostIP string) (*IPTablesClient, error) {
+func NewIPTablesClient(hostIP, flannelIP string) (*IPTablesClient, error) {
 	iptables, err := iptables.New(iptables.IPFamily(iptables.ProtocolIPv4))
 	if err != nil {
 		return nil, err
 	}
+	if net.ParseIP(hostIP) == nil {
+		return nil, fmt.Errorf("hostIP is invalid\n")
+	}
+	if net.ParseIP(flannelIP) == nil {
+		return nil, fmt.Errorf("flannelIP is invalid\n")
+	}
 	return &IPTablesClient{
 		hostIP: hostIP,
+		flannelIP: flannelIP,
 		iptables: iptables,
 	}, nil
 }
@@ -191,6 +201,7 @@ func (cli *IPTablesClient) InitServiceIPTables() error {
 	}
 
 	if !exist {
+		fmt.Println("???????????????????????????????????????????????????????????")
 		// If the rule does no exist in POSTROUTING chain, insert it
 		err = cli.iptables.Insert(
 			NATTable,
@@ -206,15 +217,18 @@ func (cli *IPTablesClient) InitServiceIPTables() error {
 			)
 		}
 
-		// -A KUBE-POSTROUTING -m mark --mark 0x4000/0x4000 -j MASQUERADE
+		// -A KUBE-POSTROUTING -m mark --mark 0x6000/0x6000 -j SNAT --to-source <flannelIP>
 		err = cli.iptables.AppendUnique(
 			NATTable,
+			KubePostroutingChainName,
 			MatchFlag,
 			MatchParamMark,
 			MarkFlag,
-			KubeMarkParam1,
+			KubeMarkParamHost,
 			JumpFlag,
-			MasqTarget,
+			SnatTarget,
+			SNATdestFlag,
+			cli.flannelIP,
 		)
 	}
 
@@ -228,7 +242,7 @@ func (cli *IPTablesClient) InitServiceIPTables() error {
 		JumpFlag,
 		MarkTarget,
 		SetXMarkFlag,
-		KubeMarkParam1,
+		KubeMarkParamPod,
 	)
 	if err != nil {
 		return fmt.Errorf(
@@ -237,6 +251,24 @@ func (cli *IPTablesClient) InitServiceIPTables() error {
 		)
 	}
 
+	// 4. Create KUBE-HOST-MARK-MASQ
+	cli.iptables.NewChain(NATTable, KubeHostMarkChainName)
+
+	// -A KUBE-HOST-MARK-MASQ -j MARK --set-xmark 0x6000/0x6000
+	err = cli.iptables.AppendUnique(
+		NATTable,
+		KubeHostMarkChainName,
+		JumpFlag,
+		MarkTarget,
+		SetXMarkFlag,
+		KubeMarkParamHost,
+	)
+	if err != nil {
+		return fmt.Errorf(
+			"error %v in assigning MARK rule to chain %s",
+			err, KubeHostMarkChainName,
+		)
+	}
 	return nil
 }
 
@@ -292,7 +324,16 @@ func (cli *IPTablesClient) DeinitServiceIPTables() error {
 		)
 	}
 
-	// 5. Delete and clear the KUBE-POSTROUTING chain
+	// 5. Delete and clear the KUBE-HOST-MASQ chain
+	err = cli.iptables.ClearAndDeleteChain(NATTable, KubeHostMarkChainName)
+	if err != nil {
+		return fmt.Errorf(
+			"error %v in deleting the %s chain",
+			err, KubeHostMarkChainName,
+		)
+	}
+
+	// 6. Delete and clear the KUBE-POSTROUTING chain
 	err = cli.iptables.ClearAndDeleteChain(NATTable, KubePostroutingChainName)
 	if err != nil {
 		return fmt.Errorf(
@@ -301,7 +342,7 @@ func (cli *IPTablesClient) DeinitServiceIPTables() error {
 		)
 	}
 
-	// 6. Delete and clear the KUBE-SERVICES chain
+	// 7. Delete and clear the KUBE-SERVICES chain
 	err = cli.iptables.ClearAndDeleteChain(NATTable, KubeServicesChainName)
 	if err != nil {
 		return fmt.Errorf(
@@ -366,7 +407,7 @@ func (cli *IPTablesClient) CreatePodChain() string {
 	return newChainName
 }
 
-func (cli *IPTablesClient) ApplyPodChainRules(podChainName string, podIP string, targetPort uint16) error {
+func (cli *IPTablesClient) ApplyPodChainRules(podChainName string, podIP string, targetPort uint16, isSameHost bool) error {
 	// Check whether podIP is valid or not
 	if net.ParseIP(podIP) == nil {
 		return fmt.Errorf("pod IP %s in not valid", podIP)
@@ -389,6 +430,25 @@ func (cli *IPTablesClient) ApplyPodChainRules(podChainName string, podIP string,
 		)
 	}
 
+	// Add a rule that jumps to KUBE-HOST-MARK-MASQ when the target pod is on another host
+	// -A <podChainName> -s <hostIP> -j KUBE-HOST-MARK-MASQ
+	if !isSameHost {
+		err = cli.iptables.AppendUnique(
+			NATTable,
+			podChainName,
+			SourceFlag,
+			cli.hostIP,
+			JumpFlag,
+			KubeHostMarkChainName,
+		)
+		if err != nil {
+			return fmt.Errorf(
+				"error %v in adding a rule that jumps to %s when the pod in on another host and the source IP is hostIP",
+				err, podIP,
+			)
+		}
+	}
+
 	// Add a rule that do DNAT conversion
 	// -A <podChainName> -p tcp -m tcp -j DNAT --to-destination <podIP>:<targetPort>
 	destination := fmt.Sprintf("%s:%d", podIP, targetPort)
@@ -408,6 +468,8 @@ func (cli *IPTablesClient) ApplyPodChainRules(podChainName string, podIP string,
 			err, destination,
 		)
 	}
+
+	// Add a SNAT rule to KUBE-POSTROUTING if the pod is mounted on another 
 
 	return nil
 }

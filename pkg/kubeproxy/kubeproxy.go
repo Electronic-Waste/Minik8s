@@ -60,7 +60,7 @@ func NewKubeProxy() (*KubeproxyManager, error) {
 	var dnsCtl *dns.DNSController
 	var nginxCtl *nginx.NginxController
 	var err error
-	cli, err = iptables.NewIPTablesClient("127.0.0.1")
+	cli, err = iptables.NewIPTablesClient("192.168.1.7", "10.0.6.0")
 	if err != nil {
 		return nil, fmt.Errorf("Error occurred in creating new KubeProxy: %v", err)
 	}
@@ -133,6 +133,7 @@ func (manager *KubeproxyManager) CreateService(
 				podChainName, 
 				podIPs[i], 
 				(uint16)(servicePort.TargetPort),
+				true,
 			)
 			if err != nil {
 				return fmt.Errorf("Error in applying pod chain rules: %v", err)
@@ -212,6 +213,10 @@ func (manager *KubeproxyManager) DelService(serviceName string) error {
 	manager.metaController.DeleteClusterIP(serviceName)
 	manager.metaController.DeleteServicePorts(serviceName)
 	manager.metaController.DeletePodNames(serviceName)
+	err := manager.iptablesCli.DeinitServiceIPTables()
+	if err != nil {
+		return fmt.Errorf("Error in deinit iptables")
+	}
 	return nil
 }
 
