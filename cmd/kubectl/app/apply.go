@@ -10,6 +10,7 @@ import (
 	"minik8s.io/pkg/clientutil"
 	"os"
 	"strings"
+	//"encoding/json"
 	//"github.com/go-yaml/yaml"
 )
 
@@ -52,6 +53,19 @@ func ApplyHandler(path string) error {
 	objectKind := viper.GetString("kind")
 	fmt.Println(objectKind)
 	switch objectKind {
+	case "HorizontalPodAutoscaler":
+		autoscaler := core.Autoscaler{}
+		err := viper.Unmarshal(&autoscaler)
+		if err != nil {
+			return err
+		}
+		fmt.Printf("autoscaler: %s\n", autoscaler.Metadata.Name)
+		//bytes,_ := json.Marshal(autoscaler)
+		//fmt.Println(string(bytes))
+		err = applyAutoscaler(autoscaler)
+		if err != nil{
+			return err
+		}
 	case "Deployment":
 		deployment := core.Deployment{}
 		err := viper.Unmarshal(&deployment)
@@ -117,9 +131,15 @@ func applyService(service core.Service) error {
 	return clientutil.HttpApply("Service", service)
 }
 
+
 func applyDNS(dns core.DNS) error {
 	fmt.Println("apply dns")
 	return clientutil.HttpApply("DNS", dns)
+}
+
+func applyAutoscaler(autoscaler core.Autoscaler) error {
+	fmt.Println("apply autoscaler")
+	return clientutil.HttpApply("Autoscaler", autoscaler)
 }
 
 func init() {

@@ -41,6 +41,26 @@ func RunPod(pod *core.Pod) error {
 			return err
 		}
 	}
+	genPodIp(pod)
+	return nil
+}
+
+func genPodIp(pod *core.Pod) error {
+	// use cmd to generate a Ip for a Pod
+	// run cmd : nerdctl inspect -f '{{.NetworkSettings.IPAddress}}' test
+	cmd := exec.Command("nerdctl", "inspect", "-f", "`{{.NetworkSettings.IPAddress}}`", pod.Name)
+	var stdout, stderr bytes.Buffer
+	cmd.Stdout = &stdout
+	cmd.Stderr = &stderr
+	err := cmd.Run()
+	outStr, errStr := string(stdout.Bytes()), string(stderr.Bytes())
+	fmt.Printf("out:\n%s\nerr:\n%s\n", outStr, errStr)
+	ip := outStr[1 : len(outStr)-2]
+	pod.Status.PodIp = ip
+	if err != nil {
+		log.Fatalf("cmd.Run() failed with %s\n", err)
+		return err
+	}
 	return nil
 }
 
@@ -139,13 +159,13 @@ func GetPods() ([]core.Pod, error) {
 	walker := &containerwalker.ContainerWalker{
 		Client: cli.Client(),
 		OnFound: func(ctx context.Context, found containerwalker.Found) error {
-			fmt.Println("find a Pod")
+			//fmt.Println("find a Pod")
 			labels, err := found.Container.Labels(ctx)
 			if err != nil {
 				return err
 			}
 			status, exitStatus := GetContainerStatus(ctx, found.Container)
-			fmt.Printf("container %s's status is %s and exit status is %d\n", labels["nerdctl/name"], status, exitStatus)
+			//fmt.Printf("container %s's status is %s and exit status is %d\n", labels["nerdctl/name"], status, exitStatus)
 			pod := core.Pod{}
 			pod.Name = labels["nerdctl/name"]
 			if strings.Contains(status, "Exited") {
@@ -171,12 +191,12 @@ func GetPods() ([]core.Pod, error) {
 		walker = &containerwalker.ContainerWalker{
 			Client: cli.Client(),
 			OnFound: func(ctx context.Context, found containerwalker.Found) error {
-				fmt.Println("find a Container")
+				//fmt.Println("find a Container")
 				if err != nil {
 					return err
 				}
 				status, exitStatus := GetContainerStatus(ctx, found.Container)
-				fmt.Printf("container %s's status is %s and exit status is %d\n", found.Container.ID(), status, exitStatus)
+				//fmt.Printf("container %s's status is %s and exit status is %d\n", found.Container.ID(), status, exitStatus)
 				if strings.Contains(status, "Exited") {
 					if exitStatus != 0 {
 						pod.Status.Phase = core.PodFailed

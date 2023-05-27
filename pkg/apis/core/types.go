@@ -177,6 +177,7 @@ type Container struct {
 	// +optional
 	Resources ResourceRequirements `json:"resources,omitempty" protobuf:"bytes,8,opt,name=resources" yaml:"resources""`
 
+	// ------------------------------- next are params that will not in the yaml config file ----------------------------------------//
 	Mounts []Mount
 	// TODO(wjl) : add functional function step by step(such as volume and network and so on .......)
 }
@@ -184,6 +185,9 @@ type Container struct {
 type PodStatus struct {
 	// +optional
 	Phase PodPhase
+
+	// the Ip of Pod
+	PodIp string
 }
 
 type Volume struct {
@@ -200,6 +204,8 @@ type PodSpec struct {
 
 	// List of containers belonging to the pod.
 	Containers []Container
+
+	RunningNode Node
 }
 
 // ensure a variable which can identify a Pod
@@ -211,6 +217,24 @@ type Pod struct {
 	Spec PodSpec `json:"spec,omitempty" protobuf:"bytes,2,opt,name=spec"`
 
 	Status PodStatus
+}
+
+type Node struct {
+	Kind string `json:"kind,omitempty" yaml:"kind,omitempty"`
+
+	MetaData meta.ObjectMeta `json:"metadata" yaml:"metadata" mapstructure:"metadata"`
+
+	Spec NodeSpec `json:"spec" yaml:"spec"`
+}
+
+type NodeList struct {
+	NodeArray []Node
+}
+
+type NodeSpec struct {
+	MasterIp string `json:"masterIp" yaml:"masterIp"`
+
+	NodeIp string `json:"nodeIp" yaml:"nodeIp"`
 }
 
 func (c *Container) String() string {
@@ -414,7 +438,7 @@ type DeploymentStatus struct {
 }
 
 // Service is a named abstraction of software service (for example, mysql) consisting of local port
-// that the proxy listens on, and the selector that determines which pods will answer 
+// that the proxy listens on, and the selector that determines which pods will answer
 // requests sent through the proxy.
 type Service struct {
 	// Service's name (can be omitted)
@@ -472,25 +496,56 @@ type ServiceSpec struct {
 	ClusterIP string `json:"clusterIP,omitempty" yaml:"clusterIP,omitempty"`
 }
 
-
 // KubeproxyServiceParam is received by kuebproxy, which is used for creating service
 type KubeproxyServiceParam struct {
 	// Service's name
-	ServiceName 	string			`json:"serviceName,omitempty"`
+	ServiceName string `json:"serviceName,omitempty"`
 
 	// ClusterIP is the IP address of the service and is usually assigned
 	// randomly by the master. If an address is specified manually and is not in
 	// use by others, it will be allocated to the service
-	ClusterIP 		string			`json:"clusterIP,omitempty"`
+	ClusterIP string `json:"clusterIP,omitempty"`
 
 	// ServicePort represents the port on which the service is exposed
-	ServicePorts 	[]ServicePort	`json:"servicePorts,omitempty"`
+	ServicePorts []ServicePort `json:"servicePorts,omitempty"`
 
 	// Pods' names
-	PodNames 		[]string		`json:"podNames,omitempty"`
+	PodNames []string `json:"podNames,omitempty"`
 
 	// Pods' IPs
-	PodIPs 			[]string		`json:"podIPs,omitempty"`
+	PodIPs []string `json:"podIPs,omitempty"`
+}
+
+type ScheduleParam struct {
+	RunPod   Pod
+	NodeList []Node
+}
+type Autoscaler struct {
+	Metadata meta.ObjectMeta
+	Spec     AutoscalerSpec
+}
+
+type AutoscalerSpec struct {
+	MaxReplicas    int
+	MinReplicas    int
+	ScaleInterval  int
+	ScaleTargetRef AutoscalerTarget
+	Metrics        []AutoscalerMetrics
+}
+
+type AutoscalerTarget struct {
+	Kind string
+	Name string //should be Deplolyment
+}
+
+type AutoscalerMetrics struct {
+	Resource AutoscalerResource
+}
+
+type AutoscalerResource struct {
+	Name        string //cpu or memory
+	Strategy    string //max or avarage
+	Utilization int    //e.g. 50
 }
 
 // DNS is a set of mapping from URLs to service ports. Each DNS configuration can have just
@@ -508,23 +563,23 @@ type DNS struct {
 
 type DNSSpec struct {
 	// Host is the domain name
-	Host string	`json:"host" yaml:"host"`
+	Host string `json:"host" yaml:"host"`
 
-	// Paths map subpaths to service ports
+	// Subpaths map subpaths to service ports
 	Subpaths	[]DNSSubpath	`json:"subpaths,omitempty" yaml:"subpaths,omitempty"`
 }
 
 type DNSSubpath struct {
 	// Path is the subpath
-	Path 		string  `json:"path" yaml:"path"`
+	Path string `json:"path" yaml:"path"`
 
-	// ServiceName is the name of service
+	// Service is the name of service
 	Service		string	`json:"service" yaml:"service"`
 
 	// ClusterIP is the ip of service
-	ClusterIP	string `json:"clusterIP,omitempty" yaml:"clusterIP,omitempty" `
+	ClusterIP string `json:"clusterIP,omitempty" yaml:"clusterIP,omitempty" `
 
-	// ServicePort is the exposed port of service
+	// Port is the exposed port of service
 	Port 		int32	`json:"port" yaml:"port"`
-}
 
+}

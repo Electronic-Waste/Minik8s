@@ -47,6 +47,7 @@ func HandleGetAllDeploymentStatus(resp http.ResponseWriter, req *http.Request) {
 	etcdPrefix := url.DeploymentStatus
 	var deploymentStatusArr []string
 	deploymentStatusArr, err := etcd.GetWithPrefix(etcdPrefix)
+	//err := etcd.DelWithPrefix(etcdPrefix)
 	// Error occur in etcd: return error to client
 	if err != nil {
 		resp.WriteHeader(http.StatusNotFound)
@@ -118,8 +119,13 @@ func HandleApplyDeploymentStatus(resp http.ResponseWriter, req *http.Request) {
 func HandleUpdateDeploymentStatus(resp http.ResponseWriter, req *http.Request) {
 	vars := req.URL.Query()
 	namespace := vars.Get("namespace")
-	deploymentName := vars.Get("name")
+	//deploymentName := vars.Get("name")
 	body, _ := ioutil.ReadAll(req.Body)
+
+	deployment := core.Deployment{}
+	json.Unmarshal(body, &deployment)
+	deploymentName := deployment.Metadata.Name
+	
 	// Param miss: return error to client
 	if namespace == "" || deploymentName == "" {
 		resp.WriteHeader(http.StatusBadRequest)

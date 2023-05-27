@@ -27,3 +27,23 @@
 -   Third, using curl in other node to test the network
 
     ![本地路径](./docs/cni-test.png "相对路径演示")
+
+
+## Deployment Controller 流程
+
+### 启动
+
+`./bin/apiserver`启动apiserver  
+`./bin/kubelet`启动kubelet  
+`./bin/scheduler`启动scheduler  
+`./bin/kubeadm join --config=./testcases/vmeet2.yaml`加入集群  
+`./bin/kube-controller-manager`启动所有controller  
+
+### 使用Deployment controller创建deployment实例  
+
+`./bin/kubectl apply <filename>`(expmple: `./bin/kubectl apply ./cmd/kubectl/app/src/test_deployment.yaml`)创建deployment实例  
+`nerdctl ps`可以看到启动了`replicas`数量的pod和container  
+
+## Autoscaler Controller 流程
+
+先启动Deployment Controller，然后执行`./bin/kubectl apply <filename>`(expmple: `./bin/kubectl apply ./cmd/kubectl/app/src/test_autoscaler.yaml`)创建autoscaler实例  

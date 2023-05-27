@@ -1,18 +1,19 @@
 package pod
 
 import (
-	"net/http"
 	"encoding/json"
-	"path"
+	"fmt"
 	"io/ioutil"
+	"minik8s.io/pkg/clientutil"
+	"minik8s.io/pkg/kubelet/config"
+	"net/http"
+	"path"
 	// "github.com/go-redis/redis/v8"
-
 	"minik8s.io/pkg/util/listwatch"
+	"minik8s.io/pkg/apis/core"
 	"minik8s.io/pkg/apiserver/etcd"
 	"minik8s.io/pkg/apiserver/util/url"
-	"minik8s.io/pkg/apis/core"
 )
-
 
 // Return certain pod's status
 // uri: /pods/status/get?namespace=...&name=...
@@ -67,6 +68,34 @@ func HandleGetAllPodStatus(resp http.ResponseWriter, req *http.Request) {
 	// return
 }
 
+// Return statuses of pods with prefix
+// uri: /pods/status/getwithprefix
+func HandleGetWithPrefixPodStatus(resp http.ResponseWriter, req *http.Request) {
+	vars := req.URL.Query()
+	namespace := vars.Get("namespace")
+	prefix := vars.Get("prefix")
+	etcdPrefix := path.Join(url.PodStatus, namespace, prefix)
+	var podStatusArr []string
+	podStatusArr, err := etcd.GetWithPrefix(etcdPrefix)
+	// Error occur in etcd: return error to client
+	if err != nil {
+		resp.WriteHeader(http.StatusNotFound)
+		resp.Write([]byte(err.Error()))
+		return
+	}
+	var jsonVal []byte
+	jsonVal, err = json.Marshal(podStatusArr)
+	// Error occur in json parsing: return error to client
+	if err != nil {
+		resp.WriteHeader(http.StatusInternalServerError)
+		resp.Write([]byte(err.Error()))
+		return
+	}
+	resp.WriteHeader(http.StatusOK)
+	resp.Header().Set("Content-Type", "application/json")
+	resp.Write(jsonVal)
+	// return
+}
 
 // Apply a pod's status in etcd
 // uri: /pods/status/apply?namespace=...&name=...
@@ -98,7 +127,24 @@ func HandleApplyPodStatus(resp http.ResponseWriter, req *http.Request) {
 	}
 	// Success!
 	pubURL := path.Join(url.PodStatus, "apply")
-	listwatch.Publish(pubURL, string(body))	
+	Param := core.ScheduleParam{
+		RunPod: pod,
+	}
+	// get all node registered message
+	nodeStr, err := etcd.GetWithPrefix(url.Node)
+	for _, str := range nodeStr {
+		node := core.Node{}
+		json.Unmarshal([]byte(str), &node)
+		Param.NodeList = append(Param.NodeList, node)
+	}
+	fmt.Println(Param)
+	body, err = json.Marshal(Param)
+	if err != nil {
+		resp.WriteHeader(http.StatusInternalServerError)
+		resp.Write([]byte(err.Error()))
+		return
+	}
+	listwatch.Publish(pubURL, string(body))
 	resp.WriteHeader(http.StatusOK)
 }
 
@@ -127,7 +173,7 @@ func HandleUpdatePodStatus(resp http.ResponseWriter, req *http.Request) {
 	}
 	// Success!
 	pubURL := path.Join(url.PodStatus, "update")
-	listwatch.Publish(pubURL, string(body))	
+	listwatch.Publish(pubURL, string(body))
 	resp.WriteHeader(http.StatusOK)
 }
 
@@ -135,6 +181,7 @@ func HandleUpdatePodStatus(resp http.ResponseWriter, req *http.Request) {
 // uri: /pods/status/del?namespace=...&name=...
 // @namespace: namespace requested; @name: pod name
 func HandleDelPodStatus(resp http.ResponseWriter, req *http.Request) {
+	fmt.Println("http del")
 	vars := req.URL.Query()
 	namespace := vars.Get("namespace")
 	podName := vars.Get("name")
@@ -145,7 +192,15 @@ func HandleDelPodStatus(resp http.ResponseWriter, req *http.Request) {
 		return
 	}
 	etcdURL := path.Join(url.PodStatus, namespace, podName)
-	err := etcd.Del(etcdURL)
+	data, err := etcd.Get(etcdURL)
+	if err != nil {
+		resp.WriteHeader(http.StatusInternalServerError)
+		resp.Write([]byte(err.Error()))
+		return
+	}
+	pod := core.Pod{}
+	json.Unmarshal([]byte(data), &pod)
+	err = etcd.Del(etcdURL)
 	// Error occur in etcd: return error to client
 	if err != nil {
 		resp.WriteHeader(http.StatusInternalServerError)
@@ -153,8 +208,31 @@ func HandleDelPodStatus(resp http.ResponseWriter, req *http.Request) {
 		return
 	}
 	// Success!
-	pubURL := path.Join(url.PodStatus, "del")
-	listwatch.Publish(pubURL, podName)	
+	fmt.Printf("del pod name is %s\n", pod.Name)
+	clientutil.HttpPlus("Pod", pod, url.HttpScheme+pod.Spec.RunningNode.Spec.MasterIp+config.Port+config.DelPodRul)
+
+	pubURL := url.PodStatusDelURL
+	listwatch.Publish(pubURL, podName)
+
 	resp.WriteHeader(http.StatusOK)
+	fmt.Println("http del success")
 }
 
+
+func HandleGetPodMetrics(resp http.ResponseWriter, req *http.Request){
+	fmt.Println("handle get pod metrics")
+	vars := req.URL.Query()
+	podName := vars.Get("name")
+	nodeip := vars.Get("nodeip")
+
+	geturl := url.HttpScheme + nodeip + config.Port + config.PodMetricsUrl + "?name=" + podName
+
+	bytes,err := clientutil.HttpGetPlus("Pod", geturl)
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	resp.WriteHeader(http.StatusOK)
+	resp.Header().Set("Content-Type", "application/json")
+	resp.Write(bytes)
+}

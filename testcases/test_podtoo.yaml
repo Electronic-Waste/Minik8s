@@ -1,6 +1,8 @@
 kind: Pod
 metadata:
-  name: two
+  name: podTest
+  labels:
+    app: test-pod
 spec:
   volumes:
     - name: shared-data
@@ -10,6 +12,11 @@ spec:
 
     - name: t1
       image: docker.io/library/golang:latest
+      resources:
+        limits:
+          cpu: "0.5"
+        requests:
+          cpu: "0.25"
       volumeMounts:
         - name: shared-data
           mountPath: /mnt
@@ -20,10 +27,16 @@ spec:
 
     - name: t2
       image: docker.io/library/golang:latest
+      resources:
+        limits:
+          memory: "200MiB"
+        requests:
+          memory: "200MiB"
       volumeMounts:
         - name: shared-data
           mountPath: /go/src
       ports:
         - containerPort: 80
+
       command:
         - bash

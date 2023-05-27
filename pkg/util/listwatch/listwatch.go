@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 	"github.com/go-redis/redis/v8"
+
+	"minik8s.io/pkg/util/url"
 )
 
 var ctx = context.Background()
@@ -18,7 +20,7 @@ type WatchResult struct {
 
 // TODO(shaowang): Expand to multiple machines in the future
 var rdb = redis.NewClient(&redis.Options{
-	Addr:     "localhost:6379",
+	Addr:     fmt.Sprintf("%s:%s", url.RedisServerIP, url.RedisServerPort),
 	Password: "", // no password set
 	DB:       0,  // use default DB
 })
