@@ -64,6 +64,7 @@ func bindWatchHandler() {
 }
 
 func HitNode(msg *redis.Message) {
+	fmt.Printf("call HitNode\n")
 	pod := core.Pod{}
 	json.Unmarshal([]byte(msg.Payload), &pod)
 	fmt.Println(pod)
@@ -74,12 +75,18 @@ func HitNode(msg *redis.Message) {
 	if err != nil {
 		fmt.Println(err)
 	}
-	err = etcd.Put(etcdURL, string(body))
+	// inform core kubelet to apply the Pod
+	err, str := clientutil.HttpPlus("Pod", pod, url.HttpScheme+pod.Spec.RunningNode.Spec.NodeIp+config.Port+config.RunPodUrl)
 	if err != nil {
 		fmt.Println(err)
 	}
-	// inform core kubelet to apply the Pod
-	err = clientutil.HttpPlus("Pod", pod, url.HttpScheme+pod.Spec.RunningNode.Spec.NodeIp+config.Port+config.RunPodUrl)
+	fmt.Printf("receive %s\n", str)
+	pod.Status.PodIp = str
+	body, err = json.Marshal(pod)
+	if err != nil {
+		fmt.Println(err)
+	}
+	err = etcd.Put(etcdURL, string(body))
 	if err != nil {
 		fmt.Println(err)
 	}

@@ -55,6 +55,14 @@ func HandlePodRun(resp http.ResponseWriter, req *http.Request) {
 	}
 	resp.WriteHeader(http.StatusOK)
 	resp.Header().Set("Content-Type", "application/json")
+	fmt.Printf("Run Pod Ip is %s\n", pod.Status.PodIp)
+	resMes, err := json.Marshal(pod.Status.PodIp)
+	if err != nil {
+		resp.WriteHeader(http.StatusNotFound)
+		resp.Write([]byte(err.Error()))
+		return
+	}
+	resp.Write(resMes)
 }
 
 func Run(PodMap map[string]HttpHandler) error {
