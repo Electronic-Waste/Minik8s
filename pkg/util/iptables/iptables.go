@@ -101,7 +101,7 @@ type Inteface interface {
 }
 
 type IPTablesClient struct {
-	hostIP		string
+	HostIP		string
 	flannelIP	string
 	iptables	*iptables.IPTables
 }
@@ -118,7 +118,7 @@ func NewIPTablesClient(hostIP, flannelIP string) (*IPTablesClient, error) {
 		return nil, fmt.Errorf("flannelIP is invalid\n")
 	}
 	return &IPTablesClient{
-		hostIP: hostIP,
+		HostIP: hostIP,
 		flannelIP: flannelIP,
 		iptables: iptables,
 	}, nil
@@ -201,7 +201,6 @@ func (cli *IPTablesClient) InitServiceIPTables() error {
 	}
 
 	if !exist {
-		fmt.Println("???????????????????????????????????????????????????????????")
 		// If the rule does no exist in POSTROUTING chain, insert it
 		err = cli.iptables.Insert(
 			NATTable,
@@ -437,7 +436,7 @@ func (cli *IPTablesClient) ApplyPodChainRules(podChainName string, podIP string,
 			NATTable,
 			podChainName,
 			SourceFlag,
-			cli.hostIP,
+			cli.HostIP,
 			JumpFlag,
 			KubeHostMarkChainName,
 		)

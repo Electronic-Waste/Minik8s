@@ -514,6 +514,9 @@ type KubeproxyServiceParam struct {
 
 	// Pods' IPs
 	PodIPs []string `json:"podIPs,omitempty"`
+
+	// Pods' host IPs
+	PodHostIPs	[]string `json:"podHostIPs,omitempty"`
 }
 
 type ScheduleParam struct {

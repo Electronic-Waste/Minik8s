@@ -3,8 +3,8 @@ package kubelet
 import (
 	"fmt"
 	"minik8s.io/pkg/kubelet/config"
-	"minik8s.io/pkg/apis/core"
-	"minik8s.io/pkg/util/listwatch"
+	// "minik8s.io/pkg/apis/core"
+	// "minik8s.io/pkg/util/listwatch"
 	"minik8s.io/pkg/kubeproxy"
 	"encoding/json"
 	"minik8s.io/pkg/kubelet/cadvisor"
@@ -12,7 +12,7 @@ import (
 	"os"
 	"net/http"
 	"time"
-	"encoding/json"
+	// "encoding/json"
 )
 
 // that is a object that admin the control plane

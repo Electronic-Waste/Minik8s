@@ -281,7 +281,7 @@ func HttpGet(objType string, params map[string]string) ([]byte, error) {
 	case "Deployment":
 		requestUrl = apiurl.Prefix + apiurl.DeploymentStatusGetURL + urlparam
 	case "nodes":
-		requestUrl = apiurl.Prefix + apiurl.Port + apiurl.NodesGetUrl + urlparam
+		requestUrl = apiurl.Prefix + apiurl.NodesGetUrl + urlparam
 	case "metrics":	//params: name, nodeip
 		//requestUrl = apiurl.HttpScheme + apiurl.Vmeet1IP + apiurl.Port + apiurl.MetricsGetUrl + urlparam
 		requestUrl = apiurl.Prefix + apiurl.MetricsGetUrl + urlparam

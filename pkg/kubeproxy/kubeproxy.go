@@ -21,7 +21,7 @@ type Manager interface{
 	// Create a service by adding chains and rules to iptables
 	CreateService(
 		serviceName string, clusterIP string, servicePorts []core.ServicePort,
-		podNames []string, podIPs []string) error
+		podNames []string, podIPs []string, podHostIPs []string) error
 
 	// Delete a service by deleting relevant chains and rule from iptables
 	DelService(serviceName string) error
@@ -111,7 +111,8 @@ func (manager *KubeproxyManager) CreateService(
 	clusterIP string, 
 	servicePorts []core.ServicePort,
 	podNames []string, 
-	podIPs []string) error {
+	podIPs []string,
+	podHostIPs []string) error {
 	// Check whether clusterIP is valid or not
 	if net.ParseIP(clusterIP) == nil {
 		return fmt.Errorf("cluster IP %s is invalid", clusterIP)
@@ -139,11 +140,12 @@ func (manager *KubeproxyManager) CreateService(
 			manager.metaController.AppendPodChainNameToPodName(podChainName, podNames[i])
 			manager.metaController.AppendPodIP(podNames[i], podIPs[i])
 			// 1. Create KUBE-SEP- rule
+			isSameHost := (manager.iptablesCli.HostIP == podHostIPs[i])
 			err := manager.iptablesCli.ApplyPodChainRules(
 				podChainName, 
 				podIPs[i], 
 				(uint16)(servicePort.TargetPort),
-				true,
+				isSameHost,
 			)
 			if err != nil {
 				return fmt.Errorf("Error in applying pod chain rules: %v", err)
@@ -239,6 +241,7 @@ func (manager *KubeproxyManager) HandleApplyService(msg *redis.Message) {
 		params.ServicePorts,
 		params.PodNames,
 		params.PodIPs,
+		params.PodHostIPs,
 	)
 	if err != nil {
 		fmt.Printf("Hanlde apply service error: %v\n", err)

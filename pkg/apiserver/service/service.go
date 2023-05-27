@@ -5,9 +5,7 @@ import (
 	"net/http"
 	"encoding/json"
 	"path"
-	"strings"
 	"io/ioutil"
-	"os/exec"
 
 	"minik8s.io/pkg/util/listwatch"
 	"minik8s.io/pkg/apiserver/etcd"
@@ -117,10 +115,11 @@ func HandleApplyService(resp http.ResponseWriter, req *http.Request) {
 	// 2. Match with selector
 	appName := serviceSpec.Spec.Selector["app"]
 	fmt.Printf("appName: %s\n", appName)
-	var podStrings []string
+	var podStrings 	[]string
 	var podStatuses []core.Pod
-	var podNames []string
-	var podIPs []string
+	var podNames 	[]string
+	var podIPs 		[]string
+	var podHostIPs	[]string
 	podStrings, err = etcd.GetWithPrefix(url.PodStatus)
 	// Error occured in etcd: return error to client
 	if err != nil {
@@ -144,14 +143,17 @@ func HandleApplyService(resp http.ResponseWriter, req *http.Request) {
 		}
 		podName := podStatus.Name
 		podNames = append(podNames, podName)
-		cmd := exec.Command("nerdctl", "inspect", "-f", "{{.NetworkSettings.IPAddress}}", podName)
-		output, err := cmd.CombinedOutput()
-		if err != nil {
-			fmt.Println("Could not find IP!")
-		}
-		podIP := strings.Replace(string(output), "\n", "", -1)
-		fmt.Printf("podIP: %s", podIP)
+		// cmd := exec.Command("nerdctl", "inspect", "-f", "{{.NetworkSettings.IPAddress}}", podName)
+		// output, err := cmd.CombinedOutput()
+		// if err != nil {
+		// 	fmt.Println("Could not find IP!")
+		// }
+		// podIP := strings.Replace(string(output), "\n", "", -1)
+		podIP := podStatus.Status.PodIp
+		podHostIP := podStatus.Spec.RunningNode.Spec.NodeIp
+		fmt.Printf("podIP: %s and podHostIP: %s\n", podIP, podHostIP)
 		podIPs = append(podIPs, podIP)
+		podHostIPs = append(podHostIPs, podHostIP)
 	}
 	// 3. Construct KubeproxyServiceParam & Publish
 	serviceParam := core.KubeproxyServiceParam{
@@ -160,6 +162,7 @@ func HandleApplyService(resp http.ResponseWriter, req *http.Request) {
 		ServicePorts	: serviceSpec.Spec.Ports,
 		PodNames		: podNames,
 		PodIPs			: podIPs,
+		PodHostIPs		: podHostIPs,
 	}
 	serviceParamJsonVal, _ := json.Marshal(serviceParam)
 	fmt.Printf("Params to redis: %s\n", string(serviceParamJsonVal))
