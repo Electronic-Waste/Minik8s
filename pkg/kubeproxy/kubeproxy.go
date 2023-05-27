@@ -9,6 +9,7 @@ import (
 	"minik8s.io/pkg/apis/core"
 	"minik8s.io/pkg/util/iptables"
 	"minik8s.io/pkg/util/listwatch"
+	"minik8s.io/pkg/util/ipget"
 	"minik8s.io/pkg/kubeproxy/meta"
 	"minik8s.io/pkg/apiserver/util/url"
 	"minik8s.io/pkg/kubeproxy/dns"
@@ -59,8 +60,17 @@ func NewKubeProxy() (*KubeproxyManager, error) {
 	var metaCtl *meta.MetaController
 	var dnsCtl *dns.DNSController
 	var nginxCtl *nginx.NginxController
+	var hostIP, flannelIP string
 	var err error
-	cli, err = iptables.NewIPTablesClient("192.168.1.7", "10.0.6.0")
+	hostIP, err = ipget.GetHostIP()
+	if err != nil {
+		return nil, fmt.Errorf("Error occurred in creating new KubeProxy: %v", err)
+	}
+	flannelIP, err = ipget.GetFlannelIP()
+	if err != nil {
+		return nil, fmt.Errorf("Error occurred in creating new KubeProxy: %v", err)
+	}
+	cli, err = iptables.NewIPTablesClient(hostIP, flannelIP)
 	if err != nil {
 		return nil, fmt.Errorf("Error occurred in creating new KubeProxy: %v", err)
 	}
