@@ -74,12 +74,12 @@ func TestJobServer(t *testing.T) {
 	pod.Kind = "Pod"
 	pod.Spec.Volumes = []core.Volume{{
 		Name:     "shared-data",
-		HostPath: "/root/test_vo",
+		HostPath: "/root/minik8s/minik8s/scripts",
 	}}
 	pod.Spec.Containers = []core.Container{
 		{
-			Name:  "go1",
-			Image: "docker.io/library/golang:latest",
+			Name:  "t1",
+			Image: "docker.io/library/jobserver:latest",
 			VolumeMounts: []core.VolumeMount{
 				{
 					Name:      "shared-data",
@@ -87,19 +87,8 @@ func TestJobServer(t *testing.T) {
 				},
 			},
 			Ports:   []core.ContainerPort{},
-			Command: []string{"bash"},
-		},
-		{
-			Name:  "go2",
-			Image: "docker.io/library/golang:latest",
-			VolumeMounts: []core.VolumeMount{
-				{
-					Name:      "shared-data",
-					MountPath: "/go/src",
-				},
-			},
-			Ports:   []core.ContainerPort{},
-			Command: []string{"bash"},
+			Command: []string{"/mnt/gputran.sh"},
+			Args:    []string{"/mnt/clean.sh"},
 		},
 	}
 
@@ -117,16 +106,6 @@ func TestJobServer(t *testing.T) {
 		t.Error("error start up a Pod")
 	} else {
 		fmt.Println("find test Pod")
-	}
-	err = DelPod(pod.Name)
-	is_exist = IsPodRunning("test")
-	if is_exist {
-		t.Error("Pod delete error")
-	} else {
-		fmt.Println("delete Pod success")
-	}
-	if err != nil {
-		t.Error(err)
 	}
 }
 
