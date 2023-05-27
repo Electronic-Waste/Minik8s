@@ -582,3 +582,40 @@ type DNSSubpath struct {
 	// ServicePort is the exposed port of service
 	ServicePort string `json:"port" yaml:"port"`
 }
+
+type Job struct {
+	Kind string `json:"kind" yaml:"kind"`
+
+	Meta meta.ObjectMeta `json:"metadata" yaml:"metadata"`
+
+	Spec JobSpec `json:"spec" yaml:"spec"`
+
+	Status JobStatus
+}
+
+type JobSpec struct {
+	Partition string `json:"partition" yaml:"partition"`
+
+	ThreadNum int `json:"threadNum" yaml:"threadNum"`
+
+	TaskPerNode int `json:"taskPerNode" yaml:"taskPerNode"`
+
+	CPUPerTask int `json:"cpu_per_task" yaml:"cpu_per_task"`
+
+	GPUNum int `json:"gpu-num" yaml:"gpu-num"`
+
+	FileName string `json:"file" yaml:"file"`
+
+	CodePath string `json:"codePath" yaml:"codePath"`
+}
+
+type JobPhase string
+
+const (
+	RunningPhase JobPhase = "Running"
+	FinishPhase  JobPhase = "Finished"
+)
+
+type JobStatus struct {
+	Phase JobPhase
+}

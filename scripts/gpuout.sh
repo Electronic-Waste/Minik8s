@@ -9,4 +9,4 @@ else
     echo "\$1 未提供."
 fi
 
-sshpass -p 'h4L&$IQW' scp stu1642@pilogin.hpc.sjtu.edu.cn:test/25362841.out /root/minik8s/minik8s/scripts/data/
+sshpass -p 'h4L&$IQW' scp stu1642@pilogin.hpc.sjtu.edu.cn:test/25366672.out /mnt/data

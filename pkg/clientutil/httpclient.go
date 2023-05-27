@@ -98,6 +98,21 @@ func HttpApply(objType string, obj any) error {
 		}
 		body, _ := ioutil.ReadAll(response.Body)
 		fmt.Printf("Response: %s\n", string(body))
+	case "Job":
+		job := obj.(core.Job)
+		// send http request to apiserver
+		request, err := http.NewRequest("POST", apiurl.Prefix+apiurl.JobApplyUrl, bytes.NewReader(payload))
+		if err != nil {
+			log.Fatal(err)
+		}
+		fmt.Printf("http apply job name is %s\n", job.Meta.Name)
+		response, err := client.Do(request)
+		if err != nil {
+			log.Fatal(err)
+		}
+		if response.StatusCode != http.StatusOK {
+			return errors.New("apply fail")
+		}
 	}
 
 	return nil
@@ -163,6 +178,22 @@ func HttpPlus(objType string, obj any, url string) (error, string) {
 	case "Node":
 		var node core.Node
 		json.Unmarshal([]byte(payload), &node)
+		postURL := url
+		request, err := http.NewRequest("POST", postURL, bytes.NewReader(payload))
+		if err != nil {
+			log.Fatal(err)
+		}
+		response, err := client.Do(request)
+		if err != nil {
+			log.Fatal(err)
+		}
+		if response.StatusCode != http.StatusOK {
+			return errors.New("register fail"), ""
+		}
+		body, _ := ioutil.ReadAll(response.Body)
+		fmt.Printf("Response: %s\n", string(body))
+	case "Job":
+		job := obj.(core.Job)
 		postURL := url
 		request, err := http.NewRequest("POST", postURL, bytes.NewReader(payload))
 		if err != nil {

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/go-redis/redis/v8"
 	"minik8s.io/pkg/apis/core"
+	"minik8s.io/pkg/apiserver/job"
 	"minik8s.io/pkg/apiserver/node"
 	"minik8s.io/pkg/clientutil"
 	"minik8s.io/pkg/kubelet/config"
@@ -32,6 +33,7 @@ var postHandlerMap = map[string]HttpHandler{
 	url.AutoscalerStatusUpdateURL: autoscaler.HandleUpdateAutoscalerStatus,
 	url.ServiceApplyURL:           service.HandleApplyService,
 	url.ServiceUpdateURL:          service.HandleUpdateService,
+	url.JobApplyUrl:               job.HandleApplyJob,
 }
 
 var getHandlerMap = map[string]HttpHandler{
@@ -47,10 +49,10 @@ var getHandlerMap = map[string]HttpHandler{
 }
 
 var deleteHandlerMap = map[string]HttpHandler{
-	url.PodStatusDelURL:        	pod.HandleDelPodStatus,
-	url.DeploymentStatusDelURL: 	deployment.HandleDelDeploymentStatus,
-	url.AutoscalerStatusDelURL: 	autoscaler.HandleDelAutoscalerStatus,
-	url.ServiceDelURL: 				service.HandleDelService,
+	url.PodStatusDelURL:        pod.HandleDelPodStatus,
+	url.DeploymentStatusDelURL: deployment.HandleDelDeploymentStatus,
+	url.AutoscalerStatusDelURL: autoscaler.HandleDelAutoscalerStatus,
+	url.ServiceDelURL:          service.HandleDelService,
 }
 
 var nodeHandlerMap = map[string]HttpHandler{

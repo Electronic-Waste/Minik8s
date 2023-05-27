@@ -48,6 +48,9 @@ const (
 	NodeRergisterUrl string = Node + "/register"
 	NodesGetUrl      string = Node + "/getall"
 
+	Job         string = "/job"
+	JobApplyUrl string = Job + "/apply"
+
 	Sched         string = "/sched"
 	SchedApplyURL        = Sched + "/apply"
 )
