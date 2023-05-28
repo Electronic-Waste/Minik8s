@@ -56,7 +56,7 @@ func (jc *JobController) HandleRunJob(resp http.ResponseWriter, req *http.Reques
 
 	job := core.Job{}
 	json.Unmarshal(body, &job)
-	dir, err := jc.genConfig(job)
+	dir, filePath, err := jc.genConfig(job)
 	if err != nil {
 		resp.WriteHeader(http.StatusInternalServerError)
 		resp.Write([]byte(err.Error()))
@@ -90,7 +90,7 @@ func (jc *JobController) HandleRunJob(resp http.ResponseWriter, req *http.Reques
 			},
 			Ports:   []core.ContainerPort{},
 			Command: []string{"/mnt/scripts/jobserver"},
-			Args:    []string{"remote", "--file=test.cu", "--scripts=test" + strconv.Itoa(jc.FileCount) + ".slurm", "--result=" + job.Spec.FileName},
+			Args:    []string{"remote", "--file=test.cu", "--scripts=" + filePath, "--result=" + job.Spec.FileName},
 		},
 	}
 	err = pod.ContainerConvert()
@@ -117,11 +117,11 @@ func parseCodePath(path string) (dir string, file string, err error) {
 	return
 }
 
-func genSlurm(job core.Job) ([]string, string, error) {
+func genSlurm(job core.Job) ([]string, string, string, error) {
 	var fileThing []string
 	dir, file, err := parseCodePath(job.Spec.CodePath)
 	if err != nil {
-		return fileThing, "", err
+		return fileThing, "", "", err
 	}
 	fileThing = append(fileThing, "#!/bin/bash\n\n")
 	// not consider error handling
@@ -136,30 +136,30 @@ func genSlurm(job core.Job) ([]string, string, error) {
 	fileThing = append(fileThing, "module load gcc/8.3.0 cuda/10.2\n")
 	fileThing = append(fileThing, "nvcc "+file+" -o test -lcublas\n")
 	fileThing = append(fileThing, "./test")
-	return fileThing, dir, nil
+	return fileThing, dir, file, nil
 }
 
-func (jc *JobController) genConfig(job core.Job) (string, error) {
+func (jc *JobController) genConfig(job core.Job) (string, string, string, error) {
 	// generate the slurm scripts
 	filePath, err := jc.genFileName()
 	if err != nil {
-		return "", err
+		return "", "", "", err
 	}
-	fileThing, dir, err := genSlurm(job)
+	fileThing, dir, codeFile, err := genSlurm(job)
 	file, err := os.OpenFile(dir+"/"+filePath, os.O_WRONLY|os.O_CREATE, 0666)
 	if err != nil {
-		return "", err
+		return "", "", "", err
 	}
 	defer file.Close()
 	writer := bufio.NewWriter(file)
 	if err != nil {
-		return "", err
+		return "", "", "", err
 	}
 	for _, str := range fileThing {
 		writer.WriteString(str)
 	}
 	writer.Flush()
-	return dir, nil
+	return dir, filePath, codeFile, nil
 }
 
 func (jc *JobController) genFileName() (string, error) {
