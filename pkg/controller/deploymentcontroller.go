@@ -347,10 +347,6 @@ func (dc *DeploymentController) replicaWatcher() {
 // just for test
 func AddPod(pod core.Pod) {
 	fmt.Printf("add pod %s\n",pod.Name)
-	//for _,c := range pod.Spec.Containers{
-	//	fmt.Printf("pod container %s\n", c.Name)
-	//}
-	//podmanager.RunPod(&pod)
 	clientutil.HttpApply("Pod",pod)
 }
 
@@ -361,7 +357,12 @@ func DelPod(podname string) {
 		"name": podname,
 	}
 	clientutil.HttpDel("Pod",params)
-	//podmanager.DelPod(podname)
+}
+
+func GetPods() {
+	fmt.Printf("get all pods running")
+	bytes,err := clientutil.HttpGetAll("Pod")
+	var strs []str
 }
 
 func GetDeployment(name string) core.Deployment {

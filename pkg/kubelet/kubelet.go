@@ -12,11 +12,9 @@ import (
 	"os"
 	"net/http"
 	"time"
-	"encoding/json"
 	"github.com/go-redis/redis/v8"
 	"minik8s.io/pkg/util/listwatch"
 	apiurl "minik8s.io/pkg/apiserver/util/url"
-	// "encoding/json"
 )
 
 // that is a object that admin the control plane
