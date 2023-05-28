@@ -618,4 +618,15 @@ const (
 
 type JobStatus struct {
 	Phase JobPhase
+
+	PodName string
+}
+
+type Job2Pod struct {
+	JobName string
+	PodName string
+}
+
+type JobMaps struct {
+	Maps []Job2Pod
 }

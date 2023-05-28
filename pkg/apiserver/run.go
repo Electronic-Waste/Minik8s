@@ -34,6 +34,7 @@ var postHandlerMap = map[string]HttpHandler{
 	url.ServiceApplyURL:           service.HandleApplyService,
 	url.ServiceUpdateURL:          service.HandleUpdateService,
 	url.JobApplyUrl:               job.HandleApplyJob,
+	url.JobMapUrl:                 job.HandleMapJob,
 }
 
 var getHandlerMap = map[string]HttpHandler{
@@ -46,6 +47,7 @@ var getHandlerMap = map[string]HttpHandler{
 	url.ServiceGetURL:             service.HandleGetService,
 	url.ServiceGetAllURL:          service.HandleGetAllServices,
 	url.NodesGetUrl:               node.HandleGetNodes,
+	url.JobGetUrl:                 job.HandleGetJob,
 }
 
 var deleteHandlerMap = map[string]HttpHandler{

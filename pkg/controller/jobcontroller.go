@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"minik8s.io/pkg/apis/core"
+	apiurl "minik8s.io/pkg/apiserver/util/url"
 	"minik8s.io/pkg/clientutil"
 	"minik8s.io/pkg/util/tools/uid"
 	"net/http"
@@ -21,6 +22,7 @@ type HttpHandler func(http.ResponseWriter, *http.Request)
 const (
 	JCPORT    string = ":9000"
 	RunJobUrl string = "/JCRUN"
+	JOBMAP    string = "/JOB/"
 )
 
 type JobController struct {
@@ -66,6 +68,14 @@ func (jc *JobController) HandleRunJob(resp http.ResponseWriter, req *http.Reques
 	// config the Pod message
 	var pod core.Pod
 	pod.Name = "job-" + uid.NewUid()
+	job.Status.PodName = pod.Name
+	// send back to api-server
+	err, _ = clientutil.HttpPlus("job", job, apiurl.Prefix+apiurl.JobMapUrl)
+	if err != nil {
+		resp.WriteHeader(http.StatusInternalServerError)
+		resp.Write([]byte(err.Error()))
+		return
+	}
 	pod.Kind = "Pod"
 	pod.Spec.Volumes = []core.Volume{{
 		Name:     "shared-data",

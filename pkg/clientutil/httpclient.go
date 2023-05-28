@@ -277,6 +277,8 @@ func HttpGet(objType string, params map[string]string) ([]byte, error) {
 		requestUrl = apiurl.Prefix + apiurl.DeploymentStatusGetURL + urlparam
 	case "nodes":
 		requestUrl = apiurl.HttpScheme + "192.168.1.6" + apiurl.Port + apiurl.NodesGetUrl + urlparam
+	case "jobs":
+		requestUrl = apiurl.Prefix + apiurl.Job
 	}
 
 	request, err := http.NewRequest("GET", requestUrl, nil)

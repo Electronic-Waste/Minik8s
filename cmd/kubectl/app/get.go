@@ -13,6 +13,9 @@ var (
 	FormatNodes = []string{
 		"Name", "MasterIp", "NodeIp", "NodeStatus",
 	}
+	FormatJobs = []string{
+		"Name", "Pod",
+	}
 )
 
 var (
@@ -118,6 +121,15 @@ func GetHandler(resourceKind string) error {
 			output += "default\t\t" + "Autoscaler\t" + a.Metadata.Name + "\t" + "Running" + "\n"
 		}
 		fmt.Println(output)
+	case "jobs":
+		// deal with 'kubectl get nodes'
+		bytes, err := clientutil.HttpGet("jobs", map[string]string{})
+		if err != nil {
+			return err
+		}
+		maps := core.JobMaps{}
+		json.Unmarshal(bytes, &maps)
+		FormatPrinting(FormatJobs, maps)
 	}
 	return nil
 }
@@ -126,11 +138,17 @@ func FormatPrinting(formarStr []string, any interface{}) {
 	for _, str := range formarStr {
 		fmt.Printf("%s       ", str)
 	}
-	nodeList := any.(core.NodeList)
-	for _, node := range nodeList.NodeArray {
-		fmt.Printf("\n%s    %s     %s      %s", node.MetaData.Name, node.Spec.MasterIp, node.Spec.NodeIp, "Ready")
+	if nodeList, ok := any.(core.NodeList); ok {
+		for _, node := range nodeList.NodeArray {
+			fmt.Printf("\n%s    %s     %s      %s", node.MetaData.Name, node.Spec.MasterIp, node.Spec.NodeIp, "Ready")
+		}
+		fmt.Println("")
+	} else if maps, ok := any.(core.JobMaps); ok {
+		for _, Map := range maps.Maps {
+			fmt.Printf("\n%s    %s", Map.JobName, Map.PodName)
+		}
+		fmt.Println("")
 	}
-	fmt.Println("")
 }
 
 func GetHandlerWithName(resourceKind, resourceName string) error {
