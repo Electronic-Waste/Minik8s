@@ -1,6 +1,6 @@
 kind: Job
 metadata:
-  name: Test
+  name: gpujob
 spec:
   partition: dgx2
   threadNum: 1

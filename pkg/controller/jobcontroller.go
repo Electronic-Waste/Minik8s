@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"minik8s.io/pkg/apis/core"
+	"minik8s.io/pkg/clientutil"
 	"minik8s.io/pkg/util/tools/uid"
 	"net/http"
 	"os"
@@ -56,7 +57,7 @@ func (jc *JobController) HandleRunJob(resp http.ResponseWriter, req *http.Reques
 
 	job := core.Job{}
 	json.Unmarshal(body, &job)
-	dir, filePath, err := jc.genConfig(job)
+	dir, filePath, codeFile, err := jc.genConfig(job)
 	if err != nil {
 		resp.WriteHeader(http.StatusInternalServerError)
 		resp.Write([]byte(err.Error()))
@@ -76,7 +77,7 @@ func (jc *JobController) HandleRunJob(resp http.ResponseWriter, req *http.Reques
 		}}
 	pod.Spec.Containers = []core.Container{
 		{
-			Name:  "t1",
+			Name:  "t1" + uid.NewUid(),
 			Image: "docker.io/library/jobserver:latest",
 			VolumeMounts: []core.VolumeMount{
 				{
@@ -90,7 +91,7 @@ func (jc *JobController) HandleRunJob(resp http.ResponseWriter, req *http.Reques
 			},
 			Ports:   []core.ContainerPort{},
 			Command: []string{"/mnt/scripts/jobserver"},
-			Args:    []string{"remote", "--file=test.cu", "--scripts=" + filePath, "--result=" + job.Spec.FileName},
+			Args:    []string{"remote", "--file=" + codeFile, "--scripts=" + filePath, "--result=" + job.Spec.FileName},
 		},
 	}
 	err = pod.ContainerConvert()
@@ -100,6 +101,13 @@ func (jc *JobController) HandleRunJob(resp http.ResponseWriter, req *http.Reques
 		return
 	}
 	fmt.Println(pod)
+	// send message to apiserver to apply a Pod
+	err = clientutil.HttpApply("Pod", pod)
+	if err != nil {
+		resp.WriteHeader(http.StatusInternalServerError)
+		resp.Write([]byte(err.Error()))
+		return
+	}
 	resp.WriteHeader(http.StatusOK)
 }
 
