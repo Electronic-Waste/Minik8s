@@ -232,23 +232,23 @@ func (cli *IPTablesClient) InitServiceIPTables() error {
 	}
 
 	// 3. Create KUBE-MARK-MASQ
-	cli.iptables.NewChain(NATTable, KubeMarkChainName)
+	// cli.iptables.NewChain(NATTable, KubeMarkChainName)
 
-	// -A KUBE-MARK-MASQ -j MARK --set-xmark 0x4000/0x4000
-	err = cli.iptables.AppendUnique(
-		NATTable,
-		KubeMarkChainName,
-		JumpFlag,
-		MarkTarget,
-		SetXMarkFlag,
-		KubeMarkParamPod,
-	)
-	if err != nil {
-		return fmt.Errorf(
-			"error %v in assigning MARK rule to chain %s",
-			err, KubeMarkChainName,
-		)
-	}
+	// // -A KUBE-MARK-MASQ -j MARK --set-xmark 0x4000/0x4000
+	// err = cli.iptables.AppendUnique(
+	// 	NATTable,
+	// 	KubeMarkChainName,
+	// 	JumpFlag,
+	// 	MarkTarget,
+	// 	SetXMarkFlag,
+	// 	KubeMarkParamPod,
+	// )
+	// if err != nil {
+	// 	return fmt.Errorf(
+	// 		"error %v in assigning MARK rule to chain %s",
+	// 		err, KubeMarkChainName,
+	// 	)
+	// }
 
 	// 4. Create KUBE-HOST-MARK-MASQ
 	cli.iptables.NewChain(NATTable, KubeHostMarkChainName)
@@ -315,13 +315,13 @@ func (cli *IPTablesClient) DeinitServiceIPTables() error {
 	}
 
 	// 4. Delete and clear the KUBE-MARK-MASQ chain
-	err = cli.iptables.ClearAndDeleteChain(NATTable, KubeMarkChainName)
-	if err != nil {
-		return fmt.Errorf(
-			"error %v in deleting the %s chain",
-			err, KubeMarkChainName,
-		)
-	}
+	// err = cli.iptables.ClearAndDeleteChain(NATTable, KubeMarkChainName)
+	// if err != nil {
+	// 	return fmt.Errorf(
+	// 		"error %v in deleting the %s chain",
+	// 		err, KubeMarkChainName,
+	// 	)
+	// }
 
 	// 5. Delete and clear the KUBE-HOST-MASQ chain
 	err = cli.iptables.ClearAndDeleteChain(NATTable, KubeHostMarkChainName)
@@ -414,25 +414,25 @@ func (cli *IPTablesClient) ApplyPodChainRules(podChainName string, podIP string,
 
 	// Add a rule that jumps to KUBE-MARK-MASQ when the source IP is pod IP
 	// -A <podChainName> -s <podIP> -j KUBE-MARK-MASQ
-	err := cli.iptables.AppendUnique(
-		NATTable,
-		podChainName,
-		SourceFlag,
-		podIP,
-		JumpFlag,
-		KubeMarkChainName,
-	)
-	if err != nil {
-		return fmt.Errorf(
-			"error %v in adding a rule that jumps to %s when the source IP is pod IP",
-			err, podIP,
-		)
-	}
+	// err := cli.iptables.AppendUnique(
+	// 	NATTable,
+	// 	podChainName,
+	// 	SourceFlag,
+	// 	podIP,
+	// 	JumpFlag,
+	// 	KubeMarkChainName,
+	// )
+	// if err != nil {
+	// 	return fmt.Errorf(
+	// 		"error %v in adding a rule that jumps to %s when the source IP is pod IP",
+	// 		err, podIP,
+	// 	)
+	// }
 
 	// Add a rule that jumps to KUBE-HOST-MARK-MASQ when the target pod is on another host
 	// -A <podChainName> -s <hostIP> -j KUBE-HOST-MARK-MASQ
 	if !isSameHost {
-		err = cli.iptables.AppendUnique(
+		err := cli.iptables.AppendUnique(
 			NATTable,
 			podChainName,
 			SourceFlag,
@@ -449,9 +449,9 @@ func (cli *IPTablesClient) ApplyPodChainRules(podChainName string, podIP string,
 	}
 
 	// Add a rule that do DNAT conversion
-	// -A <podChainName> -p tcp -m tcp -j DNAT --to-destination <podIP>:<targetPort>
+	// -A <podChainName> -p tcp -j DNAT --to-destination <podIP>:<targetPort>
 	destination := fmt.Sprintf("%s:%d", podIP, targetPort)
-	err = cli.iptables.AppendUnique(
+	err := cli.iptables.AppendUnique(
 		NATTable,
 		podChainName,
 		ProtocolFlag,
@@ -467,8 +467,6 @@ func (cli *IPTablesClient) ApplyPodChainRules(podChainName string, podIP string,
 			err, destination,
 		)
 	}
-
-	// Add a SNAT rule to KUBE-POSTROUTING if the pod is mounted on another 
 
 	return nil
 }

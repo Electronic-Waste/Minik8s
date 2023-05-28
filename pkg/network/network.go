@@ -358,7 +358,7 @@ func (m *containerNetworkManager) ContainerNetworkingOpts(ctx context.Context, _
 			Path: netNSPath,
 		}),
 		withCustomResolvConf(resolvConfPath),
-		// withCustomHosts(etcHostsPath),
+		withCustomHosts(""),
 		oci.WithHostname(hostname),
 		withCustomEtcHostname(hostnamePath),
 	)
