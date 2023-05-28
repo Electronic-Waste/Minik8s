@@ -21,7 +21,6 @@ import (
 	"minik8s.io/pkg/util/listwatch"
 	apiurl "minik8s.io/pkg/apiserver/util/url"
 	"encoding/json"
-
 )
 
 // here just finish some operation need by pod running and deleting
@@ -52,7 +51,6 @@ func RunPod(pod *core.Pod) error {
 
 	bytes,_ := json.Marshal(pod.Name)
 	listwatch.Publish(apiurl.PodStatusRegisterMetricsUrl, bytes)
-
 
 	return nil
 }

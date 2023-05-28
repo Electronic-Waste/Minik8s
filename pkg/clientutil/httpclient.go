@@ -258,6 +258,7 @@ func HttpPlus(objType string, obj any, url string) (error, string) {
 			log.Fatal(err)
 		}
 		fmt.Println("http plus pod")
+
 		response, err := client.Do(request)
 		fmt.Println(response)
 		if err != nil {
