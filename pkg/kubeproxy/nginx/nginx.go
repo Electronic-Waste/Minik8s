@@ -43,7 +43,7 @@ func NewNginxController(nginxConfPath string) (*NginxController, error) {
 
 func (controller *NginxController) InitNginxConf() error {
 	lines := []string{}
-	lines = append(lines, "worker_processes 1")
+	lines = append(lines, "worker_processes 1;")
 	lines = append(lines, "events {\n\tworker_connections 1024;\n}")
 	lines = append(lines, "http {\n}")
 	output := strings.Join(lines, "\n")
@@ -74,7 +74,7 @@ func (controller *NginxController) ApplyNginxServer(hostName string, paths []cor
 	newLines := []string{}
 	newLines = append(newLines, "\tserver {")
 	newLines = append(newLines, "\t\tlisten\t80;")
-	newLines = append(newLines, fmt.Sprintf("\t\tserver_name %s", hostName))
+	newLines = append(newLines, fmt.Sprintf("\t\tserver_name %s;", hostName))
 	for _, subpath := range paths {
 		newLines = append(newLines, fmt.Sprintf("\t\tlocation %s {", subpath.Path))
 		newLines = append(newLines, fmt.Sprintf("\t\t\t\tproxy_pass http://%s:%d;", subpath.ClusterIP, subpath.Port))
@@ -101,7 +101,7 @@ func (controller *NginxController) DelNginxServer(hostName string) error {
 	if len(lines) > 0 && lines[len(lines) - 1] == "" {
 		lines = lines[:len(lines) - 1]
 	}
-	targetLine := fmt.Sprintf("\t\tserver_name %s", hostName)
+	targetLine := fmt.Sprintf("\t\tserver_name %s;", hostName)
 	targetLineNum := 0
 	for i := range lines {
 		if lines[i] == targetLine {
