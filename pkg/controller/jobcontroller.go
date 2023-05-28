@@ -69,19 +69,28 @@ func (jc *JobController) HandleRunJob(resp http.ResponseWriter, req *http.Reques
 	pod.Spec.Volumes = []core.Volume{{
 		Name:     "shared-data",
 		HostPath: dir,
-	}}
+	},
+		{
+			Name:     "shared-scripts",
+			HostPath: "/root/minik8s/minik8s/scripts/gpuscripts",
+		}}
 	pod.Spec.Containers = []core.Container{
 		{
-			Name:  "task-" + uid.NewUid(),
-			Image: "docker.io/library/jobserver/v3:latest",
+			Name:  "t1",
+			Image: "docker.io/library/jobserver:latest",
 			VolumeMounts: []core.VolumeMount{
 				{
 					Name:      "shared-data",
-					MountPath: "/mnt",
+					MountPath: "/mnt/data",
+				},
+				{
+					Name:      "shared-scripts",
+					MountPath: "/mnt/scripts",
 				},
 			},
 			Ports:   []core.ContainerPort{},
-			Command: []string{"bash"},
+			Command: []string{"/mnt/scripts/jobserver"},
+			Args:    []string{"remote", "--file=test.cu", "--scripts=test" + strconv.Itoa(jc.FileCount) + ".slurm", "--result=" + job.Spec.FileName},
 		},
 	}
 	err = pod.ContainerConvert()

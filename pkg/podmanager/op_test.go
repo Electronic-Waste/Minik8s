@@ -74,8 +74,12 @@ func TestJobServer(t *testing.T) {
 	pod.Kind = "Pod"
 	pod.Spec.Volumes = []core.Volume{{
 		Name:     "shared-data",
-		HostPath: "/root/minik8s/minik8s/scripts",
-	}}
+		HostPath: "/root/minik8s/minik8s/scripts/data",
+	},
+		{
+			Name:     "shared-scripts",
+			HostPath: "/root/minik8s/minik8s/scripts/gpuscripts",
+		}}
 	pod.Spec.Containers = []core.Container{
 		{
 			Name:  "t1",
@@ -83,12 +87,16 @@ func TestJobServer(t *testing.T) {
 			VolumeMounts: []core.VolumeMount{
 				{
 					Name:      "shared-data",
-					MountPath: "/mnt",
+					MountPath: "/mnt/data",
+				},
+				{
+					Name:      "shared-scripts",
+					MountPath: "/mnt/scripts",
 				},
 			},
 			Ports:   []core.ContainerPort{},
-			Command: []string{"/mnt/gputran.sh"},
-			Args:    []string{"/mnt/clean.sh"},
+			Command: []string{"/mnt/scripts/jobserver"},
+			Args:    []string{"remote", "--file=test.cu", "--scripts=test1.slurm", "--result=result"},
 		},
 	}
 

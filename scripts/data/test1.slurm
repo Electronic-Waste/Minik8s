@@ -1,6 +1,6 @@
 #!/bin/bash
 
-#SBATCH --job-name=Test
+#SBATCH --job-name=jobtest
 #SBATCH --partition=dgx2
 #SBATCH -N 1
 #SBATCH --ntasks-per-node=1
