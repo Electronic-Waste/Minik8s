@@ -34,7 +34,7 @@ func HandleApplyJob(resp http.ResponseWriter, req *http.Request) {
 }
 
 func HandleGetJob(resp http.ResponseWriter, req *http.Request) {
-	jobs, err := etcd.GetWithPrefix(controller.JOBMAP)
+	jobs, err := etcd.GetWithPrefix(apiurl.JobApplyUrl)
 	actJob := core.Job{}
 	if err != nil {
 		resp.WriteHeader(http.StatusInternalServerError)
