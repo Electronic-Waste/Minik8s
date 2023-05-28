@@ -109,7 +109,7 @@ func GetHandler(resourceKind string) error {
 		//	pods = append(pods, pod
 		//}
 		pods, _ := podmanager.GetPods()
-		output := "NAMESPACE\tKIND\tNAME\t\t\t\t\tSTATUS\t\n"
+		output := "NAMESPACE\tKIND\tNAME\t\tSTATUS\t\n"
 		for _, p := range pods {
 			output += "default\t\t" + "Pod\t" + p.Name + "\t" + string(p.Status.Phase) + "\n"
 		}

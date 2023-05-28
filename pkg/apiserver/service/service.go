@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"path"
 	"io/ioutil"
+	"strings"
 
 	"minik8s.io/pkg/util/listwatch"
 	"minik8s.io/pkg/apiserver/etcd"
@@ -149,7 +150,7 @@ func HandleApplyService(resp http.ResponseWriter, req *http.Request) {
 		// 	fmt.Println("Could not find IP!")
 		// }
 		// podIP := strings.Replace(string(output), "\n", "", -1)
-		podIP := podStatus.Status.PodIp
+		podIP := strings.Replace(podStatus.Status.PodIp, "\"", "", -1)
 		podHostIP := podStatus.Spec.RunningNode.Spec.NodeIp
 		fmt.Printf("podIP: %s and podHostIP: %s\n", podIP, podHostIP)
 		podIPs = append(podIPs, podIP)
