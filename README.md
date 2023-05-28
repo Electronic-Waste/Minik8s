@@ -134,4 +134,3 @@ $ ./bin/kubectl trigger <funcName> <data>
 > - "funcName" in the prefix of python file name. For example, if we have a python file named as "func.py", then its "funcName" is "func".
 > 
 > - "data" is a JSON string, and its value should be determined by the function. A valid data form is like '{"x":1,"y":2}' (for "Add.py" in ./testcases). By the way, if the function do not need params, we should set "data" to ''(empty string).
-

@@ -49,6 +49,7 @@ func (k *Kubelet) Run(update chan kubetypes.PodUpdate) {
 	    config.PodMetricsUrl:	k.HandlePodGetMetrics,
 		config.GetAllPodUrl:	config.HandleGetAllPod,
 		config.MemoryUrl:     config.HandleMemGet,
+
 	}
 	go listwatch.Watch(apiurl.PodStatusRegisterMetricsUrl, k.PodRegister)
 	go listwatch.Watch(apiurl.PodStatusUnregisterMetricsUrl, k.PodUnregister)

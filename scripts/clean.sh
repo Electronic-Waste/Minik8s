@@ -12,4 +12,3 @@ echo "clean etcd"
 
 nerdctl stop $(nerdctl ps -a)
 nerdctl rm $(nerdctl ps -a)
-
