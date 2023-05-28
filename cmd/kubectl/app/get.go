@@ -120,18 +120,19 @@ func GetHandler(resourceKind string) error {
 		if err != nil {
 			return err
 		}
-		var strs []string
-		err = json.Unmarshal(bytes, &strs)
-		fmt.Println("get deployment number: ", len(strs))
+		//var strs []string
+		
+		//fmt.Println("get deployment number: ", len(strs))
 		var deployments []core.Deployment
-		for _, s := range strs {
-			if s == "" {
-				continue
-			}
-			deployment := core.Deployment{}
-			_ = json.Unmarshal([]byte(s), &deployment)
-			deployments = append(deployments, deployment)
-		}
+		_ = json.Unmarshal(bytes, &deployments)
+		//for _, s := range strs {
+		//	if s == "" {
+		//		continue
+		//	}
+		//	deployment := core.Deployment{}
+		//	_ = json.Unmarshal([]byte(s), &deployment)
+		//	deployments = append(deployments, deployment)
+		//}
 		output := "NAMESPACE\tKIND\tNAME\tSTATUS\t\n"
 		for _, d := range deployments {
 			output += "default\t\t" + "Deployment\t" + d.Metadata.Name + "\t" + "Running" + "\n"

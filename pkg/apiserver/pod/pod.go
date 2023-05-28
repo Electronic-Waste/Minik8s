@@ -44,7 +44,46 @@ func HandleGetPodStatus(resp http.ResponseWriter, req *http.Request) {
 
 // Return all pods' statuses
 // uri: /pods/status/getall
+// now get all living pods on all nodes
 func HandleGetAllPodStatus(resp http.ResponseWriter, req *http.Request) {
+	fmt.Println()
+	bytes, err := clientutil.HttpGet("nodes", map[string]string{})
+	if err != nil {
+		resp.WriteHeader(http.StatusNotFound)
+		resp.Write([]byte(err.Error()))
+		return
+	}
+	nodeList := core.NodeList{}
+	json.Unmarshal(bytes, &nodeList)
+	fmt.Println("nodelist:",nodeList)
+
+	var allpods []core.Pod
+
+	for _,n := range nodeList.NodeArray{
+		geturl := url.HttpScheme + n.Spec.NodeIp + config.Port + config.GetAllPodUrl
+		fmt.Println(geturl)
+		bytes,err := clientutil.HttpGetPlus("Pod", geturl)
+		fmt.Println("get from nodes:",string(bytes))
+		pods := []core.Pod{}
+		err = json.Unmarshal(bytes, &pods)
+		if err != nil{
+			fmt.Println(err)
+			resp.WriteHeader(http.StatusNotFound)
+			resp.Write([]byte(err.Error()))
+			return
+		}
+		fmt.Println("get pods from",n.Spec.NodeIp,"get",pods)
+		allpods = append(allpods, pods...)
+	}
+	data,err := json.Marshal(allpods)
+	if err != nil{
+		fmt.Println(err)
+		return
+	}
+	resp.WriteHeader(http.StatusOK)
+	resp.Header().Set("Content-Type", "application/json")
+	resp.Write(data)
+	/*
 	etcdPrefix := url.PodStatus
 	var podStatusArr []string
 	podStatusArr, err := etcd.GetWithPrefix(etcdPrefix)
@@ -66,6 +105,7 @@ func HandleGetAllPodStatus(resp http.ResponseWriter, req *http.Request) {
 	resp.Header().Set("Content-Type", "application/json")
 	resp.Write(jsonVal)
 	// return
+	*/
 }
 
 // Return statuses of pods with prefix
@@ -227,7 +267,7 @@ func HandleGetPodMetrics(resp http.ResponseWriter, req *http.Request){
 
 	geturl := url.HttpScheme + nodeip + config.Port + config.PodMetricsUrl + "?name=" + podName
 
-	bytes,err := clientutil.HttpGetPlus("Pod", geturl)
+	bytes,err := clientutil.HttpGetPlus("Metrics", geturl)
 	if err != nil {
 		fmt.Println(err)
 	}

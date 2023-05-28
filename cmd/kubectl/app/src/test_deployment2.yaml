@@ -1,17 +1,17 @@
 kind: Deployment
 metadata:
-  name: test2
+  name: deployment_test2
 spec: 
-  replicas: 3
-  selector: test2
+  replicas: 2
+  selector: test
   template: 
     kind: Pod
     metadata:
-      name: test2
+      name: test
     spec:
       volumes:
       - name: shared-data
-        hostPath: /root/test2_vo
+        hostPath: /root/test_vo
     
       containers:
     
@@ -21,7 +21,7 @@ spec:
           - name: shared-data
             mountPath: /mnt
         ports:
-          - containerPort: 8081
+          - containerPort: 8080
         command: 
           - bash
     
@@ -31,6 +31,6 @@ spec:
           - name: shared-data
             mountPath: /go/src
         ports:
-          - containerPort: 81
+          - containerPort: 80
         command: 
           - bash

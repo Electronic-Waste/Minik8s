@@ -209,7 +209,7 @@ func HttpGetPlus(objType string, url string) ([]byte,error) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	fmt.Println("http get pod metrics",url)
+	fmt.Println("http plus get",objType,"from",url)
 	response, err := client.Do(request)
 	if err != nil {
 		log.Fatal(err)
@@ -273,7 +273,6 @@ func HttpGet(objType string, params map[string]string) ([]byte, error) {
 			i++
 		}
 	}
-	fmt.Printf("httpclient get params: %s\n",urlparam)
 	var requestUrl string
 	switch objType {
 	case "Autoscaler":
@@ -288,7 +287,7 @@ func HttpGet(objType string, params map[string]string) ([]byte, error) {
 		//requestUrl = apiurl.HttpScheme + apiurl.Vmeet1IP + apiurl.Port + apiurl.MetricsGetUrl + urlparam
 		requestUrl = apiurl.Prefix + apiurl.MetricsGetUrl + urlparam
 	}
-
+	fmt.Printf("httpclient get: %s\n",requestUrl)
 	request, err := http.NewRequest("GET", requestUrl, nil)
 	if err != nil {
 		log.Fatal(err)
@@ -352,6 +351,7 @@ func HttpGetWithPrefix(objType string, params map[string]string) ([]byte, error)
 // return: obj queried
 // @objType: type want to get
 func HttpGetAll(objType string) ([]byte, error) {
+	fmt.Println("http get all", objType)
 	client := http.Client{}
 	var requestUrl string
 	switch objType {

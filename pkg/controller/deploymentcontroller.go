@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"context"
 	"minik8s.io/pkg/apis/core"
-	"minik8s.io/pkg/podmanager"
+	//"minik8s.io/pkg/podmanager"
 	"minik8s.io/pkg/util/listwatch"
 	"github.com/go-redis/redis/v8"
 	"minik8s.io/pkg/util/tools/queue"
@@ -45,7 +45,7 @@ func NewDeploymentController(ctx context.Context) (*DeploymentController, error)
 
 func (dc *DeploymentController) Run(ctx context.Context) {
 	go dc.register()		//register list watch handler
-	//go dc.replicaWatcher()	//supervise pod replica numbers
+	go dc.replicaWatcher()	//supervise pod replica numbers
 	go dc.worker(ctx)		//main thread processing messages
 	print("deployment controller running\n")
 	<-ctx.Done()
@@ -241,13 +241,17 @@ func (dc *DeploymentController) syncDeployment(ctx context.Context, watchres lis
 
 func (dc *DeploymentController) replicaWatcher() {
 	timeout := time.Second * 3
-	time.Sleep(time.Second * 30)
+	time.Sleep(time.Second * 15)
 	for {
+		time.Sleep(timeout)
 		fmt.Println("!!!watching replicas")
-		pods,err := podmanager.GetPods()
+		pods,err := GetPods()
 		fmt.Println("replica watcher get pods:",len(pods))
 		if err!=nil{
 			fmt.Println(err.Error())
+			continue
+		}
+		if len(pods) == 0{
 			continue
 		}
 		var strSet []string
@@ -339,7 +343,6 @@ func (dc *DeploymentController) replicaWatcher() {
 				}
 			}
 		}
-		time.Sleep(timeout)
 	}
 	
 }
@@ -359,12 +362,13 @@ func DelPod(podname string) {
 	clientutil.HttpDel("Pod",params)
 }
 
-func GetPods() {
-	fmt.Printf("get all pods running")
+func GetPods() ([]core.Pod,error) {
+	fmt.Println("get all pods running")
 	bytes,err := clientutil.HttpGetAll("Pod")
-	var strs []str
-}
-
-func GetDeployment(name string) core.Deployment {
-	return core.Deployment{}
+	var pods []core.Pod
+	err = json.Unmarshal(bytes, &pods)
+	if err != nil{
+		return nil,err
+	}
+	return pods,nil
 }

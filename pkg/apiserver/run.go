@@ -48,6 +48,7 @@ var getHandlerMap = map[string]HttpHandler{
 	url.AutoscalerStatusGetURL:    	autoscaler.HandleGetAutoscalerStatus,
 	url.AutoscalerStatusGetAllURL: 	autoscaler.HandleGetAllAutoscalerStatus,
 	url.MetricsGetUrl:				pod.HandleGetPodMetrics,
+	url.NodesGetUrl:				node.HandleGetNodes,
 }
 
 var deleteHandlerMap = map[string]HttpHandler{

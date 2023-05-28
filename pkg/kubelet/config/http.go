@@ -19,7 +19,29 @@ var (
 	RunPodUrl string = PodPrefix + "/run"
 	DelPodRul string = PodPrefix + "/del"
 	PodMetricsUrl string = PodPrefix + "/metrics"
+	GetAllPodUrl string = PodPrefix + "/get"
 )
+
+func HandleGetAllPod(resp http.ResponseWriter, req *http.Request) {
+	pods,err := podmanager.GetPods()
+	fmt.Println("kubelet get all pods:",pods)
+	if err != nil{
+		fmt.Println(err)
+		resp.WriteHeader(http.StatusNotFound)
+		resp.Write([]byte(err.Error()))
+		return
+	}
+	bytes,err := json.Marshal(pods)
+	if err != nil{
+		fmt.Println(err)
+		resp.WriteHeader(http.StatusNotFound)
+		resp.Write([]byte(err.Error()))
+		return
+	}
+	resp.WriteHeader(http.StatusOK)
+	resp.Header().Set("Content-Type", "application/json")
+	resp.Write(bytes)
+}
 
 func HandlePodDel(resp http.ResponseWriter, req *http.Request) {
 	body, _ := ioutil.ReadAll(req.Body)

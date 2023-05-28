@@ -29,7 +29,7 @@
     ![本地路径](./docs/cni-test.png "相对路径演示")
 
 
-## Deployment Controller 流程
+## Controller 使用流程
 
 ### 启动
 
@@ -44,6 +44,6 @@
 `./bin/kubectl apply <filename>`(expmple: `./bin/kubectl apply ./cmd/kubectl/app/src/test_deployment.yaml`)创建deployment实例  
 `nerdctl ps`可以看到启动了`replicas`数量的pod和container  
 
-## Autoscaler Controller 流程
+### 使用Autoscaler controller创建autoscaler实例 
 
-先启动Deployment Controller，然后执行`./bin/kubectl apply <filename>`(expmple: `./bin/kubectl apply ./cmd/kubectl/app/src/test_autoscaler.yaml`)创建autoscaler实例  
+执行`./bin/kubectl apply <filename>`(expmple: `./bin/kubectl apply ./cmd/kubectl/app/src/test_autoscaler.yaml`)创建autoscaler实例  
