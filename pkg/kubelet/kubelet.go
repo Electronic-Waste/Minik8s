@@ -70,6 +70,7 @@ func (k *Kubelet) HandlePodGetMetrics(resp http.ResponseWriter, req *http.Reques
 }
 
 func (k *Kubelet) PodRegister (msg *redis.Message) {
+	fmt.Println("pod register")
 	time.Sleep(time.Millisecond * 500)
 	bytes := []byte(msg.Payload)
 	var podname string

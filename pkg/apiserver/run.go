@@ -67,7 +67,7 @@ func HitNode(msg *redis.Message) {
 	fmt.Printf("call HitNode\n")
 	pod := core.Pod{}
 	json.Unmarshal([]byte(msg.Payload), &pod)
-	fmt.Println(pod)
+	//fmt.Println(pod)
 	podName := pod.Name
 	namespace := "default"
 	etcdURL := path.Join(url.PodStatus, namespace, podName)

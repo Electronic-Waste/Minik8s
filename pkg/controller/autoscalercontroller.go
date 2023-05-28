@@ -68,23 +68,6 @@ func (ac *AutoscalerController) applylistener (msg *redis.Message) {
 			return
 		}
 	}
-	
-	//start supervise
-	/*
-	pods, err := GetReplicaPods(autoscaler.Spec.ScaleTargetRef.Name)
-	if err != nil{
-		fmt.Println("GetReplicaPods:",err)
-		return
-	}
-	fmt.Println("ac supervise pods")
-	for _,pod := range pods{
-		err = ac.cadvisor.RegisterPod(pod.Name)
-		if err != nil {
-			fmt.Println(err)
-			return
-		}
-	}
-	*/
 	//add autoscaler
 	ac.autoscalerList = append(ac.autoscalerList, autoscaler)
 	fmt.Println("ac apply new autoscaler success")
@@ -359,7 +342,7 @@ func DecreaseReplicas(deployment core.Deployment, maxreplicas int, minreplicas i
 }
 
 func GetPodMetrics(podname string, nodeIP string) (stats.PodStats,error) {
-	fmt.Println("GetPodMetrics")
+	fmt.Println("GetPodMetrics ",podname," ",nodeIP)
 	params := make(map[string]string)
 	params["name"] = podname
 	params["nodeip"] = nodeIP

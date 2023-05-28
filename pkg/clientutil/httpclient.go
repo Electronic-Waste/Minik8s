@@ -104,14 +104,14 @@ func HttpApply(objType string, obj any) error {
 }
 
 func HttpPlus(objType string, obj any, url string) (error, string) {
-	fmt.Println("http apply")
+	fmt.Println("http plus apply: ",url)
 	client := http.Client{}
 	payload, _ := json.Marshal(obj)
 	var res string
 	switch objType {
 	case "Deployment":
-		urlparam := "?namespace=default"
-		request, err := http.NewRequest("POST", url+urlparam, bytes.NewReader(payload))
+		//urlparam := "?namespace=default"
+		request, err := http.NewRequest("POST", url, bytes.NewReader(payload))
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -128,14 +128,16 @@ func HttpPlus(objType string, obj any, url string) (error, string) {
 		if err != nil {
 			log.Fatal(err)
 		}
-		fmt.Println("http apply pod")
+		fmt.Println("http plus apply pod")
 		response, err := client.Do(request)
+		fmt.Println(response)
 		if err != nil {
-			log.Fatal(err)
+			fmt.Println(err)
 		}
 		if response.StatusCode != http.StatusOK {
 			return errors.New("apply fail"), ""
 		}
+		fmt.Println("http plus apply pod success")
 		body, _ := ioutil.ReadAll(response.Body)
 		fmt.Printf("Response: %s\n", string(body))
 		res = string(body)
