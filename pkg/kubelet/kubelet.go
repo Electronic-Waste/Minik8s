@@ -3,6 +3,10 @@ package kubelet
 import (
 	"fmt"
 	"minik8s.io/pkg/kubelet/config"
+	// "minik8s.io/pkg/apis/core"
+	// "minik8s.io/pkg/util/listwatch"
+	"minik8s.io/pkg/kubeproxy"
+	"encoding/json"
 	"minik8s.io/pkg/kubelet/cadvisor"
 	kubetypes "minik8s.io/pkg/kubelet/types"
 	"os"
@@ -12,6 +16,7 @@ import (
 	"github.com/go-redis/redis/v8"
 	"minik8s.io/pkg/util/listwatch"
 	apiurl "minik8s.io/pkg/apiserver/util/url"
+	// "encoding/json"
 )
 
 // that is a object that admin the control plane
@@ -30,10 +35,15 @@ type Bootstrap interface {
 type Kubelet struct {
 	// TODO(wjl) : add some object need by kubelet to admin the Pod or Deployment
 	Cadvisor *cadvisor.CAdvisor
+	kubeProxyManager *kubeproxy.KubeproxyManager
 }
 
 func (k *Kubelet) Run(update chan kubetypes.PodUpdate) {
 	// wait for new event caused by listening source
+
+	k.kubeProxyManager, _ = kubeproxy.NewKubeProxy()
+	k.kubeProxyManager.Run()
+
 	//bindWatchHandler()
 	PodMap := map[string]config.HttpHandler{
 		config.RunPodUrl: 		config.HandlePodRun,

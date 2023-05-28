@@ -17,21 +17,22 @@ import (
 	"minik8s.io/pkg/apiserver/etcd"
 	"minik8s.io/pkg/apiserver/pod"
 	"minik8s.io/pkg/apiserver/service"
+	"minik8s.io/pkg/apiserver/dns"
 	"minik8s.io/pkg/apiserver/util/url"
-	"minik8s.io/pkg/kubeproxy"
 )
 
 type HttpHandler func(http.ResponseWriter, *http.Request)
 
 var postHandlerMap = map[string]HttpHandler{
-	url.PodStatusApplyURL:         pod.HandleApplyPodStatus,
-	url.PodStatusUpdateURL:        pod.HandleUpdatePodStatus,
-	url.DeploymentStatusApplyURL:  deployment.HandleApplyDeploymentStatus,
-	url.DeploymentStatusUpdateURL: deployment.HandleUpdateDeploymentStatus,
-	url.AutoscalerStatusApplyURL:  autoscaler.HandleApplyAutoscalerStatus,
-	url.AutoscalerStatusUpdateURL: autoscaler.HandleUpdateAutoscalerStatus,
-	url.ServiceApplyURL:           service.HandleApplyService,
-	url.ServiceUpdateURL:          service.HandleUpdateService,
+	url.PodStatusApplyURL:         	pod.HandleApplyPodStatus,
+	url.PodStatusUpdateURL:        	pod.HandleUpdatePodStatus,
+	url.DeploymentStatusApplyURL:  	deployment.HandleApplyDeploymentStatus,
+	url.DeploymentStatusUpdateURL: 	deployment.HandleUpdateDeploymentStatus,
+	url.AutoscalerStatusApplyURL:  	autoscaler.HandleApplyAutoscalerStatus,
+	url.AutoscalerStatusUpdateURL: 	autoscaler.HandleUpdateAutoscalerStatus,
+	url.ServiceApplyURL:           	service.HandleApplyService,
+	url.ServiceUpdateURL:          	service.HandleUpdateService,
+	url.DNSApplyURL:				dns.HandleApplyDNS,
 }
 
 var getHandlerMap = map[string]HttpHandler{
@@ -40,11 +41,12 @@ var getHandlerMap = map[string]HttpHandler{
 	url.PodStatusGetWithPrefixURL: 	pod.HandleGetWithPrefixPodStatus,
 	url.DeploymentStatusGetURL:    	deployment.HandleGetDeploymentStatus,
 	url.DeploymentStatusGetAllURL: 	deployment.HandleGetAllDeploymentStatus,
+	url.ServiceGetURL:				service.HandleGetService,
+	url.ServiceGetAllURL:			service.HandleGetAllServices,
+	url.DNSGetURL:					dns.HandleGetDNS,
+	url.DNSGetAllURL:				dns.HandleGetAllDNS,
 	url.AutoscalerStatusGetURL:    	autoscaler.HandleGetAutoscalerStatus,
 	url.AutoscalerStatusGetAllURL: 	autoscaler.HandleGetAllAutoscalerStatus,
-	url.ServiceGetURL:             	service.HandleGetService,
-	url.ServiceGetAllURL:          	service.HandleGetAllServices,
-	url.NodesGetUrl:               	node.HandleGetNodes,
 	url.MetricsGetUrl:				pod.HandleGetPodMetrics,
 }
 
@@ -53,6 +55,7 @@ var deleteHandlerMap = map[string]HttpHandler{
 	url.DeploymentStatusDelURL: 	deployment.HandleDelDeploymentStatus,
 	url.AutoscalerStatusDelURL: 	autoscaler.HandleDelAutoscalerStatus,
 	url.ServiceDelURL: 				service.HandleDelService,
+	url.DNSDelURL:					dns.HandleDelDNS,
 }
 
 var nodeHandlerMap = map[string]HttpHandler{
@@ -93,17 +96,12 @@ func HitNode(msg *redis.Message) {
 	}
 }
 
-var kubeProxyManager *kubeproxy.KubeproxyManager
-
 func Run() {
 	// Initialize etcd client
 	etcd.InitializeEtcdKVStore()
-
-	// Init clusterIPGen in service
+	
+	// Init clusterIPGen in service module
 	service.InitServiceController()
-
-	kubeProxyManager, _ = kubeproxy.NewKubeProxy()
-	kubeProxyManager.Run()
 
 	// Bind POST request with handler
 	for url, handler := range postHandlerMap {

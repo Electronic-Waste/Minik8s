@@ -81,6 +81,24 @@ func HttpApply(objType string, obj any) error {
 		}
 		body, _ := ioutil.ReadAll(response.Body)
 		fmt.Printf("Response: %s\n", string(body))
+	case "DNS":
+		var dns core.DNS
+		json.Unmarshal([]byte(payload), &dns)
+		postURL := apiurl.Prefix + apiurl.DNSApplyURL + fmt.Sprintf("?namespace=default&name=%s", dns.Name)
+		request, err := http.NewRequest("POST", postURL, bytes.NewReader(payload))
+		if err != nil {
+			log.Fatal(err)
+		}
+		fmt.Println("http apply dns")
+		response, err := client.Do(request)
+		if err != nil {
+			log.Fatal(err)
+		}
+		if response.StatusCode != http.StatusOK {
+			return errors.New("apply fail")
+		}
+		body, _ := ioutil.ReadAll(response.Body)
+		fmt.Printf("Response: %s\n", string(body))
 	case "Node":
 		var node core.Node
 		json.Unmarshal([]byte(payload), &node)
@@ -265,7 +283,7 @@ func HttpGet(objType string, params map[string]string) ([]byte, error) {
 	case "Deployment":
 		requestUrl = apiurl.Prefix + apiurl.DeploymentStatusGetURL + urlparam
 	case "nodes":
-		requestUrl = apiurl.HttpScheme + "192.168.1.6" + apiurl.Port + apiurl.NodesGetUrl + urlparam
+		requestUrl = apiurl.Prefix + apiurl.NodesGetUrl + urlparam
 	case "metrics":	//params: name, nodeip
 		//requestUrl = apiurl.HttpScheme + apiurl.Vmeet1IP + apiurl.Port + apiurl.MetricsGetUrl + urlparam
 		requestUrl = apiurl.Prefix + apiurl.MetricsGetUrl + urlparam
@@ -343,6 +361,10 @@ func HttpGetAll(objType string) ([]byte, error) {
 		requestUrl = apiurl.Prefix + apiurl.DeploymentStatusGetAllURL
 	case "Pod":
 		requestUrl = apiurl.Prefix + apiurl.PodStatusGetAllURL
+	case "Service":
+		requestUrl = apiurl.Prefix + apiurl.ServiceGetAllURL
+	case "DNS":
+		requestUrl = apiurl.Prefix + apiurl.DNSGetAllURL
 	}
 	request, err := http.NewRequest("GET", requestUrl, nil)
 	if err != nil {
@@ -387,6 +409,8 @@ func HttpDel(objType string, params map[string]string) error {
 		requestUrl = apiurl.Prefix + apiurl.ServiceDelURL + urlparam
 	case "Pod":
 		requestUrl = apiurl.Prefix + apiurl.PodStatusDelURL + urlparam
+	case "DNS":
+		requestUrl = apiurl.Prefix + apiurl.DNSDelURL + urlparam
 	}
 	request, err := http.NewRequest("DELETE", requestUrl, nil)
 	if err != nil {
@@ -402,3 +426,4 @@ func HttpDel(objType string, params map[string]string) error {
 	}
 	return nil
 }
+

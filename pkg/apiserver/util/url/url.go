@@ -1,8 +1,12 @@
 package url
 
+import (
+	"minik8s.io/pkg/util/url"
+)
+
 const (
 	HttpScheme    string = "http://"
-	HostURL       string = "localhost"
+	HostURL       string = url.MasterNodeIP
 	Port          string = ":8080"
 	SchedulerPort string = "1234"
 
@@ -55,7 +59,7 @@ const (
 	Metrics 		string = "/metrics"
 	MetricsGetUrl 	string = Metrics + "/get"
 
-	Vmeet1IP string = "192.168.1.5"
-	Vmeet2IP string = "192.168.1.6"
-	Vmeet3IP string = "192.168.1.7"
+	Vmeet1IP string = url.Vmeet1IP
+	Vmeet2IP string = url.Vmeet2IP
+	Vmeet3IP string = url.Vmeet3IP
 )
