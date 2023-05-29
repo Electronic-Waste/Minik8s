@@ -211,6 +211,28 @@ func HandleDelPodStatus(resp http.ResponseWriter, req *http.Request) {
 	fmt.Printf("del pod name is %s\n", pod.Name)
 	clientutil.HttpPlus("Pod", pod, url.HttpScheme+pod.Spec.RunningNode.Spec.MasterIp+config.Port+config.DelPodRul)
 
+	pubURL := url.PodStatusDelURL
+	listwatch.Publish(pubURL, podName)
+
 	resp.WriteHeader(http.StatusOK)
 	fmt.Println("http del success")
+}
+
+
+func HandleGetPodMetrics(resp http.ResponseWriter, req *http.Request){
+	fmt.Println("handle get pod metrics")
+	vars := req.URL.Query()
+	podName := vars.Get("name")
+	nodeip := vars.Get("nodeip")
+
+	geturl := url.HttpScheme + nodeip + config.Port + config.PodMetricsUrl + "?name=" + podName
+
+	bytes,err := clientutil.HttpGetPlus("Pod", geturl)
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	resp.WriteHeader(http.StatusOK)
+	resp.Header().Set("Content-Type", "application/json")
+	resp.Write(bytes)
 }

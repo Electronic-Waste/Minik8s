@@ -17,4 +17,6 @@ const (
 
 	HostsFile				= "/etc/hosts"
 
+	ENS3					= "ens3"
+	Flannel					= "flannel.1"
 )

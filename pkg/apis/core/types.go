@@ -514,6 +514,9 @@ type KubeproxyServiceParam struct {
 
 	// Pods' IPs
 	PodIPs []string `json:"podIPs,omitempty"`
+
+	// Pods' host IPs
+	PodHostIPs	[]string `json:"podHostIPs,omitempty"`
 }
 
 type ScheduleParam struct {
@@ -565,22 +568,23 @@ type DNSSpec struct {
 	// Host is the domain name
 	Host string `json:"host" yaml:"host"`
 
-	// Paths map subpaths to service ports
-	Paths []DNSSubpath `json:"subpaths" yaml:"subpaths"`
+	// Subpaths map subpaths to service ports
+	Subpaths	[]DNSSubpath	`json:"subpaths,omitempty" yaml:"subpaths,omitempty"`
 }
 
 type DNSSubpath struct {
 	// Path is the subpath
 	Path string `json:"path" yaml:"path"`
 
-	// ServiceName is the name of service
-	ServiceName string `json:"service" yaml:"service"`
+	// Service is the name of service
+	Service		string	`json:"service" yaml:"service"`
 
 	// ClusterIP is the ip of service
 	ClusterIP string `json:"clusterIP,omitempty" yaml:"clusterIP,omitempty" `
 
-	// ServicePort is the exposed port of service
-	ServicePort string `json:"port" yaml:"port"`
+	// Port is the exposed port of service
+	Port 		int32	`json:"port" yaml:"port"`
+
 }
 
 type Job struct {

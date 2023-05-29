@@ -70,7 +70,7 @@ func (jc *JobController) HandleRunJob(resp http.ResponseWriter, req *http.Reques
 	pod.Name = "job-" + uid.NewUid()
 	job.Status.PodName = pod.Name
 	// send back to api-server
-	err, _ = clientutil.HttpPlus("job", job, apiurl.Prefix+apiurl.JobMapUrl)
+	err, _ = clientutil.HttpPlus("Job", job, apiurl.Prefix+apiurl.JobMapUrl)
 	if err != nil {
 		resp.WriteHeader(http.StatusInternalServerError)
 		resp.Write([]byte(err.Error()))

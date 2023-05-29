@@ -94,14 +94,23 @@ func ApplyHandler(path string) error {
 		service := core.Service{}
 		err := viper.Unmarshal(&service)
 		if err != nil {
-			fmt.Printf("Error in unmarshaling service yaml file: %v", err)
-			return err
+			return fmt.Errorf("Error in unmarshaling service yaml file: %v", err)
 		}
 		fmt.Printf("service name: %s\n", service.Name)
 		err = applyService(service)
 		if err != nil {
-			fmt.Printf("Error in sending service to apiserver: %v", err)
-			return err
+			return fmt.Errorf("Error in sending service to apiserver: %v", err)
+		}
+	case "DNS":
+		dns := core.DNS{}
+		err := viper.Unmarshal(&dns)
+		if err != nil {
+			return fmt.Errorf("Error in unmarshaling dns yaml file: %v", err)
+		}
+		// fmt.Println(dns)
+		err = applyDNS(dns)
+		if err != nil {
+			return fmt.Errorf("Error in sending dns to apiserver: %v", err)
 		}
 	case "Job":
 		job := core.Job{}
@@ -136,9 +145,15 @@ func applyService(service core.Service) error {
 	return clientutil.HttpApply("Service", service)
 }
 
+
 func applyJob(job core.Job) error {
 	fmt.Println("apply job")
 	return clientutil.HttpApply("Job", job)
+}
+
+func applyDNS(dns core.DNS) error {
+	fmt.Println("apply dns")
+	return clientutil.HttpApply("DNS", dns)
 }
 
 func applyAutoscaler(autoscaler core.Autoscaler) error {

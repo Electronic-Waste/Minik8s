@@ -14,14 +14,13 @@ import (
 type HttpHandler func(http.ResponseWriter, *http.Request)
 
 var (
+	//PodAddWatchUrl string = "/Pod/Metrics"
+
 	Port      string = ":3000"
 	PodPrefix string = "/Pod"
 	RunPodUrl string = PodPrefix + "/run"
 	DelPodRul string = PodPrefix + "/del"
-	PodMap           = map[string]HttpHandler{
-		RunPodUrl: HandlePodRun,
-		DelPodRul: HandlePodDel,
-	}
+	PodMetricsUrl string = PodPrefix + "/metrics"
 )
 
 func HandlePodDel(resp http.ResponseWriter, req *http.Request) {
@@ -66,7 +65,7 @@ func HandlePodRun(resp http.ResponseWriter, req *http.Request) {
 	resp.Write(resMes)
 }
 
-func Run() error {
+func Run(PodMap map[string]HttpHandler) error {
 	for url, handler := range PodMap {
 		http.HandleFunc(url, handler)
 	}
