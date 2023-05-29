@@ -70,6 +70,26 @@ func GetWithPrefix(keyPrefix string) ([]string, error) {
 	return retVals, nil
 }
 
+// GetKVWithPrefix read all k-v pair of which key starts with keyPrefix
+// keyPrefix: the key's prefix you want
+// Return: 1. arrays of key, 2. arrays of val, 3. error
+func GetKVWithPrefix(keyPrefix string) ([]string, []string, error) {
+	getResp, err := client.KV.Get(context.Background(), keyPrefix, clientv3.WithPrefix())
+	if err != nil {
+		fmt.Println(err)
+		return nil, nil, err
+	}
+	retKeys := []string{}
+	retVals := []string{}
+	for _, kv := range getResp.Kvs {
+		if string(kv.Value) != "" {
+			retKeys = append(retKeys, string(kv.Key))
+			retVals = append(retVals, string(kv.Value))
+		}
+	}
+	return retKeys, retVals, nil
+}
+
 // Del delete a key value pair for a given key.
 func Del(key string) error {
 	_, err := client.KV.Delete(context.Background(), key)

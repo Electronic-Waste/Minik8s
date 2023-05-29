@@ -100,7 +100,11 @@ func (manager *KubeproxyManager) Run() {
 	// Bind list-watch function
 	err := manager.iptablesCli.InitServiceIPTables()
 	if err != nil {
-		fmt.Printf("Error occured in init SerivceIPtables: %v", err)
+		fmt.Printf("Error occurred in init SerivceIPtables: %v\n", err)
+	}
+	err = manager.nginxController.InitNginxConf()
+	if err != nil {
+		fmt.Printf("Error occurred in init NginxConf: %v\n", err)
 	}
 	go listwatch.Watch(url.ServiceApplyURL, manager.HandleApplyService)
 	go listwatch.Watch(url.ServiceDelURL, manager.HandleDelService)

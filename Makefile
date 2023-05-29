@@ -1,4 +1,4 @@
-.PHONY:all build clean help check test vctl kubeadm nervctl kubelet listener scheduler
+.PHONY:all build clean help check test vctl kubeadm nervctl kubelet listener scheduler jobserver
 BIN=bin
 PATH=./cmd
 ADM=kubeadm
@@ -11,8 +11,10 @@ CTLM=kube-controller-manager
 CTL=kubectl
 CMD=app/cmd
 SCH=scheduler
+JOB=jobserver
 GO=$(shell which go)
 CLEAN=$(shell rm -rf ${BIN})
+GPUDIR=scripts/gpuscripts
 FOLD=$(shell if [ -d "./$(BIN)/" ]; then echo "$(BIN) exits"; else mkdir $(BIN);echo "make $(BIN) folder"; fi)
 all: check build
 build:
@@ -26,6 +28,7 @@ build:
 	$(GO) build -o "${BIN}/${CTL}" "${PATH}/${CTL}/${CTL}.go"
 	$(GO) build -o "${BIN}/${SCH}" "${PATH}/${SCH}/${SCH}.go"
 	$(GO) build -o "${BIN}/${LISTENER}" "${PATH}/${LISTENER}/${LISTENER}.go"
+	$(GO) build -o "${GPUDIR}/${JOB}" "${PATH}/${JOB}/${JOB}.go"
 clean:
 	$(GO) clean
 	$(CLEAN)
@@ -70,3 +73,6 @@ kubectl:
 scheduler:
 	@echo "$(FOLD)"
 	$(GO) build -o "${BIN}/${SCH}" "${PATH}/${SCH}/${SCH}.go"
+jobserver:
+	@echo "$(FOLD)"
+	$(GO) build -o "${GPUDIR}/${JOB}" "${PATH}/${JOB}/${JOB}.go"

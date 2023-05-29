@@ -15,14 +15,34 @@ func main() {
 		fmt.Println(err)
 		os.Exit(2)
 	}
+	t := time.NewTicker(2 * time.Second)
+	stopper := make(chan bool)
+	go func(ch chan bool) {
+		fmt.Println("enter anything to end listener")
+		var tmp int
+		fmt.Scanf("%d", tmp)
+		ch <- true
+		fmt.Printf("input %d and listener is ending...", tmp)
+	}(stopper)
+	is_out := false
 	for {
-		status, err := c.GetPodMetric("test")
-		if err != nil {
-			fmt.Println(err)
-			os.Exit(2)
+		select {
+		case <-stopper:
+			c.UnRegisterPod("test")
+			is_out = true
+		case <-t.C:
+			status, err := c.GetPodMetric("test")
+			if err != nil {
+				fmt.Println(err)
+				os.Exit(2)
+			}
+			fmt.Println(status)
 		}
-		fmt.Println(status)
-		// every 3 second detect a cpu usage
-		time.Sleep(2 * time.Second)
+		if is_out {
+			break
+		}
 	}
+	fmt.Println("out loop")
+	time.Sleep(5 * time.Second)
+	fmt.Println("listener finished")
 }

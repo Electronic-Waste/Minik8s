@@ -1,0 +1,40 @@
+kind: Pod
+metadata:
+  name: test
+spec:
+  volumes:
+  - name: shared-data
+    hostPath: /root/test_vo
+
+  containers:
+
+  - name: go1
+    image: docker.io/library/golang:latest
+    resources:
+      limits:
+        cpu: "0.5"
+      requests:
+        cpu: "0.25"
+    volumeMounts:
+      - name: shared-data
+        mountPath: /mnt
+    ports:
+      - containerPort: 8080
+    command: 
+      - bash
+
+  - name: go2
+    image: docker.io/library/golang:latest
+    resources:
+      limits:
+        memory: "200MiB"
+      requests:
+        memory: "200MiB"
+    volumeMounts:
+      - name: shared-data
+        mountPath: /go/src
+    ports:
+      - containerPort: 80
+
+    command: 
+      - bash

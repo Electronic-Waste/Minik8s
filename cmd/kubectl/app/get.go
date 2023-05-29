@@ -13,6 +13,10 @@ var (
 	FormatNodes = []string{
 		"Name", "MasterIp", "NodeIp", "NodeStatus",
 	}
+
+	FormatJobs = []string{
+		"Name", "Pod",
+	}
 	FormatService = []string {
 		"ServiceName", "ClusterIP", "PortName",
 		"Port", "TargetPort", "ServiceStatus",
@@ -151,6 +155,15 @@ func GetHandler(resourceKind string) error {
 			output += "default\t\t" + "Autoscaler\t" + a.Metadata.Name + "\t" + "Running" + "\n"
 		}
 		fmt.Println(output)
+	case "jobs":
+		// deal with 'kubectl get nodes'
+		bytes, err := clientutil.HttpGet("jobs", map[string]string{})
+		if err != nil {
+			return err
+		}
+		maps := core.JobMaps{}
+		json.Unmarshal(bytes, &maps)
+		FormatPrinting(FormatJobs, maps)
 	}
 	return nil
 }
@@ -159,6 +172,7 @@ func FormatPrinting(formarStr []string, any interface{}) {
 	for _, str := range formarStr {
 		fmt.Printf("%s       ", str)
 	}
+
 
 	switch any.(type) {
 	case core.NodeList:
@@ -183,6 +197,11 @@ func FormatPrinting(formarStr []string, any interface{}) {
 					dns.Name, dns.Spec.Host, subpath.Path, 
 					subpath.Service, subpath.Port, "READY")
 			}
+		}
+	case core.JobMaps:
+		maps := any.(core.JobMaps)
+		for _, Map := range maps.Maps {
+			fmt.Printf("\n%s    %s", Map.JobName, Map.PodName)
 		}
 	}
 	fmt.Println("")
