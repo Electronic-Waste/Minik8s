@@ -132,7 +132,7 @@ func (ac *AutoscalerController) startworker () {
 func (ac *AutoscalerController) worker (autoscaler core.Autoscaler) {
 	timeout := time.Second * time.Duration(int64(autoscaler.Spec.ScaleInterval))
 	if timeout == 0{
-		timeout = time.Second * 5
+		timeout = time.Second * 15
 	}
 	for {
 		time.Sleep(timeout)
@@ -232,11 +232,8 @@ func (ac *AutoscalerController) worker (autoscaler core.Autoscaler) {
 					DecreaseReplicas(deployment,maxreplicas,minreplicas)
 				}
 			}else if flag1 == true{	//cpu increase but memory decrease
-				if cpuvalue.Metrics > 80{
-					DecreaseReplicas(deployment,maxreplicas,minreplicas)
-				}else{
-					IncreaseReplicas(deployment,maxreplicas,minreplicas)
-				}
+				fmt.Println("cpu (memory) decrease replicas")
+				DecreaseReplicas(deployment,maxreplicas,minreplicas)
 			}else{	//cpu decrease but memory increase
 				if memoryvalue.Metrics > 80{
 					DecreaseReplicas(deployment,maxreplicas,minreplicas)
@@ -265,7 +262,6 @@ func (ac *AutoscalerController) calculateMetrics(autoscaler core.Autoscaler, sta
 				cpu := s.CPUPercentage
 				totalcpu += cpu
 			}
-			totalcpu *= 100
 			fmt.Println("cpu:", totalcpu)
 			compare := MetricsCompare{
 				Metrics: totalcpu,
@@ -278,7 +274,6 @@ func (ac *AutoscalerController) calculateMetrics(autoscaler core.Autoscaler, sta
 				memory := s.MemoryPercentage
 				totalmemory += memory
 			}
-			totalmemory *= 100
 			//if memory is too small, it will be NAN
 			if math.IsNaN(totalmemory){
 				totalmemory = 0

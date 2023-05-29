@@ -56,7 +56,7 @@ func (k *Kubelet) Run(update chan kubetypes.PodUpdate) {
 }
 
 func (k *Kubelet) HandlePodGetMetrics(resp http.ResponseWriter, req *http.Request) {
-	fmt.Println("kubelet get pod metrics")
+	//fmt.Println("kubelet get pod metrics")
 	vars := req.URL.Query()
 	podName := vars.Get("name")
 	fmt.Println("get pod: ", podName)

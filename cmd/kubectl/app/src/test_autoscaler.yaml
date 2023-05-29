@@ -4,7 +4,7 @@ metadata:
 spec:
   maxReplicas: 4
   minReplicas: 1
-  scaleIntervel: 5
+  scaleIntervel: 15
   scaleTargetRef:
     kind: Deployment
     name: deployment_test
@@ -12,7 +12,7 @@ spec:
   - resource:
       name: cpu
       strategy: average
-      utilization: 50
+      utilization: 20
   - resource:
       name: memory
       strategy: average

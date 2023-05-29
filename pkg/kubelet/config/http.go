@@ -24,7 +24,7 @@ var (
 
 func HandleGetAllPod(resp http.ResponseWriter, req *http.Request) {
 	pods,err := podmanager.GetPods()
-	fmt.Println("kubelet get all pods:",pods)
+	//fmt.Println("kubelet get all pods:",pods)
 	if err != nil{
 		fmt.Println(err)
 		resp.WriteHeader(http.StatusNotFound)

@@ -122,7 +122,7 @@ func HttpApply(objType string, obj any) error {
 }
 
 func HttpPlus(objType string, obj any, url string) (error, string) {
-	fmt.Println("http plus apply: ",url)
+	fmt.Println("http plus: ",url)
 	client := http.Client{}
 	payload, _ := json.Marshal(obj)
 	var res string
@@ -146,7 +146,7 @@ func HttpPlus(objType string, obj any, url string) (error, string) {
 		if err != nil {
 			log.Fatal(err)
 		}
-		fmt.Println("http plus apply pod")
+		fmt.Println("http plus pod")
 		response, err := client.Do(request)
 		fmt.Println(response)
 		if err != nil {
@@ -155,7 +155,7 @@ func HttpPlus(objType string, obj any, url string) (error, string) {
 		if response.StatusCode != http.StatusOK {
 			return errors.New("apply fail"), ""
 		}
-		fmt.Println("http plus apply pod success")
+		fmt.Println("http plus pod success")
 		body, _ := ioutil.ReadAll(response.Body)
 		fmt.Printf("Response: %s\n", string(body))
 		res = string(body)
@@ -412,6 +412,7 @@ func HttpDel(objType string, params map[string]string) error {
 	case "DNS":
 		requestUrl = apiurl.Prefix + apiurl.DNSDelURL + urlparam
 	}
+	fmt.Println("http delete", requestUrl)
 	request, err := http.NewRequest("DELETE", requestUrl, nil)
 	if err != nil {
 		log.Fatal(err)

@@ -29,6 +29,7 @@ type DeploymentController struct {
 	queue   *queue.Queue
 	d2pMap 	map[interface{}]interface{}
 	p2dMap	map[interface{}]interface{}
+	isApplying int
 	//channel chan struct{}
 	//message *redis.Message
 }
@@ -38,6 +39,7 @@ func NewDeploymentController(ctx context.Context) (*DeploymentController, error)
 		queue:   new(queue.Queue),
 		d2pMap: make(map[interface{}]interface{}),	//deploymentname: []podname
 		p2dMap:	make(map[interface{}]interface{}),
+		isApplying: 0,
 	}
 	print("new deployment controller\n")
 	return dc, nil
@@ -45,7 +47,7 @@ func NewDeploymentController(ctx context.Context) (*DeploymentController, error)
 
 func (dc *DeploymentController) Run(ctx context.Context) {
 	go dc.register()		//register list watch handler
-	go dc.replicaWatcher()	//supervise pod replica numbers
+	//go dc.replicaWatcher()	//supervise pod replica numbers
 	go dc.worker(ctx)		//main thread processing messages
 	print("deployment controller running\n")
 	<-ctx.Done()
@@ -56,9 +58,16 @@ func (dc *DeploymentController) register() {
 	go listwatch.Watch(apiurl.DeploymentStatusApplyURL, dc.listener)
 	go listwatch.Watch(apiurl.DeploymentStatusUpdateURL, dc.listener)
 	go listwatch.Watch(apiurl.DeploymentStatusDelURL, dc.listener)
+	//go listwatch.Watch(apiurl.PodStatusApplyURL, dc.podApplyListener)
 	//not reach here
 	print("dc registered\n")
 }
+/*
+func (dc *DeploymentController) podApplyListener (msg *redis.Message) {
+	fmt.Println("dc informed pod apply")
+	dc.isApplying = 1
+}
+*/
 
 func (dc *DeploymentController) listener(msg *redis.Message) {
 	print("dc listening\n")
@@ -75,19 +84,21 @@ func (dc *DeploymentController) worker(ctx context.Context) {
 	print("dc working\n")
 	for {
 		if !dc.queue.Empty() {
-			print("receive msg!\n")
+			print("dc receive wacth res!\n")
 			//dc.queue.Dequeue()
 			dc.processNextWorkItem(ctx)
 		} else {
 			//print("worker pending\n")
-			time.Sleep(time.Second)
+			dc.replicaWatcher()
 		}
+		time.Sleep(time.Second)
 	}
 }
 
 func (dc *DeploymentController) processNextWorkItem(ctx context.Context) {
 	key := dc.queue.Dequeue()
 	_ = dc.syncDeployment(ctx, key.(listwatch.WatchResult))
+	time.Sleep(time.Second * 3)
 	return
 }
 
@@ -118,6 +129,7 @@ func (dc *DeploymentController) syncDeployment(ctx context.Context, watchres lis
 		switch actiontype {
 		case "apply":
 			fmt.Println("apply deployment pods")
+			dc.isApplying = 1
 			//did := uid.NewUid()
 			prefix := deployment.Metadata.Name
 			replicas := deployment.Spec.Replicas
@@ -146,6 +158,8 @@ func (dc *DeploymentController) syncDeployment(ctx context.Context, watchres lis
 			}
 			dc.d2pMap[deployment.Metadata.Name] = nameSet
 		case "update"://should only modify replicas
+			fmt.Println("update deployment")
+			dc.isApplying = 1
 			nameSet := dc.d2pMap[deployment.Metadata.Name].([]string)
 			oldReplicas := len(nameSet)
 			newReplicas := deployment.Spec.Replicas
@@ -240,126 +254,123 @@ func (dc *DeploymentController) syncDeployment(ctx context.Context, watchres lis
 }
 
 func (dc *DeploymentController) replicaWatcher() {
-	timeout := time.Second * 3
-	time.Sleep(time.Second * 15)
-	for {
-		time.Sleep(timeout)
-		fmt.Println("!!!watching replicas")
-		pods,err := GetPods()
-		fmt.Println("replica watcher get pods:",len(pods))
-		if err!=nil{
-			fmt.Println(err.Error())
+	fmt.Println("!!!watching replicas")
+	pods,err := GetPods()
+	fmt.Println("replica watcher get pods:",len(pods))
+	if err!=nil{
+		fmt.Println(err.Error())
+		return
+	}
+	if len(pods) == 0{
+		return
+	}
+	var strSet []string
+	var deploymentSet []core.Deployment
+	bytes,err := clientutil.HttpGetAll("Deployment")
+	if err != nil{
+		fmt.Println("get deployments fail")
+		return
+	}
+	json.Unmarshal(bytes,&strSet)
+	for _,s := range strSet{
+		if s == ""{
 			continue
 		}
-		if len(pods) == 0{
-			continue
-		}
-		var strSet []string
-		var deploymentSet []core.Deployment
-		bytes,err := clientutil.HttpGetAll("Deployment")
-		if err != nil{
-			fmt.Println("get deployments fail")
-			continue
-		}
-
-		json.Unmarshal(bytes,&strSet)
-		for _,s := range strSet{
-			if s == ""{
-				continue
-			}
-			//fmt.Println(i)
-			//fmt.Println(s)
-			deployment := core.Deployment{}
-			json.Unmarshal([]byte(s),&deployment)
-			deploymentSet = append(deploymentSet, deployment)
-			fmt.Println(deployment.Metadata.Name)
-		}
-		//fmt.Println("map:")
-		//for k,v := range dc.p2dMap{
-		//	fmt.Println("podname:" + k.(string) + ", deployname: " + v.(string))
-		//}
-		//fmt.Println("pods:")
-
-		numMap := make(map[string]int)
-		dc.d2pMap = make(map[interface{}]interface{})
-		for _,pod := range pods{
-			if pod.Status.Phase != core.PodFailed{
-				deploymentname,ok := dc.p2dMap[pod.Name]
-				if ok == true{
-					//fmt.Println("pod: " + pod.Name + ", deployment: deploymentname")
-					replica,ok := numMap[deploymentname.(string)]
-					if ok{
-						replica++
-						//fmt.Println("deployment recorded:")
-						//fmt.Println(replica)
-						numMap[deploymentname.(string)] = replica
-						nameSet := dc.d2pMap[deploymentname.(string)].([]string)
-						nameSet = append(nameSet, pod.Name)
-						dc.d2pMap[deploymentname.(string)] = nameSet
-					}else{
-						//fmt.Println("deployment unrecorded:")
-						//fmt.Println(1)
-						numMap[deploymentname.(string)] = 1
-						nameSet := make([]string,0)
-						nameSet = append(nameSet, pod.Name)
-						dc.d2pMap[deploymentname.(string)] = nameSet
-					}
-				}
-			}
-		}
-
-		for deploymentname,replica := range numMap {
-			for _,deployment := range deploymentSet{
-				if deployment.Metadata.Name == deploymentname{
-					if replica < deployment.Spec.Replicas{
-						fmt.Println("start adding replicas")
-						did := uid.NewUid()
-						prefix := deployment.Metadata.Name + "-" + did
-						num := deployment.Spec.Replicas - replica
-						var nameSet []string
-						
-						var containerNameSet []string
-						pod := deployment.Spec.Template
-						for _,c := range pod.Spec.Containers{
-							containerNameSet = append(containerNameSet, c.Name)
-						}
-						for i := 0; i < num; i++ {
-							//give pod names
-							pid := uid.NewUid()
-							podname := prefix + "-" + pid
-							dc.p2dMap[podname] = deployment.Metadata.Name
-							nameSet = append(nameSet, podname)
-							pod := deployment.Spec.Template
-							pod.Name = podname
-							//give container names
-							for i,_ := range pod.Spec.Containers{
-								cid := uid.NewUid()
-								pod.Spec.Containers[i].Name = containerNameSet[i] + "-" + cid
-							}
-							AddPod(pod)
-						}
-						dc.d2pMap[deployment.Metadata.Name] = nameSet
-					}
+		//fmt.Println(i)
+		//fmt.Println(s)
+		deployment := core.Deployment{}
+		json.Unmarshal([]byte(s),&deployment)
+		deploymentSet = append(deploymentSet, deployment)
+		fmt.Println(deployment.Metadata.Name)
+	}
+	//fmt.Println("map:")
+	//for k,v := range dc.p2dMap{
+	//	fmt.Println("podname:" + k.(string) + ", deployname: " + v.(string))
+	//}
+	//fmt.Println("pods:")
+	numMap := make(map[string]int)
+	dc.d2pMap = make(map[interface{}]interface{})
+	for _,pod := range pods{
+		if pod.Status.Phase != core.PodFailed{
+			deploymentname,ok := dc.p2dMap[pod.Name]
+			if ok == true{
+				//fmt.Println("pod: " + pod.Name + ", deployment: deploymentname")
+				replica,ok := numMap[deploymentname.(string)]
+				if ok{
+					replica++
+					//fmt.Println("deployment recorded:")
+					//fmt.Println(replica)
+					numMap[deploymentname.(string)] = replica
+					nameSet := dc.d2pMap[deploymentname.(string)].([]string)
+					nameSet = append(nameSet, pod.Name)
+					dc.d2pMap[deploymentname.(string)] = nameSet
+				}else{
+					//fmt.Println("deployment unrecorded:")
+					//fmt.Println(1)
+					numMap[deploymentname.(string)] = 1
+					nameSet := make([]string,0)
+					nameSet = append(nameSet, pod.Name)
+					dc.d2pMap[deploymentname.(string)] = nameSet
 				}
 			}
 		}
 	}
-	
+	for deploymentname,replica := range numMap {
+		for _,deployment := range deploymentSet{
+			if deployment.Metadata.Name == deploymentname{
+				if replica < deployment.Spec.Replicas{
+					fmt.Println("start adding replicas")
+					did := uid.NewUid()
+					prefix := deployment.Metadata.Name + "-" + did
+					num := deployment.Spec.Replicas - replica
+					var nameSet []string
+					
+					var containerNameSet []string
+					pod := deployment.Spec.Template
+					for _,c := range pod.Spec.Containers{
+						containerNameSet = append(containerNameSet, c.Name)
+					}
+					for i := 0; i < num; i++ {
+						//give pod names
+						pid := uid.NewUid()
+						podname := prefix + "-" + pid
+						dc.p2dMap[podname] = deployment.Metadata.Name
+						nameSet = append(nameSet, podname)
+						pod := deployment.Spec.Template
+						pod.Name = podname
+						//give container names
+						for i,_ := range pod.Spec.Containers{
+							cid := uid.NewUid()
+							pod.Spec.Containers[i].Name = containerNameSet[i] + "-" + cid
+						}
+						AddPod(pod)
+					}
+					dc.d2pMap[deployment.Metadata.Name] = nameSet
+				}
+			}
+		}
+	}
 }
 
 // just for test
 func AddPod(pod core.Pod) {
 	fmt.Printf("add pod %s\n",pod.Name)
-	clientutil.HttpApply("Pod",pod)
+	err := clientutil.HttpApply("Pod",pod)
+	if err != nil{
+		fmt.Println(err)
+	}
 }
 
 func DelPod(podname string) {
 	fmt.Printf("del pod %s\n",podname)
-	params := map[string]string{
-		"namespcae": "default",
-		"name": podname,
+	params := make(map[string]string)
+	params["namespace"] = "default"
+	params["name"] = podname
+	err := clientutil.HttpDel("Pod",params)
+	if err != nil{
+		fmt.Println("deployment del pod error")
+		fmt.Println(err)
 	}
-	clientutil.HttpDel("Pod",params)
 }
 
 func GetPods() ([]core.Pod,error) {
