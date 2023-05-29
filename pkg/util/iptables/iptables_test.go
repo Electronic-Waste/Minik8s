@@ -8,11 +8,14 @@ import (
 	"io/ioutil"
 
 	"minik8s.io/pkg/util/ipgen"
+	"minik8s.io/pkg/util/ipget"
 )
 
 func TestInitAndDeinitIptables(t *testing.T) {
 	var output []byte
-	cli, err := NewIPTablesClient("127.0.0.1")
+	hostIP, _ := ipget.GetHostIP()
+	flannelIP, _ := ipget.GetFlannelIP()
+	cli, err := NewIPTablesClient(hostIP, flannelIP)
 	if err != nil {
 		t.Error("create iptables client error")
 	}
@@ -39,7 +42,9 @@ func TestInitAndDeinitIptables(t *testing.T) {
 }
 
 func TestServiceChain(t *testing.T) {
-	cli, err := NewIPTablesClient("127.0.0.1")
+	hostIP, _ := ipget.GetHostIP()
+	flannelIP, _ := ipget.GetFlannelIP()
+	cli, err := NewIPTablesClient(hostIP, flannelIP)
 	if err != nil {
 		t.Error("create iptables client error")
 	}
@@ -60,10 +65,10 @@ func TestServiceChain(t *testing.T) {
 	serviceName := "service-test"
 	podChainName := cli.CreatePodChain()
 	podName := "test"
-	podIP := "10.0.6.2"
+	podIP := "10.0.7.124"
 	targetPort := 80
 	port := 22222
-	err = cli.ApplyPodChainRules(podChainName, podIP, (uint16)(targetPort))
+	err = cli.ApplyPodChainRules(podChainName, podIP, (uint16)(targetPort), false)
 	if err != nil {
 		t.Errorf("Error in applying pod chain rules: %v", err)
 	}
@@ -109,7 +114,6 @@ func TestServiceChain(t *testing.T) {
 	if err != nil {
 		t.Logf("Error in deleting pod chain: %v", err)
 	}
-	
-
+	cli.DeinitServiceIPTables()
 }
 

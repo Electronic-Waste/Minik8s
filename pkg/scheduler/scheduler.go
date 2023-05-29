@@ -6,7 +6,7 @@ import (
 	"github.com/go-redis/redis/v8"
 	"minik8s.io/pkg/apis/core"
 	apiurl "minik8s.io/pkg/apiserver/util/url"
-	"minik8s.io/pkg/podmanager"
+	// "minik8s.io/pkg/podmanager"
 	"minik8s.io/pkg/util/listwatch"
 )
 
@@ -40,15 +40,15 @@ func (s *Scheduler) UpdatePodHandler(msg *redis.Message) {
 
 }
 
-func (s *Scheduler) DeletePodHandler(msg *redis.Message) {
-	podName := msg.Payload
-	fmt.Printf("kubelet receive del msg: %s", podName)
-	podmanager.DelPod(podName)
-}
+// func (s *Scheduler) DeletePodHandler(msg *redis.Message) {
+// 	podName := msg.Payload
+// 	fmt.Printf("kubelet receive del msg: %s", podName)
+// 	podmanager.DelPod(podName)
+// }
 
 func (s *Scheduler) BindWatchHandler() {
 	go listwatch.Watch("/pods/status/apply", s.ApplyPodHanlder)
-	go listwatch.Watch("/pods/status/del", s.DeletePodHandler)
+	// go listwatch.Watch("/pods/status/del", s.DeletePodHandler)
 	go listwatch.Watch("/pods/status/update", s.UpdatePodHandler)
 }
 

@@ -4,7 +4,7 @@ import(
 	"context"
 	"time"
 	"minik8s.io/pkg/clientutil"
-	"minik8s.io/pkg/kubelet/cadvisor"
+	//"minik8s.io/pkg/kubelet/cadvisor"
 	"minik8s.io/pkg/util/listwatch"
 	"minik8s.io/pkg/apis/core"
 	"github.com/go-redis/redis/v8"
@@ -17,13 +17,13 @@ import(
 
 type AutoscalerController struct {
 	autoscalerList	[]core.Autoscaler
-	cadvisor		*cadvisor.CAdvisor
+	//cadvisor		*cadvisor.CAdvisor
 }
 
 func NewAutoscalerController(ctx context.Context) (*AutoscalerController, error) {
 	ac := &AutoscalerController{
 		autoscalerList: []core.Autoscaler{},
-		cadvisor: 		cadvisor.GetCAdvisor(),
+		//cadvisor: 		cadvisor.GetCAdvisor(),
 	}
 	return ac, nil
 }
@@ -61,7 +61,6 @@ func (ac *AutoscalerController) applylistener (msg *redis.Message) {
 	if err != nil {
 		return
 	}
-	
 	//apply
 	for _,a := range ac.autoscalerList{
 		if a.Metadata.Name == autoscaler.Metadata.Name{
@@ -69,12 +68,15 @@ func (ac *AutoscalerController) applylistener (msg *redis.Message) {
 			return
 		}
 	}
+	
 	//start supervise
+	/*
 	pods, err := GetReplicaPods(autoscaler.Spec.ScaleTargetRef.Name)
 	if err != nil{
-		fmt.Println(err)
+		fmt.Println("GetReplicaPods:",err)
 		return
 	}
+	fmt.Println("ac supervise pods")
 	for _,pod := range pods{
 		err = ac.cadvisor.RegisterPod(pod.Name)
 		if err != nil {
@@ -82,6 +84,7 @@ func (ac *AutoscalerController) applylistener (msg *redis.Message) {
 			return
 		}
 	}
+	*/
 	//add autoscaler
 	ac.autoscalerList = append(ac.autoscalerList, autoscaler)
 	fmt.Println("ac apply new autoscaler success")
@@ -179,6 +182,7 @@ func (ac *AutoscalerController) worker (autoscaler core.Autoscaler) {
 		if err != nil{
 			continue
 		}
+		/*
 		for _,pod := range pods{
 			err = ac.cadvisor.RegisterPod(pod.Name)
 			if err != nil {
@@ -187,14 +191,17 @@ func (ac *AutoscalerController) worker (autoscaler core.Autoscaler) {
 			}
 			time.Sleep(time.Second * 5)
 		}
+		*/
 		fmt.Println("get pod status:")
 		statusList := []stats.PodStats{}
 		for _,pod := range pods{
-			status, err := ac.cadvisor.GetPodMetric(pod.Name)
+			//status, err := ac.cadvisor.GetPodMetric(pod.Name)
+			status, err := GetPodMetrics(pod.Name, pod.Spec.RunningNode.Spec.NodeIp)
 			if err != nil{
 				fmt.Println(err)
 				continue
 			}
+			fmt.Println(status)
 			statusList = append(statusList, status)
 			//fmt.Println(status)
 		}
@@ -305,6 +312,7 @@ func (ac *AutoscalerController) calculateMetrics(autoscaler core.Autoscaler, sta
 }
 
 func GetReplicaPods(deploymentname string) ([]core.Pod,error) {
+	fmt.Println("GetReplicaPods")
 	params := make(map[string]string)
 	params["namespace"] = "default"
 	params["prefix"] = deploymentname
@@ -348,4 +356,21 @@ func DecreaseReplicas(deployment core.Deployment, maxreplicas int, minreplicas i
 	deployment.Spec.Replicas = deployment.Spec.Replicas - 1
 	fmt.Println("decrease deployment ",deployment.Metadata.Name," to ",deployment.Spec.Replicas)
 	clientutil.HttpUpdate("Deployment",deployment)
+}
+
+func GetPodMetrics(podname string, nodeIP string) (stats.PodStats,error) {
+	fmt.Println("GetPodMetrics")
+	params := make(map[string]string)
+	params["name"] = podname
+	params["nodeip"] = nodeIP
+	bytes,err := clientutil.HttpGet("metrics",params)
+	if err != nil{
+		return stats.PodStats{}, err
+	}
+	status := stats.PodStats{}
+	err = json.Unmarshal(bytes, &status)
+	if err != nil{
+		return stats.PodStats{}, err
+	}
+	return status,nil
 }

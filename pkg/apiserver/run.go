@@ -18,8 +18,8 @@ import (
 	"minik8s.io/pkg/apiserver/etcd"
 	"minik8s.io/pkg/apiserver/pod"
 	"minik8s.io/pkg/apiserver/service"
+	"minik8s.io/pkg/apiserver/dns"
 	"minik8s.io/pkg/apiserver/util/url"
-	"minik8s.io/pkg/kubeproxy"
 )
 
 type HttpHandler func(http.ResponseWriter, *http.Request)
@@ -35,11 +35,13 @@ var postHandlerMap = map[string]HttpHandler{
 	url.ServiceUpdateURL:          service.HandleUpdateService,
 	url.JobApplyUrl:               job.HandleApplyJob,
 	url.JobMapUrl:                 job.HandleMapJob,
+	url.DNSApplyURL:				dns.HandleApplyDNS,
 }
 
 var getHandlerMap = map[string]HttpHandler{
 	url.PodStatusGetURL:           pod.HandleGetPodStatus,
 	url.PodStatusGetAllURL:        pod.HandleGetAllPodStatus,
+	url.PodStatusGetWithPrefixURL: 	pod.HandleGetWithPrefixPodStatus,
 	url.DeploymentStatusGetURL:    deployment.HandleGetDeploymentStatus,
 	url.DeploymentStatusGetAllURL: deployment.HandleGetAllDeploymentStatus,
 	url.AutoscalerStatusGetURL:    autoscaler.HandleGetAutoscalerStatus,
@@ -48,6 +50,9 @@ var getHandlerMap = map[string]HttpHandler{
 	url.ServiceGetAllURL:          service.HandleGetAllServices,
 	url.NodesGetUrl:               node.HandleGetNodes,
 	url.JobGetUrl:                 job.HandleGetJob,
+	url.DNSGetURL:					dns.HandleGetDNS,
+	url.DNSGetAllURL:				dns.HandleGetAllDNS,
+	url.MetricsGetUrl:				pod.HandleGetPodMetrics,
 }
 
 var deleteHandlerMap = map[string]HttpHandler{
@@ -55,6 +60,7 @@ var deleteHandlerMap = map[string]HttpHandler{
 	url.DeploymentStatusDelURL: deployment.HandleDelDeploymentStatus,
 	url.AutoscalerStatusDelURL: autoscaler.HandleDelAutoscalerStatus,
 	url.ServiceDelURL:          service.HandleDelService,
+	url.DNSDelURL:					dns.HandleDelDNS,
 }
 
 var nodeHandlerMap = map[string]HttpHandler{
@@ -94,17 +100,12 @@ func HitNode(msg *redis.Message) {
 	}
 }
 
-var kubeProxyManager *kubeproxy.KubeproxyManager
-
 func Run() {
 	// Initialize etcd client
 	etcd.InitializeEtcdKVStore()
-
-	// Init clusterIPGen in service
+	
+	// Init clusterIPGen in service module
 	service.InitServiceController()
-
-	kubeProxyManager, _ = kubeproxy.NewKubeProxy()
-	kubeProxyManager.Run()
 
 	// Bind POST request with handler
 	for url, handler := range postHandlerMap {

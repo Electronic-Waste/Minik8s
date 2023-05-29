@@ -35,6 +35,8 @@
 
 `./bin/apiserver`启动apiserver  
 `./bin/kubelet`启动kubelet  
+`./bin/scheduler`启动scheduler  
+`./bin/kubeadm join --config=./testcases/vmeet2.yaml`加入集群  
 `./bin/kube-controller-manager`启动所有controller  
 
 ### 使用Deployment controller创建deployment实例  
@@ -44,4 +46,25 @@
 
 ## Autoscaler Controller 流程
 
-启动Deployment controller，然后`./bin/kubectl apply <filename>`(expmple: `./bin/kubectl apply ./cmd/kubectl/app/src/test_autoscaler.yaml`)
+先启动Deployment Controller，然后执行`./bin/kubectl apply <filename>`(expmple: `./bin/kubectl apply ./cmd/kubectl/app/src/test_autoscaler.yaml`)创建autoscaler实例  
+
+## Service功能
+
+> Service中的selector字段会去匹配pod的label字段，进而实现Servcie端口的映射(目前仅支持app标签匹配)
+
+### 启动
+`./bin/apiserver`启动apiserver  
+`./bin/kubelet`启动kubelet  
+`./bin/scheduler`启动scheduler  
+`./bin/kubeadm join --config=./testcases/vmeet2.yaml`加入集群  
+
+### 使用
+
+`./bin/kubectl apply <service.yaml>` 创建Service服务
+`./bin/kubectl get service` 查看创建的Service的状态、ClusterIP以及Port等信息
+`./bin/kubectl delete <serviceName>` 删除name为serviceName的Service服务
+
+### 使用效果
+> Apply Service后，可以通过虚拟IP访问服务，同时IPtables规则也会修改，具体效果如下所示
+
+![service-result](./docs/img/service-result.png)

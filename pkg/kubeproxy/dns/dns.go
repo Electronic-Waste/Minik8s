@@ -36,22 +36,35 @@ func (controller *DNSController) CreateDNSRule(targetIP, hostname string) error 
 	if net.ParseIP(targetIP) == nil {
 		return fmt.Errorf("Invalid targetIP: %s\n", targetIP)
 	}
-	// Open file with r/w privilege
-	file, err := os.OpenFile(controller.HostsFilePath, os.O_RDWR | os.O_APPEND, 777)
+
+	// Read hosts file
+	content, err := ioutil.ReadFile(controller.HostsFilePath)
 	if err != nil {
-		return fmt.Errorf("Error in CreateDNSRule: %v\n", err)
+		return fmt.Errorf("Error in DelDNSRule: %v\n", err)
 	}
-	ipHostPair := fmt.Sprintf("\n%s %s", targetIP, hostname)
-	var bytesWritten int
-	bytesWritten, err = file.WriteString(ipHostPair)
-	if err != nil {
-		return fmt.Errorf("Error in CreateDNSRule: %v\n", err)
+
+	// Parse file content to []string
+	lines := strings.Split(string(content), "\n")
+	if len(lines) > 0 && lines[len(lines) - 1] == "" {
+		lines = lines[:len(lines) - 1]
 	}
-	fmt.Printf("bytesWritten: %d", bytesWritten)
-	return nil
+
+	// If already exists, then return
+	ipHostPair := fmt.Sprintf("%s %s", targetIP, hostname)
+	for _, line := range lines {
+		if line == ipHostPair {
+			return nil
+		}
+	}
+
+	// Combine them & write back to hosts file
+	lines = append(lines, ipHostPair)
+	output := strings.Join(lines, "\n")
+	return ioutil.WriteFile(controller.HostsFilePath, []byte(output), 0644)
 }
 
 func (controller *DNSController) DelDNSRule(targetIP, hostname string) error {
+	// Read hosts file
 	content, err := ioutil.ReadFile(controller.HostsFilePath)
 	if err != nil {
 		return fmt.Errorf("Error in DelDNSRule: %v\n", err)
@@ -61,6 +74,8 @@ func (controller *DNSController) DelDNSRule(targetIP, hostname string) error {
 	if len(lines) > 0 && lines[len(lines) - 1] == "" {
 		lines = lines[:len(lines) - 1]
 	}
+
+	// Find target line and delete it & Write back to file
 	targetLine := fmt.Sprintf("%s %s", targetIP, hostname)
 	for i := range lines {
 		if lines[i] == targetLine {
