@@ -224,7 +224,7 @@ func (ac *AutoscalerController) worker (autoscaler core.Autoscaler) {
 			flag1 := cpuvalue.Metrics > cpuvalue.Utilization
 			flag2 := memoryvalue.Metrics > memoryvalue.Utilization
 			if flag1 == flag2{
-				if flag1 == false{
+				if flag1 == true{
 					fmt.Println("cpu and memory increase replicas")
 					IncreaseReplicas(deployment,maxreplicas,minreplicas)
 				}else{

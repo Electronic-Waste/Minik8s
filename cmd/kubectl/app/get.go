@@ -120,22 +120,12 @@ func GetHandler(resourceKind string) error {
 		if err != nil {
 			return err
 		}
-		//var strs []string
-		
 		//fmt.Println("get deployment number: ", len(strs))
 		var deployments []core.Deployment
 		_ = json.Unmarshal(bytes, &deployments)
-		//for _, s := range strs {
-		//	if s == "" {
-		//		continue
-		//	}
-		//	deployment := core.Deployment{}
-		//	_ = json.Unmarshal([]byte(s), &deployment)
-		//	deployments = append(deployments, deployment)
-		//}
-		output := "NAMESPACE\tKIND\tNAME\tSTATUS\t\n"
+		output := "NAMESPACE\tKIND\tNAME\tREPLICAS\t\n"
 		for _, d := range deployments {
-			output += "default\t\t" + "Deployment\t" + d.Metadata.Name + "\t" + "Running" + "\n"
+			output += "default\t\t" + "Deployment\t" + fmt.Sprintf("%d", d.Spec.Replicas) + "/" + fmt.Sprintf("%d", d.Spec.Replicas) + "\t" + "Running" + "\n"
 		}
 		fmt.Println(output)
 	case "autoscaler":

@@ -419,7 +419,7 @@ type NetworkOptions struct {
 type Deployment struct {
 	Metadata meta.ObjectMeta
 	Spec     DeploymentSpec
-	Status   DeploymentStatus
+	//Status   DeploymentStatus
 }
 
 type DeploymentSpec struct {

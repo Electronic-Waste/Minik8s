@@ -7,7 +7,7 @@ import (
 	"minik8s.io/pkg/apis/core"
 	"minik8s.io/pkg/constant"
 	"minik8s.io/pkg/kubelet/types"
-	// "minik8s.io/pkg/podmanager"
+	"minik8s.io/pkg/podmanager"
 	"os"
 	"time"
 
@@ -130,22 +130,22 @@ func (cfg *sourceFile) run(fileCache *FileCache) {
 		}
 	}()
 	//polling to check container status
-	/*
 	go func () {
 		timeout := time.Second * 10
 		for {
 			fmt.Println("check pod status")
 			for _,podname := range fileCache.PodMap{
-				if podmanager.IsPodRunning(podname) {
+				if !podmanager.IsPodRunning(podname) {
+					fmt.Println("pod not running",podname)
 					podmanager.DelPod(podname)
-				} else if podmanager.IsCrashContainer(podname) {
+				} else if !podmanager.IsCrashContainer(podname) {
+					fmt.Println("contain crash",podname)
 					podmanager.DelSimpleContainer(podname)
 				}
 			}
 			time.Sleep(timeout)
 		}
 	}()
-	*/
 	cfg.startWatch(fileCache)
 }
 

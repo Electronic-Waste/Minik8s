@@ -98,6 +98,7 @@ func (dc *DeploymentController) worker(ctx context.Context) {
 func (dc *DeploymentController) processNextWorkItem(ctx context.Context) {
 	key := dc.queue.Dequeue()
 	_ = dc.syncDeployment(ctx, key.(listwatch.WatchResult))
+	//wait for pods to be truly applied
 	time.Sleep(time.Second * 3)
 	return
 }
@@ -204,49 +205,6 @@ func (dc *DeploymentController) syncDeployment(ctx context.Context, watchres lis
 				delete(dc.p2dMap,podname)
 			}
 			delete(dc.d2pMap,deployment.Metadata.Name)
-		}
-	case "Pod":	//abandoned
-		pod := core.Pod{}
-		err = json.Unmarshal(watchres.Payload, &pod)
-		if err != nil {
-			return err
-		}
-		switch actiontype{
-		case "apply":
-			fmt.Println("apply single pod")
-			pid := uid.NewUid()
-			podname := pod.Name + "-" + pid
-			fmt.Println(podname)
-			pod.Name = podname
-			AddPod(pod)
-		case "update":
-		case "delete":
-			_,ok := dc.p2dMap[pod.Name]
-			//for k,v := range dc.d2pMap{
-			//	nameSet := v.([]string)
-			//	for _,podname := range nameSet{
-			//		if podname == pod.Name{
-			//			deploymentname = k.(string)
-			//		}
-			//	}
-			//}
-			if ok {
-				if deployment.Status.AvailableReplicas < deployment.Spec.Replicas {
-					num := deployment.Spec.Replicas - deployment.Status.AvailableReplicas
-					for i := 0; i < num; i++ {
-						pod := core.Pod{}
-						pod = deployment.Spec.Template
-						AddPod(pod)
-					}
-				}
-
-				if deployment.Status.AvailableReplicas > deployment.Spec.Replicas {
-					bytes, _ := json.Marshal(deployment)
-					msg := new(redis.Message)
-					msg.Payload = string(bytes)
-					//client
-				}
-			}
 		}
 	}
 	//TODO: check the deployment status and do actions accordingly
