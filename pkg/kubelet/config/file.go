@@ -133,7 +133,6 @@ func (cfg *sourceFile) run(fileCache *FileCache) {
 		}
 	}()
 	//polling to check container status
-	
 	go func () {
 		timeout := time.Second * 10
 		for {
@@ -150,7 +149,6 @@ func (cfg *sourceFile) run(fileCache *FileCache) {
 			time.Sleep(timeout)
 		}
 	}()
-	
 	cfg.startWatch(fileCache)
 }
 

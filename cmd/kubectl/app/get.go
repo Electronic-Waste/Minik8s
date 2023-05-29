@@ -177,7 +177,6 @@ func GetHandler(resourceKind string) error {
 		if err != nil {
 			return err
 		}
-
 		//fmt.Println("get deployment number: ", len(strs))
 		var strs []string
 		var deployments []core.Deployment
