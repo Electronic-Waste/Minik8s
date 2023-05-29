@@ -31,6 +31,7 @@ type DeploymentController struct {
 	queue   *queue.Queue
 	d2pMap 	map[interface{}]interface{}
 	p2dMap	map[interface{}]interface{}
+	isApplying int
 	//channel chan struct{}
 	//message *redis.Message
 }
@@ -48,7 +49,7 @@ func NewDeploymentController(ctx context.Context) (*DeploymentController, error)
 func (dc *DeploymentController) Run(ctx context.Context) {
 	dc.restart()			//restart from crash
 	go dc.register()		//register list watch handler
-	go dc.replicaWatcher()	//supervise pod replica numbers
+	//go dc.replicaWatcher()	//supervise pod replica numbers
 	go dc.worker(ctx)		//main thread processing messages
 	print("deployment controller running\n")
 	<-ctx.Done()
@@ -359,6 +360,7 @@ func (dc *DeploymentController) replicaWatcher() {
 						fmt.Println("short wait")
 						time.Sleep(time.Second * 5)
 					}
+					dc.d2pMap[deployment.Metadata.Name] = nameSet
 				}
 			}
 		}
