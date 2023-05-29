@@ -63,7 +63,7 @@ func ApplyHandler(path string) error {
 		//bytes,_ := json.Marshal(autoscaler)
 		//fmt.Println(string(bytes))
 		err = applyAutoscaler(autoscaler)
-		if err != nil{
+		if err != nil {
 			return err
 		}
 	case "Deployment":
@@ -74,7 +74,7 @@ func ApplyHandler(path string) error {
 		}
 		fmt.Printf("deployment: %s\n", deployment.Metadata.Name)
 		err = applyDeployment(deployment)
-		if err != nil{
+		if err != nil {
 			return err
 		}
 		//TODO: add more case handlers
@@ -87,7 +87,7 @@ func ApplyHandler(path string) error {
 		}
 		fmt.Printf("pod: %s\n", pod.Name)
 		err = applyPod(pod)
-		if err != nil{
+		if err != nil {
 			return err
 		}
 	case "Service":
@@ -112,6 +112,20 @@ func ApplyHandler(path string) error {
 		if err != nil {
 			return fmt.Errorf("Error in sending dns to apiserver: %v", err)
 		}
+	case "Job":
+		job := core.Job{}
+		err := viper.Unmarshal(&job)
+		fmt.Println("printf job")
+		fmt.Println(job)
+		if err != nil {
+			fmt.Printf("Error in unmarshaling service yaml file: %v", err)
+			return err
+		}
+		err = applyJob(job)
+		if err != nil {
+			fmt.Printf("Error in sending service to apiserver: %v", err)
+			return err
+		}
 	}
 	return nil
 }
@@ -131,6 +145,11 @@ func applyService(service core.Service) error {
 	return clientutil.HttpApply("Service", service)
 }
 
+
+func applyJob(job core.Job) error {
+	fmt.Println("apply job")
+	return clientutil.HttpApply("Job", job)
+}
 
 func applyDNS(dns core.DNS) error {
 	fmt.Println("apply dns")
