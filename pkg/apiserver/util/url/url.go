@@ -52,6 +52,11 @@ const (
 	NodeRergisterUrl string = Node + "/register"
 	NodesGetUrl      string = Node + "/getall"
 
+	Job         string = "/job"
+	JobApplyUrl string = Job + "/apply"
+	JobGetUrl   string = Job + "/get"
+	JobMapUrl   string = Job + "/map"
+
 	Sched         string = "/sched"
 	SchedApplyURL        = Sched + "/apply"
 

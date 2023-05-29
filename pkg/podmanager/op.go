@@ -185,6 +185,7 @@ func GetPods() ([]core.Pod, error) {
 
 	// check all container status
 	is_running := false
+	is_pending := false
 	for i, pod := range podSet {
 		// walk for Pod's container
 		is_running = false
@@ -208,6 +209,8 @@ func GetPods() ([]core.Pod, error) {
 				}
 				if strings.Compare(status, "Up") == 0 {
 					is_running = true
+				} else if strings.Compare(status, "Create") == 0 {
+					is_pending = true
 				}
 				return nil
 			},
@@ -216,6 +219,9 @@ func GetPods() ([]core.Pod, error) {
 		_, err := walker.WalkPod(ctx, pod.Name)
 		if err != nil {
 			return nil, err
+		}
+		if is_pending {
+			pod.Status.Phase = core.PodPending
 		}
 		if is_running && pod.Status.Phase == core.PodUnknown {
 			pod.Status.Phase = core.PodRunning

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/go-redis/redis/v8"
 	"minik8s.io/pkg/apis/core"
+	"minik8s.io/pkg/apiserver/job"
 	"minik8s.io/pkg/apiserver/node"
 	"minik8s.io/pkg/clientutil"
 	"minik8s.io/pkg/kubelet/config"
@@ -24,38 +25,41 @@ import (
 type HttpHandler func(http.ResponseWriter, *http.Request)
 
 var postHandlerMap = map[string]HttpHandler{
-	url.PodStatusApplyURL:         	pod.HandleApplyPodStatus,
-	url.PodStatusUpdateURL:        	pod.HandleUpdatePodStatus,
-	url.DeploymentStatusApplyURL:  	deployment.HandleApplyDeploymentStatus,
-	url.DeploymentStatusUpdateURL: 	deployment.HandleUpdateDeploymentStatus,
-	url.AutoscalerStatusApplyURL:  	autoscaler.HandleApplyAutoscalerStatus,
-	url.AutoscalerStatusUpdateURL: 	autoscaler.HandleUpdateAutoscalerStatus,
-	url.ServiceApplyURL:           	service.HandleApplyService,
-	url.ServiceUpdateURL:          	service.HandleUpdateService,
+	url.PodStatusApplyURL:         pod.HandleApplyPodStatus,
+	url.PodStatusUpdateURL:        pod.HandleUpdatePodStatus,
+	url.DeploymentStatusApplyURL:  deployment.HandleApplyDeploymentStatus,
+	url.DeploymentStatusUpdateURL: deployment.HandleUpdateDeploymentStatus,
+	url.AutoscalerStatusApplyURL:  autoscaler.HandleApplyAutoscalerStatus,
+	url.AutoscalerStatusUpdateURL: autoscaler.HandleUpdateAutoscalerStatus,
+	url.ServiceApplyURL:           service.HandleApplyService,
+	url.ServiceUpdateURL:          service.HandleUpdateService,
+	url.JobApplyUrl:               job.HandleApplyJob,
+	url.JobMapUrl:                 job.HandleMapJob,
 	url.DNSApplyURL:				dns.HandleApplyDNS,
 }
 
 var getHandlerMap = map[string]HttpHandler{
-	url.PodStatusGetURL:           	pod.HandleGetPodStatus,
-	url.PodStatusGetAllURL:        	pod.HandleGetAllPodStatus,
+	url.PodStatusGetURL:           pod.HandleGetPodStatus,
+	url.PodStatusGetAllURL:        pod.HandleGetAllPodStatus,
 	url.PodStatusGetWithPrefixURL: 	pod.HandleGetWithPrefixPodStatus,
-	url.DeploymentStatusGetURL:    	deployment.HandleGetDeploymentStatus,
-	url.DeploymentStatusGetAllURL: 	deployment.HandleGetAllDeploymentStatus,
-	url.ServiceGetURL:				service.HandleGetService,
-	url.ServiceGetAllURL:			service.HandleGetAllServices,
+	url.DeploymentStatusGetURL:    deployment.HandleGetDeploymentStatus,
+	url.DeploymentStatusGetAllURL: deployment.HandleGetAllDeploymentStatus,
+	url.AutoscalerStatusGetURL:    autoscaler.HandleGetAutoscalerStatus,
+	url.AutoscalerStatusGetAllURL: autoscaler.HandleGetAllAutoscalerStatus,
+	url.ServiceGetURL:             service.HandleGetService,
+	url.ServiceGetAllURL:          service.HandleGetAllServices,
+	url.NodesGetUrl:               node.HandleGetNodes,
+	url.JobGetUrl:                 job.HandleGetJob,
 	url.DNSGetURL:					dns.HandleGetDNS,
 	url.DNSGetAllURL:				dns.HandleGetAllDNS,
-	url.AutoscalerStatusGetURL:    	autoscaler.HandleGetAutoscalerStatus,
-	url.AutoscalerStatusGetAllURL: 	autoscaler.HandleGetAllAutoscalerStatus,
 	url.MetricsGetUrl:				pod.HandleGetPodMetrics,
-	url.NodesGetUrl:				node.HandleGetNodes,
 }
 
 var deleteHandlerMap = map[string]HttpHandler{
-	url.PodStatusDelURL:        	pod.HandleDelPodStatus,
-	url.DeploymentStatusDelURL: 	deployment.HandleDelDeploymentStatus,
-	url.AutoscalerStatusDelURL: 	autoscaler.HandleDelAutoscalerStatus,
-	url.ServiceDelURL: 				service.HandleDelService,
+	url.PodStatusDelURL:        pod.HandleDelPodStatus,
+	url.DeploymentStatusDelURL: deployment.HandleDelDeploymentStatus,
+	url.AutoscalerStatusDelURL: autoscaler.HandleDelAutoscalerStatus,
+	url.ServiceDelURL:          service.HandleDelService,
 	url.DNSDelURL:					dns.HandleDelDNS,
 }
 
