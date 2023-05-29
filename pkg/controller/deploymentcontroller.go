@@ -256,7 +256,7 @@ func (dc *DeploymentController) syncDeployment(ctx context.Context, watchres lis
 func (dc *DeploymentController) replicaWatcher() {
 	fmt.Println("!!!watching replicas")
 	pods,err := GetPods()
-	fmt.Println("replica watcher get pods:",len(pods))
+	fmt.Println("replica watcher get pods:", len(pods))
 	if err!=nil{
 		fmt.Println(err.Error())
 		return

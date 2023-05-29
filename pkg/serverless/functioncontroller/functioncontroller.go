@@ -4,6 +4,12 @@ import(
 	"minik8s.io/pkg/apis/core"
 	"minik8s.io/pkg/apis/meta"
 	"context"
+	"minik8s.io/pkg/util/listwatch"
+)
+
+var(
+	FunctionStatus	 string = "/function/status"
+	FunctionApplyUrl string = FunctionStatus + "/apply"
 )
 
 type Function{
@@ -29,5 +35,9 @@ func (fc *FunctionController) Run (ctx context.Context) {
 }
 
 func (fc *FunctionController) register {
+	go listwatch.Watch(FunctionApplyUrl, )
+}
+
+func (fc *FunctionController) listener (msg *redis.Message) {
 	
 }
