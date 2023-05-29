@@ -4,9 +4,10 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"net/http"
+
 	"minik8s.io/pkg/apis/core"
 	"minik8s.io/pkg/podmanager"
-	"net/http"
 )
 
 // the source of http to apply the Pod
@@ -14,25 +15,25 @@ import (
 type HttpHandler func(http.ResponseWriter, *http.Request)
 
 var (
-	Port      string = ":3000"
-	PodPrefix string = "/Pod"
-	RunPodUrl string = PodPrefix + "/run"
-	DelPodRul string = PodPrefix + "/del"
+	Port          string = ":3000"
+	PodPrefix     string = "/Pod"
+	RunPodUrl     string = PodPrefix + "/run"
+	DelPodRul     string = PodPrefix + "/del"
 	PodMetricsUrl string = PodPrefix + "/metrics"
-	GetAllPodUrl string = PodPrefix + "/get"
+	GetAllPodUrl  string = PodPrefix + "/get"
 )
 
 func HandleGetAllPod(resp http.ResponseWriter, req *http.Request) {
-	pods,err := podmanager.GetPods()
-	fmt.Println("kubelet get all pods:",pods)
-	if err != nil{
+	pods, err := podmanager.GetPods()
+	//fmt.Println("kubelet get all pods:", pods)
+	if err != nil {
 		fmt.Println(err)
 		resp.WriteHeader(http.StatusNotFound)
 		resp.Write([]byte(err.Error()))
 		return
 	}
-	bytes,err := json.Marshal(pods)
-	if err != nil{
+	bytes, err := json.Marshal(pods)
+	if err != nil {
 		fmt.Println(err)
 		resp.WriteHeader(http.StatusNotFound)
 		resp.Write([]byte(err.Error()))
@@ -87,7 +88,7 @@ func HandlePodRun(resp http.ResponseWriter, req *http.Request) {
 
 func Run(PodMap map[string]HttpHandler) error {
 	for url, handler := range PodMap {
-		fmt.Println("kubelet http server: ",url)
+		fmt.Println("kubelet http server: ", url)
 		http.HandleFunc(url, handler)
 	}
 
