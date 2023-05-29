@@ -110,7 +110,7 @@ func HandleMemGet(resp http.ResponseWriter, req *http.Request) {
 
 func Run(PodMap map[string]HttpHandler) error {
 	for url, handler := range PodMap {
-		fmt.Println("kubelet http server: ",url)
+		fmt.Println("kubelet http server: ", url)
 		http.HandleFunc(url, handler)
 	}
 
