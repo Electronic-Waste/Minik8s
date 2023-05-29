@@ -49,8 +49,15 @@ func (controller *DNSController) CreateDNSRule(targetIP, hostname string) error 
 		lines = lines[:len(lines) - 1]
 	}
 
-	// Combine them & write back to hosts file
+	// If already exists, then return
 	ipHostPair := fmt.Sprintf("%s %s", targetIP, hostname)
+	for _, line := range lines {
+		if line == ipHostPair {
+			return nil
+		}
+	}
+
+	// Combine them & write back to hosts file
 	lines = append(lines, ipHostPair)
 	output := strings.Join(lines, "\n")
 	return ioutil.WriteFile(controller.HostsFilePath, []byte(output), 0644)
