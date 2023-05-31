@@ -37,3 +37,37 @@ func HandleRegisterFunction(resp http.ResponseWriter, req *http.Request) {
 	// Success
 	resp.WriteHeader(http.StatusOK)
 }
+
+
+
+// Invoked when there is no pod for func
+// uri: /func/trigger
+// body: core.Function in JSON form
+// func HandleTriggerFunction(resp http.ResponseWriter, req *http.Request) {
+
+// }
+
+// Get all functions
+// uri: /func/getall
+func HandleGetAllFunction(resp http.ResponseWriter, req *http.Request) {
+
+}
+
+// Get a function with function name
+// uri: /func/get?name=xxx
+func HandleGetFunction(resp http.ResponseWriter, req *http.Request) {
+
+}
+
+// Update a function
+// uri: /func/update
+// body: core.Function in JSON form
+func HandleUpdateFunction(resp http.ResponseWriter, req *http.Request) {
+
+}
+
+// Delete a function with function name
+// uri: /func/del
+func HandleDelFunction(resp http.ResponseWriter, req *http.Request) {
+	
+}

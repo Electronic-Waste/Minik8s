@@ -65,6 +65,10 @@ const (
 	Function			string = "/func"
 	FunctionRegisterURL	string = Function + "/register"
 	FunctionTriggerURL 	string = Function + "/trigger"
+	FunctionGetAllURL	string = Function + "/getall"
+	FunctionGetURL		string = Function + "/get"
+	FunctionUpdateURL	string = Function + "/update"
+	FunctionDelURL		string = Function + "/del"
 
 	Vmeet1IP string = url.Vmeet1IP
 	Vmeet2IP string = url.Vmeet2IP
