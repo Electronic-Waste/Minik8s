@@ -9,6 +9,7 @@ import (
 	"log"
 	"minik8s.io/pkg/apis/core"
 	apiurl "minik8s.io/pkg/apiserver/util/url"
+	svlurl "minik8s.io/pkg/serverless/util/url"
 	"net/http"
 )
 
@@ -78,8 +79,6 @@ func HttpApply(objType string, obj any) error {
 		if response.StatusCode != http.StatusOK {
 			return errors.New("apply fail")
 		}
-		body, _ := ioutil.ReadAll(response.Body)
-		fmt.Printf("Response: %s\n", string(body))
 	case "DNS":
 		var dns core.DNS
 		json.Unmarshal([]byte(payload), &dns)
@@ -96,8 +95,6 @@ func HttpApply(objType string, obj any) error {
 		if response.StatusCode != http.StatusOK {
 			return errors.New("apply fail")
 		}
-		body, _ := ioutil.ReadAll(response.Body)
-		fmt.Printf("Response: %s\n", string(body))
 	case "Node":
 		var node core.Node
 		json.Unmarshal([]byte(payload), &node)
@@ -115,8 +112,46 @@ func HttpApply(objType string, obj any) error {
 		}
 		body, _ := ioutil.ReadAll(response.Body)
 		fmt.Printf("Response: %s\n", string(body))
+	case "Function":
+		function := obj.(core.Function)
+		postURL := apiurl.Prefix + apiurl.FunctionRegisterURL
+		request, err := http.NewRequest("POST", postURL, bytes.NewReader(payload))
+		if err != nil {
+			log.Fatal(err)
+		}
+		fmt.Println("http register function: ", function.Name)
+		response, err := client.Do(request)
+		if err != nil {
+			log.Fatal(err)
+		}
+		if response.StatusCode != http.StatusOK {
+			return errors.New("apply function fail")
+		}
 	}
+	return nil
+}
 
+// return: error
+// @obj: the obj to be registered
+func HttpRegister(obj any) error {
+	client := http.Client{}
+	payload, _ := json.Marshal(obj)
+	switch obj.(type) {
+	case core.Function:
+		registerURL := svlurl.ManagerPrefix + svlurl.FunctionRegisterURL
+		request, err := http.NewRequest("POST", registerURL, bytes.NewReader(payload))
+		if err != nil {
+			return err
+		}
+		response, err := client.Do(request)
+		if err != nil {
+			return err
+		}
+		if response.StatusCode != http.StatusOK {
+			body, _ := ioutil.ReadAll(response.Body)
+			return fmt.Errorf("register function failed: %d -> %s\n", response.StatusCode, string(body))
+		}
+	}
 	return nil
 }
 

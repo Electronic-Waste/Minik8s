@@ -18,6 +18,7 @@ import (
 	"minik8s.io/pkg/apiserver/pod"
 	"minik8s.io/pkg/apiserver/service"
 	"minik8s.io/pkg/apiserver/dns"
+	"minik8s.io/pkg/apiserver/function"
 	"minik8s.io/pkg/apiserver/util/url"
 )
 
@@ -33,6 +34,7 @@ var postHandlerMap = map[string]HttpHandler{
 	url.ServiceApplyURL:           	service.HandleApplyService,
 	url.ServiceUpdateURL:          	service.HandleUpdateService,
 	url.DNSApplyURL:				dns.HandleApplyDNS,
+	url.FunctionRegisterURL:		function.HandleRegisterFunction,
 }
 
 var getHandlerMap = map[string]HttpHandler{

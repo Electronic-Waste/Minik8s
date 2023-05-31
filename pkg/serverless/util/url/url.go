@@ -12,7 +12,15 @@ const (
 
 	ManagerPrefix 				= HttpScheme + ManagerURL + ManagerPort
 
-	PodNamePrefix 				= "pod-serverless-"
+	Function					= "/func"
+	FunctionRegisterURL			= Function + "/register"
+	FunctionTriggerURL			= Function + "/trigger"
+
+	DeploymentNamePrefix		= "deployment-svl-"
+	PodNamePrefix 				= "pod-svl-"
+	VolumeNamePrefix			= "vol-svl-"
+	ContainerNamePrefix			= "svl-"
+
 	HostMountDestPathPrefix 	= "/root/func"
 	HostMountSrcPathPrefix 		= "/root/minik8s/minik8s/pkg/serverless/app"
 	ContainerMountPath 			= "/python/src"

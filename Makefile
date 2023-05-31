@@ -5,6 +5,7 @@ ADM=kubeadm
 SERVER=apiserver
 VCTL=vctl
 NCTL=nervctl
+NATIVE=knative
 KUBELET=kubelet
 LISTENER=listener
 CTLM=kube-controller-manager
@@ -26,6 +27,7 @@ build:
 	$(GO) build -o "${BIN}/${CTL}" "${PATH}/${CTL}/${CTL}.go"
 	$(GO) build -o "${BIN}/${SCH}" "${PATH}/${SCH}/${SCH}.go"
 	$(GO) build -o "${BIN}/${LISTENER}" "${PATH}/${LISTENER}/${LISTENER}.go"
+	$(GO) build -o "${BIN}/${NATIVE}" "$(PATH)/${NATIVE}/${NATIVE}.go"
 clean:
 	$(GO) clean
 	$(CLEAN)
@@ -40,7 +42,6 @@ check:
 	$(GO) fmt $(PATH)/$(VCTL)
 	$(GO) vet $(PATH)/$(ADM)
 	$(GO) vet $(PATH)/$(VCTL)
-
 test:
 	$(GO) test $(PATH)/$(ADM)/$(CMD)
 kubeadm:
@@ -70,3 +71,6 @@ kubectl:
 scheduler:
 	@echo "$(FOLD)"
 	$(GO) build -o "${BIN}/${SCH}" "${PATH}/${SCH}/${SCH}.go"
+knative:
+	@echo "$(FOLD)"
+	$(GO) build -o "${BIN}/${NATIVE}" "$(PATH)/${NATIVE}/${NATIVE}.go"
