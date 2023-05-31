@@ -16,7 +16,8 @@ import(
 
 var(
 	FunctionStatus	 string = "/function/status"
-	FunctionApplyUrl string = FunctionStatus + "/apply"
+	FunctionApplyUrl string = FunctionStatus + "/apply".
+	FunctionDelUrl string = FunctionStatus + "/delete"
 	FunctionTriggerUrl	string = FunctionStatus + "/trigger"
 	defaultcountdown int = 10
 )
@@ -58,6 +59,7 @@ func (fc *FunctionController) register () {
 	//fmt.Println("fc register")
 	go listwatch.Watch(FunctionApplyUrl, fc.applylistener)
 	go listwatch.Watch(FunctionTriggerUrl, fc.triggerlistener)
+	go listwatch.Watch(FunctionDelUrl, fc.deletelistener)
 }
 
 func (fc *FunctionController) applylistener (msg *redis.Message) {
@@ -84,12 +86,12 @@ func (fc *FunctionController) triggerlistener (msg *redis.Message) {
 		return
 	}
 	fc.mutex.Lock()
-	//defer fc.mutex.Unlock()
+	defer fc.mutex.Unlock()
 	fc.countdownMap[deployment.Metadata.Name] = defaultcountdown
 	//fc.IncreaseReplica(deployment.Metadata.Name)
 	fc.requestMap[deployment.Metadata.Name] += 1
 	fmt.Println("request/s:",fc.requestMap[deployment.Metadata.Name])
-	fc.mutex.Unlock()
+	//fc.mutex.Unlock()
 
 	if fc.requestMap[deployment.Metadata.Name] >= 3{
 		fc.IncreaseReplica(deployment.Metadata.Name)
@@ -97,6 +99,22 @@ func (fc *FunctionController) triggerlistener (msg *redis.Message) {
 	if fc.requestMap[deployment.Metadata.Name] >= 6{
 		fc.IncreaseReplica(deployment.Metadata.Name)
 	}
+}
+
+func (fc *FunctionController) deletelistener (msg *redis.Message) {
+	print("fc listen trigger\n")
+	bytes := []byte(msg.Payload)
+	deployment := core.Deployment{}
+	err := json.Unmarshal(bytes, &deployment)
+	if err != nil {
+		return
+	}
+	fc.mutex.Lock()
+	defer fc.mutex.Unlock()
+	delete(fc.deploymentMap, deployment.Metadata.Name)
+	delete(fc.replicaMap, deployment.Metadata.Name)
+	delete(fc.countdownMap, deployment.Metadata.Name)
+	delete(fc.requestMap, deployment.Metadata.Name)
 }
 
 func (fc *FunctionController) countdown () {

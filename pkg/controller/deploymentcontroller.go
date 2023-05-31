@@ -29,7 +29,6 @@ type DeploymentController struct {
 	queue   *queue.Queue
 	d2pMap 	map[interface{}]interface{}
 	p2dMap	map[interface{}]interface{}
-	isApplying int
 	//channel chan struct{}
 	//message *redis.Message
 }
@@ -39,7 +38,6 @@ func NewDeploymentController(ctx context.Context) (*DeploymentController, error)
 		queue:   new(queue.Queue),
 		d2pMap: make(map[interface{}]interface{}),	//deploymentname: []podname
 		p2dMap:	make(map[interface{}]interface{}),	//podname:	deploymentname
-		isApplying: 0,
 	}
 	print("new deployment controller\n")
 	return dc, nil
@@ -100,7 +98,7 @@ func (dc *DeploymentController) processNextWorkItem(ctx context.Context) {
 	key := dc.queue.Dequeue()
 	_ = dc.syncDeployment(ctx, key.(listwatch.WatchResult))
 	//wait for pods to be truly applied
-	time.Sleep(time.Second * 3)
+	time.Sleep(time.Second * 2)
 	return
 }
 
@@ -131,7 +129,12 @@ func (dc *DeploymentController) syncDeployment(ctx context.Context, watchres lis
 		switch actiontype {
 		case "apply":
 			fmt.Println("apply deployment pods")
-			dc.isApplying = 1
+			//test duplicate deployment !!!test
+			_, isfound := dc.d2pMap[deployment.Metadata.Name]
+			if isfound {
+				fmt.Println("cannot apply duplicate deployment")
+				return nil
+			}
 			//did := uid.NewUid()
 			prefix := deployment.Metadata.Name
 			replicas := deployment.Spec.Replicas
@@ -161,7 +164,6 @@ func (dc *DeploymentController) syncDeployment(ctx context.Context, watchres lis
 			dc.d2pMap[deployment.Metadata.Name] = nameSet
 		case "update"://should only modify replicas
 			fmt.Println("update deployment")
-			dc.isApplying = 1
 			nameSet := dc.d2pMap[deployment.Metadata.Name].([]string)
 			oldReplicas := len(nameSet)
 			newReplicas := deployment.Spec.Replicas
@@ -344,7 +346,7 @@ func GetPods() ([]core.Pod,error) {
 	return pods,nil
 }
 
-
+//!!!test
 func (dc *DeploymentController) restart(){
 	//get all deployments
 	var deploymentSet []core.Deployment

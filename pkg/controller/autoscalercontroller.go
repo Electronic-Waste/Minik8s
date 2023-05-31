@@ -354,6 +354,7 @@ func GetPodMetrics(podname string, nodeIP string) (stats.PodStats,error) {
 	return status,nil
 }
 
+//!!!test
 func (ac *AutoscalerController) restart () {
 	//get all autoscalers
 	var autoscalerSet []core.Autoscaler
