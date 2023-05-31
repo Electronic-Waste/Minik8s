@@ -138,6 +138,7 @@ func ConstructDeploymentWithFuncNameAndFilepath(funcName string) core.Deployment
 							},
 							Command: []string {
 								svlurl.ContainerScriptPath,
+								// "bash",
 							},
 						},
 					},
@@ -146,6 +147,8 @@ func ConstructDeploymentWithFuncNameAndFilepath(funcName string) core.Deployment
 		},
 	}
 	deployment.Spec.Template.Name = svlurl.PodNamePrefix + funcName
+	deployment.Spec.Template.Labels = map[string]string{}
+	deployment.Spec.Template.Labels["node"]	= "vmeet3"	// Should delete after test!!!
 	return deployment
 }
 
@@ -157,11 +160,12 @@ func CopyFile(destFilePath, srcFilePath string) error {
 	}
 
 	// Create destFile and copy srcFile to it 
-	_, err = os.Create(destFilePath)
+	file, err := os.Create(destFilePath)
 	if err != nil {
 		return err
 	}
-	content, _ := ioutil.ReadFile(srcFilePath)
+	defer file.Close()	
+	content, err := ioutil.ReadFile(srcFilePath)
 	if err != nil {
 		return err
 	}
