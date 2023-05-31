@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"minik8s.io/pkg/apis/core"
+	"minik8s.io/pkg/kubelet/cadvisor"
 	"minik8s.io/pkg/podmanager"
 	"net/http"
 )
@@ -16,11 +17,12 @@ type HttpHandler func(http.ResponseWriter, *http.Request)
 var (
 	//PodAddWatchUrl string = "/Pod/Metrics"
 
-	Port      string = ":3000"
-	PodPrefix string = "/Pod"
-	RunPodUrl string = PodPrefix + "/run"
-	DelPodRul string = PodPrefix + "/del"
+	Port          string = ":3000"
+	PodPrefix     string = "/Pod"
+	RunPodUrl     string = PodPrefix + "/run"
+	DelPodRul     string = PodPrefix + "/del"
 	PodMetricsUrl string = PodPrefix + "/metrics"
+	MemoryUrl     string = PodPrefix + "/memory"
 )
 
 func HandlePodDel(resp http.ResponseWriter, req *http.Request) {
@@ -57,6 +59,25 @@ func HandlePodRun(resp http.ResponseWriter, req *http.Request) {
 	resp.Header().Set("Content-Type", "application/json")
 	fmt.Printf("Run Pod Ip is %s\n", pod.Status.PodIp)
 	resMes, err := json.Marshal(pod.Status.PodIp)
+	if err != nil {
+		resp.WriteHeader(http.StatusNotFound)
+		resp.Write([]byte(err.Error()))
+		return
+	}
+	resp.Write(resMes)
+}
+
+func HandleMemGet(resp http.ResponseWriter, req *http.Request) {
+	mem, err := cadvisor.GetFreeMem()
+	if err != nil {
+		resp.WriteHeader(http.StatusNotFound)
+		resp.Write([]byte(err.Error()))
+		return
+	}
+	resp.WriteHeader(http.StatusOK)
+	resp.Header().Set("Content-Type", "application/json")
+	fmt.Printf("available mem is %d\n", mem)
+	resMes, err := json.Marshal(mem)
 	if err != nil {
 		resp.WriteHeader(http.StatusNotFound)
 		resp.Write([]byte(err.Error()))

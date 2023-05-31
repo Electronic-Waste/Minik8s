@@ -1,0 +1,11 @@
+kind: Job
+metadata:
+  name: gpujob
+spec:
+  partition: dgx2
+  threadNum: 1
+  taskPerNode: 1
+  cpu_per_task: 6
+  gpu-num: 1
+  file: result
+  codePath: /root/minik8s/minik8s/scripts/data/test.cu

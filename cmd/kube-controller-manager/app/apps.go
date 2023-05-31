@@ -1,8 +1,8 @@
 package app
 
 import (
-	"fmt"
 	"context"
+	"fmt"
 	"minik8s.io/pkg/controller"
 )
 
@@ -17,5 +17,12 @@ func StartAutoSclaerController(ctx context.Context) error {
 	fmt.Printf("start autoscaler controller\n")
 	autoscalerController, _ := controller.NewAutoscalerController(ctx)
 	go autoscalerController.Run(ctx)
+	return nil
+}
+
+func StartJobController(ctx context.Context) error {
+	fmt.Printf("start job controller\n")
+	jobcontroller, _ := controller.NewJobController()
+	go jobcontroller.Run(ctx)
 	return nil
 }

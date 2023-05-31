@@ -587,10 +587,59 @@ type DNSSubpath struct {
 
 }
 
+
 type Function struct {
 	// Name is the func's name
 	Name string `json:"name" yaml:"name"`
 
 	// Path is the func's filepath
 	Path string `json:"path" yaml:"path"`
+}
+
+type Job struct {
+	Kind string `json:"kind" yaml:"kind"`
+
+	Meta meta.ObjectMeta `json:"metadata" yaml:"metadata" mapstructure:"metadata"`
+
+	Spec JobSpec `json:"spec" yaml:"spec"`
+
+	Status JobStatus
+}
+
+type JobSpec struct {
+	Partition string `json:"partition" yaml:"partition"`
+
+	ThreadNum int `json:"threadNum" yaml:"threadNum"`
+
+	TaskPerNode int `json:"taskPerNode" yaml:"taskPerNode"`
+
+	CPUPerTask int `json:"cpu_per_task" yaml:"cpu_per_task" mapstructure:"cpu_per_task"`
+
+	GPUNum int `json:"gpu-num" yaml:"gpu-num" mapstructure:"gpu-num"`
+
+	FileName string `json:"file" yaml:"file" mapstructure:"file"`
+
+	CodePath string `json:"codePath" yaml:"codePath"`
+}
+
+type JobPhase string
+
+const (
+	RunningPhase JobPhase = "Running"
+	FinishPhase  JobPhase = "Finished"
+)
+
+type JobStatus struct {
+	Phase JobPhase
+
+	PodName string
+}
+
+type Job2Pod struct {
+	JobName string
+	PodName string
+}
+
+type JobMaps struct {
+	Maps []Job2Pod
 }

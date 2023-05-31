@@ -9,3 +9,4 @@ const NerdctlDataRoot = "/var/lib/nerdctl"
 
 // that is the directory which put the pod config file
 const SysPodDir = "/root/minik8s/minik8s/data"
+const SlurmConfigDir = "/root/minik8s/minik8s/scripts/data/"

@@ -67,6 +67,56 @@ func TestGetPod(t *testing.T) {
 	}
 }
 
+func TestJobServer(t *testing.T) {
+	// construct a Pod Object
+	var pod core.Pod
+	pod.Name = "test"
+	pod.Kind = "Pod"
+	pod.Spec.Volumes = []core.Volume{{
+		Name:     "shared-data",
+		HostPath: "/root/minik8s/minik8s/scripts/data",
+	},
+		{
+			Name:     "shared-scripts",
+			HostPath: "/root/minik8s/minik8s/scripts/gpuscripts",
+		}}
+	pod.Spec.Containers = []core.Container{
+		{
+			Name:  "t1",
+			Image: "docker.io/library/jobserver:latest",
+			VolumeMounts: []core.VolumeMount{
+				{
+					Name:      "shared-data",
+					MountPath: "/mnt/data",
+				},
+				{
+					Name:      "shared-scripts",
+					MountPath: "/mnt/scripts",
+				},
+			},
+			Ports:   []core.ContainerPort{},
+			Command: []string{"/mnt/scripts/jobserver"},
+			Args:    []string{"remote", "--file=test.cu", "--scripts=test1.slurm", "--result=result"},
+		},
+	}
+
+	err := pod.ContainerConvert()
+	if err != nil {
+		t.Error(err)
+	}
+	err = RunPod(&pod)
+	if err != nil {
+		t.Error(err)
+	}
+	fmt.Printf("have start a new pod and ip is %s\n", pod.Status.PodIp)
+	is_exist := IsPodRunning("test")
+	if !is_exist {
+		t.Error("error start up a Pod")
+	} else {
+		fmt.Println("find test Pod")
+	}
+}
+
 func TestPodRunning(t *testing.T) {
 	// construct a Pod Object
 	var pod core.Pod
