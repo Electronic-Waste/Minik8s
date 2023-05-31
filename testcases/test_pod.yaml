@@ -4,6 +4,8 @@ metadata:
   labels:
     app: test-pod
     node: vmeet2
+    resourcePolicy: on
+
 spec:
   volumes:
     - name: shared-data
