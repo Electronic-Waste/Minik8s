@@ -26,8 +26,8 @@ func (s *Scheduler) ApplyPodHanlder(msg *redis.Message) {
 	var Param core.ScheduleParam
 	json.Unmarshal([]byte(msg.Payload), &Param)
 	Param.RunPod.ContainerConvert()
-	fmt.Printf("Scheduler receive msg: %s\n", msg.Payload)
-	node := s.RRSchedule(Param.NodeList, Param.RunPod)
+	fmt.Printf("Scheduler receive msg: %s", msg.Payload)
+	node := s.Schedule(Param.NodeList, Param.RunPod)
 	Param.RunPod.Spec.RunningNode = node
 	// send back to api-server
 	body, err := json.Marshal(Param.RunPod)
@@ -55,9 +55,8 @@ func (s *Scheduler) Run() {
 }
 
 func (s *Scheduler) Schedule(nodes []core.Node, pod core.Pod) core.Node {
-	fmt.Println("Schedule")
 	if node, ok := s.MatchSchedule(nodes, pod); ok {
-		fmt.Println("Schedule match")
+		fmt.Println("match schedule")
 		return node
 	} else {
 		if _, ok := pod.Labels["resourcepolicy"]; ok && strings.Compare(pod.Labels["resourcepolicy"], "on") == 0 {

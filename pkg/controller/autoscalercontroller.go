@@ -357,6 +357,7 @@ func GetPodMetrics(podname string, nodeIP string) (stats.PodStats,error) {
 //!!!test
 func (ac *AutoscalerController) restart () {
 	//get all autoscalers
+	var strSet []string
 	var autoscalerSet []core.Autoscaler
 	bytes,err := clientutil.HttpGetAll("Autoscaler")
 	if err != nil{
@@ -364,11 +365,20 @@ func (ac *AutoscalerController) restart () {
 		fmt.Println("ac restart get autoscalers fail")
 		return
 	}
-	err = json.Unmarshal(bytes, &autoscalerSet)
+	err = json.Unmarshal(bytes, &strSet)
 	if err != nil{
 		fmt.Println(err)
 		fmt.Println("ac restart unmarshal autoscalers fail")
 		return
+	}
+	for _,s := range strSet{
+		if s == ""{
+			continue
+		}
+		autoscaler := core.Autoscaler{}
+		json.Unmarshal([]byte(s),&autoscaler)
+		autoscalerSet = append(autoscalerSet, autoscaler)
+		fmt.Println(autoscaler.Metadata.Name)
 	}
 	ac.autoscalerList = autoscalerSet
 	//wait for autoscaler controller to restart

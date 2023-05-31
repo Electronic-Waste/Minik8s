@@ -178,8 +178,21 @@ func GetHandler(resourceKind string) error {
 			return err
 		}
 		//fmt.Println("get deployment number: ", len(strs))
+		var strs []string
 		var deployments []core.Deployment
-		_ = json.Unmarshal(bytes, &deployments)
+		err = json.Unmarshal(bytes, &strs)
+		if err != nil {
+			fmt.Println(err)
+			return err
+		}
+		for _, s := range strs {
+			if s == "" {
+				continue
+			}
+			deployment := core.Deployment{}
+			_ = json.Unmarshal([]byte(s), &deployment)
+			deployments = append(deployments, deployment)
+		}
 
 		table,_ := gotable.Create("NAMESPACE","KIND","NAME","REPLICAS")
 		rows := make([]map[string]string, 0)
@@ -201,6 +214,10 @@ func GetHandler(resourceKind string) error {
 		}
 		var strs []string
 		err = json.Unmarshal(bytes, &strs)
+		if err != nil {
+			fmt.Println(err)
+			return err
+		}
 		fmt.Println("get autoscaler number: ", len(strs))
 		var autoscalers []core.Autoscaler
 		for _, s := range strs {

@@ -88,6 +88,7 @@ func (dc *DeploymentController) worker(ctx context.Context) {
 			dc.processNextWorkItem(ctx)
 		} else {
 			//print("worker pending\n")
+			time.Sleep(time.Second * 4)
 			dc.replicaWatcher()
 		}
 		time.Sleep(time.Second)
@@ -282,8 +283,8 @@ func (dc *DeploymentController) replicaWatcher() {
 			if deployment.Metadata.Name == deploymentname{
 				if replica < deployment.Spec.Replicas{
 					fmt.Println("start adding replicas")
-					did := uid.NewUid()
-					prefix := deployment.Metadata.Name + "-" + did
+					//did := uid.NewUid()
+					prefix := deployment.Metadata.Name
 					num := deployment.Spec.Replicas - replica
 					var nameSet []string
 					
@@ -349,6 +350,7 @@ func GetPods() ([]core.Pod,error) {
 //!!!test
 func (dc *DeploymentController) restart(){
 	//get all deployments
+	var strSet []string
 	var deploymentSet []core.Deployment
 	bytes,err := clientutil.HttpGetAll("Deployment")
 	if err != nil{
@@ -356,11 +358,20 @@ func (dc *DeploymentController) restart(){
 		fmt.Println("dc restart get deployments fail")
 		return
 	}
-	err = json.Unmarshal(bytes, &deploymentSet)
+	err = json.Unmarshal(bytes, &strSet)
 	if err != nil{
 		fmt.Println(err)
 		fmt.Println("dc restart unmarshal deployments fail")
 		return
+	}
+	for _,s := range strSet{
+		if s == ""{
+			continue
+		}
+		deployment := core.Deployment{}
+		json.Unmarshal([]byte(s),&deployment)
+		deploymentSet = append(deploymentSet, deployment)
+		fmt.Println(deployment.Metadata.Name)
 	}
 	//get all pods of one deployment and record into d2pmap and p2dmap
 	for _,d := range deploymentSet{
