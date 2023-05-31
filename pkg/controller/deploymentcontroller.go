@@ -31,7 +31,6 @@ type DeploymentController struct {
 	queue   *queue.Queue
 	d2pMap 	map[interface{}]interface{}
 	p2dMap	map[interface{}]interface{}
-	isApplying int
 	//channel chan struct{}
 	//message *redis.Message
 }
@@ -141,7 +140,6 @@ func (dc *DeploymentController) syncDeployment(ctx context.Context, watchres lis
 				fmt.Println("cannot apply duplicate deployment")
 				return nil
 			}
-			
 			replicas := deployment.Spec.Replicas
 			//label := map[string]string{}
 			//label["app"] = "test"
