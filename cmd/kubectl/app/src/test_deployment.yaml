@@ -8,6 +8,9 @@ spec:
     kind: Pod
     metadata:
       name: test
+      labels:
+        app: test-pod
+        node: vmeet1
     spec:
       volumes:
       - name: shared-data
