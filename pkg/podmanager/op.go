@@ -48,7 +48,7 @@ func RunPod(pod *core.Pod) error {
 	genPodIp(pod)
 
 	bytes,_ := json.Marshal(pod.Name)
-	listwatch.Publish(apiurl.PodStatusGetMetricsUrl, bytes)
+	listwatch.Publish(apiurl.PodStatusRegisterMetricsUrl, bytes)
 
 	return nil
 }
@@ -98,6 +98,9 @@ func DelSimpleContainer(name string) error {
 }
 
 func DelPod(name string) error {
+	bytes,_ := json.Marshal(name)
+	listwatch.Publish(apiurl.PodStatusUnregisterMetricsUrl, bytes)
+
 	err := DelSimpleContainer(name)
 	if err != nil {
 		return err
@@ -106,6 +109,7 @@ func DelPod(name string) error {
 	// delete pause container
 	stopContainer(name)
 	delContainer(name)
+
 	return nil
 }
 

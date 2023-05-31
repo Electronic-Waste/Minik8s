@@ -49,7 +49,8 @@ func (k *Kubelet) Run(update chan kubetypes.PodUpdate) {
 	    config.PodMetricsUrl:	k.HandlePodGetMetrics,
 		config.GetAllPodUrl:	config.HandleGetAllPod,
 	}
-	go listwatch.Watch(apiurl.PodStatusGetMetricsUrl, k.PodRegister)
+	go listwatch.Watch(apiurl.PodStatusRegisterMetricsUrl, k.PodRegister)
+	go listwatch.Watch(apiurl.PodStatusUnregisterMetricsUrl, k.PodUnregister)
 	//go k.PodRegister()
 	go config.Run(PodMap)
 	k.syncLoop(update)
@@ -79,7 +80,7 @@ func (k *Kubelet) HandlePodGetMetrics(resp http.ResponseWriter, req *http.Reques
 }
 
 func (k *Kubelet) PodRegister (msg *redis.Message) {
-	fmt.Println("pod register")
+	//fmt.Println("pod register")
 	time.Sleep(time.Millisecond * 500)
 	bytes := []byte(msg.Payload)
 	var podname string
@@ -90,6 +91,24 @@ func (k *Kubelet) PodRegister (msg *redis.Message) {
 		return
 	}
 	err = k.Cadvisor.RegisterPod(podname)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+}
+
+func (k *Kubelet) PodUnregister (msg *redis.Message) {
+	//fmt.Println("pod unregister")
+	time.Sleep(time.Millisecond * 500)
+	bytes := []byte(msg.Payload)
+	var podname string
+	err := json.Unmarshal(bytes, &podname)
+	fmt.Println("unregister pod: ",podname)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	err = k.Cadvisor.UnRegisterPod(podname)
 	if err != nil {
 		fmt.Println(err)
 		return

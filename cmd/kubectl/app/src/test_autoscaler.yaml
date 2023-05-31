@@ -3,8 +3,8 @@ metadata:
   name: autoscaler_test
 spec:
   maxReplicas: 4
-  minReplicas: 1
-  scaleIntervel: 15
+  minReplicas: 0
+  scaleIntervel: 10
   scaleTargetRef:
     kind: Deployment
     name: deployment_test

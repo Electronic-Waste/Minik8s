@@ -53,7 +53,6 @@ var getHandlerMap = map[string]HttpHandler{
 	url.DNSGetURL:					dns.HandleGetDNS,
 	url.DNSGetAllURL:				dns.HandleGetAllDNS,
 	url.MetricsGetUrl:				pod.HandleGetPodMetrics,
-	url.NodesGetUrl:				node.HandleGetNodes,
 }
 
 var deleteHandlerMap = map[string]HttpHandler{
@@ -61,7 +60,7 @@ var deleteHandlerMap = map[string]HttpHandler{
 	url.DeploymentStatusDelURL: deployment.HandleDelDeploymentStatus,
 	url.AutoscalerStatusDelURL: autoscaler.HandleDelAutoscalerStatus,
 	url.ServiceDelURL:          service.HandleDelService,
-	url.DNSDelURL:					dns.HandleDelDNS,
+	url.DNSDelURL:				dns.HandleDelDNS,
 }
 
 var nodeHandlerMap = map[string]HttpHandler{

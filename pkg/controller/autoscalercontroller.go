@@ -315,9 +315,9 @@ func GetReplicaPods(deploymentname string) ([]core.Pod,error) {
 	}
 	return pods,nil
 }
-
+//maxreplicas = -1 representing infinity
 func IncreaseReplicas(deployment core.Deployment, maxreplicas int, minreplicas int){
-	if deployment.Spec.Replicas == maxreplicas{
+	if maxreplicas != -1 && deployment.Spec.Replicas == maxreplicas{
 		fmt.Println("reach maxreplicas")
 		return
 	}

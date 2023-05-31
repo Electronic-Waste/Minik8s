@@ -79,6 +79,7 @@ func register (fileCache *FileCache){
 		func(msg *redis.Message){
 			var podname string
 			json.Unmarshal([]byte(msg.Payload), &podname)
+			fmt.Println("filecache delete pod: ",podname)
 			delete(fileCache.PodMap, podname)
 		})
 }
@@ -137,7 +138,7 @@ func (cfg *sourceFile) run(fileCache *FileCache) {
 			for _,podname := range fileCache.PodMap{
 				if !podmanager.IsPodRunning(podname) {
 					fmt.Println("pod not running",podname)
-					podmanager.DelPod(podname)
+					podmanager.DelSimpleContainer(podname)
 				} else if !podmanager.IsCrashContainer(podname) {
 					fmt.Println("contain crash",podname)
 					podmanager.DelSimpleContainer(podname)
