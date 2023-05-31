@@ -10,7 +10,6 @@ const (
 	Vmeet2IP = "192.168.1.6"
 	Vmeet3IP = "192.168.1.7"
 
-	RedisServerIP = MasterNodeIP
+	RedisServerIP   = MasterNodeIP
 	RedisServerPort = "6379"
-
 )
