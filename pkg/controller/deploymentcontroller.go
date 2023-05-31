@@ -144,6 +144,7 @@ func (dc *DeploymentController) syncDeployment(ctx context.Context, watchres lis
 			var nameSet []string
 			var containerNameSet []string
 			pod := deployment.Spec.Template
+			fmt.Println("deployment apply pod:",pod)
 			for _,c := range pod.Spec.Containers{
 				containerNameSet = append(containerNameSet, c.Name)
 			}

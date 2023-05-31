@@ -587,6 +587,15 @@ type DNSSubpath struct {
 
 }
 
+
+type Function struct {
+	// Name is the func's name
+	Name string `json:"name" yaml:"name"`
+
+	// Path is the func's filepath
+	Path string `json:"path" yaml:"path"`
+}
+
 type Job struct {
 	Kind string `json:"kind" yaml:"kind"`
 

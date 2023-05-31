@@ -19,6 +19,7 @@ import (
 	"minik8s.io/pkg/apiserver/pod"
 	"minik8s.io/pkg/apiserver/service"
 	"minik8s.io/pkg/apiserver/dns"
+	"minik8s.io/pkg/apiserver/function"
 	"minik8s.io/pkg/apiserver/util/url"
 )
 
@@ -36,6 +37,7 @@ var postHandlerMap = map[string]HttpHandler{
 	url.JobApplyUrl:               job.HandleApplyJob,
 	url.JobMapUrl:                 job.HandleMapJob,
 	url.DNSApplyURL:				dns.HandleApplyDNS,
+	url.FunctionRegisterURL:		function.HandleRegisterFunction,
 }
 
 var getHandlerMap = map[string]HttpHandler{
