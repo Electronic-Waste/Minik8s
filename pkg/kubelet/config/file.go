@@ -140,7 +140,7 @@ func (cfg *sourceFile) run(fileCache *FileCache) {
 			for _,podname := range fileCache.PodMap2{
 				if !podmanager.IsPodRunning(podname) {
 					fmt.Println("pod not running",podname)
-					podmanager.DelPod(podname)
+					podmanager.DelSimpleContainer(podname)
 				} else if !podmanager.IsCrashContainer(podname) {
 					fmt.Println("contain crash",podname)
 					podmanager.DelSimpleContainer(podname)

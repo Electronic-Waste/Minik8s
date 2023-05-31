@@ -17,6 +17,8 @@ func TestCountingdown (t *testing.T) {
 	listwatch.Publish(FunctionTriggerUrl, bytes)
 	listwatch.Publish(FunctionTriggerUrl, bytes)
 	listwatch.Publish(FunctionTriggerUrl, bytes)
+	listwatch.Publish(FunctionTriggerUrl, bytes)
+	listwatch.Publish(FunctionTriggerUrl, bytes)
 	time.Sleep(15 * time.Second)
 	time.Sleep(20 * time.Second)
 }
