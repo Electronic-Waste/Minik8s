@@ -24,6 +24,8 @@ import (
 
 // need the image need by the Pod have been pull
 func RunPod(pod *core.Pod) error {
+	pod.ContainerConvert()
+	fmt.Printf("pod info: %v\n", pod)
 	cli, err := remote_cli.NewRemoteRuntimeService(remote_cli.IdenticalErrorDelay)
 	if err != nil {
 		return err

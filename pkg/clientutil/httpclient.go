@@ -61,8 +61,7 @@ func HttpApply(objType string, obj any) error {
 			return errors.New("apply fail")
 		}
 	case "Service":
-		var service core.Service
-		json.Unmarshal([]byte(payload), &service)
+		service := obj.(core.Service)
 		// fmt.Printf("httpclient: service is : %v\n", service)
 		// fmt.Printf("httpclinet: service name is : %v\n", service.Name)
 		postURL := apiurl.Prefix + apiurl.ServiceApplyURL + fmt.Sprintf("?namespace=default&name=%s", service.Name)
@@ -158,8 +157,7 @@ func HttpPlus(objType string, obj any, url string) (error, string) {
 		fmt.Printf("Response: %s\n", string(body))
 		res = string(body)
 	case "Service":
-		var service core.Service
-		json.Unmarshal([]byte(payload), &service)
+		service := obj.(core.Service)
 		// fmt.Printf("httpclient: service is : %v\n", service)
 		// fmt.Printf("httpclinet: service name is : %v\n", service.Name)
 		postURL := url + fmt.Sprintf("?namespace=default&name=%s", service.Name)

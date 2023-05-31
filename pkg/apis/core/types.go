@@ -586,3 +586,11 @@ type DNSSubpath struct {
 	Port 		int32	`json:"port" yaml:"port"`
 
 }
+
+type Function struct {
+	// Name is the func's name
+	Name string `json:"name" yaml:"name"`
+
+	// Path is the func's filepath
+	Path string `json:"path" yaml:"path"`
+}
