@@ -5,12 +5,12 @@ import (
 	"minik8s.io/pkg/kubelet/config"
 	// "minik8s.io/pkg/apis/core"
 	// "minik8s.io/pkg/util/listwatch"
-	"minik8s.io/pkg/kubeproxy"
 	"encoding/json"
 	"minik8s.io/pkg/kubelet/cadvisor"
 	kubetypes "minik8s.io/pkg/kubelet/types"
-	"os"
+	"minik8s.io/pkg/kubeproxy"
 	"net/http"
+	"os"
 	"time"
 	"github.com/go-redis/redis/v8"
 	"minik8s.io/pkg/util/listwatch"
@@ -34,6 +34,7 @@ type Kubelet struct {
 	// TODO(wjl) : add some object need by kubelet to admin the Pod or Deployment
 	Cadvisor *cadvisor.CAdvisor
 	kubeProxyManager *kubeproxy.KubeproxyManager
+	cadvisor         *cadvisor.CAdvisor
 }
 
 func (k *Kubelet) Run(update chan kubetypes.PodUpdate) {
@@ -48,6 +49,7 @@ func (k *Kubelet) Run(update chan kubetypes.PodUpdate) {
 		config.DelPodRul: 		config.HandlePodDel,
 	    config.PodMetricsUrl:	k.HandlePodGetMetrics,
 		config.GetAllPodUrl:	config.HandleGetAllPod,
+		config.MemoryUrl:     config.HandleMemGet,
 	}
 	go listwatch.Watch(apiurl.PodStatusRegisterMetricsUrl, k.PodRegister)
 	go listwatch.Watch(apiurl.PodStatusUnregisterMetricsUrl, k.PodUnregister)
@@ -68,8 +70,8 @@ func (k *Kubelet) HandlePodGetMetrics(resp http.ResponseWriter, req *http.Reques
 		resp.Write([]byte(err.Error()))
 		return
 	}
-	data,err := json.Marshal(stats)
-	if err != nil{
+	data, err := json.Marshal(stats)
+	if err != nil {
 		resp.WriteHeader(http.StatusNotFound)
 		resp.Write([]byte(err.Error()))
 		return

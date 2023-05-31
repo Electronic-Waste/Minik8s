@@ -8,6 +8,7 @@ import (
 	apiurl "minik8s.io/pkg/apiserver/util/url"
 	// "minik8s.io/pkg/podmanager"
 	"minik8s.io/pkg/util/listwatch"
+	"strings"
 )
 
 type Scheduler struct {
@@ -59,7 +60,10 @@ func (s *Scheduler) Schedule(nodes []core.Node, pod core.Pod) core.Node {
 		fmt.Println("Schedule match")
 		return node
 	} else {
-		fmt.Println("Schedule rr")
+		if _, ok := pod.Labels["resourcepolicy"]; ok && strings.Compare(pod.Labels["resourcepolicy"], "on") == 0 {
+			fmt.Println("call memory schedule")
+			return s.MemSchedule(nodes, pod)
+		}
 		return s.RRSchedule(nodes, pod)
 	}
 }
