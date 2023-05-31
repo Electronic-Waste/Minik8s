@@ -31,6 +31,7 @@ type FunctionController struct{
 	deploymentMap		map[string]core.Deployment	//record function name to function
 	replicaMap			map[string]int
 	countdownMap 		map[string]int
+	requestMap			map[string]int
 	mutex 				sync.Mutex
 }
 
@@ -39,6 +40,7 @@ func NewFunctionController() (*FunctionController,error) {
 		deploymentMap: 	make(map[string]core.Deployment),
 		countdownMap:	make(map[string]int),
 		replicaMap:		make(map[string]int),
+		requestMap:		make(map[string]int),
 		mutex: 			sync.Mutex{},
 	}
 	return fc,nil
@@ -70,6 +72,7 @@ func (fc *FunctionController) applylistener (msg *redis.Message) {
 	defer fc.mutex.Unlock()
 	fc.replicaMap[deployment.Metadata.Name] = 1
 	fc.countdownMap[deployment.Metadata.Name] = defaultcountdown
+	fc.requestMap[deployment.Metadata.Name] = 0
 }
 
 func (fc *FunctionController) triggerlistener (msg *redis.Message) {
@@ -81,9 +84,19 @@ func (fc *FunctionController) triggerlistener (msg *redis.Message) {
 		return
 	}
 	fc.mutex.Lock()
-	defer fc.mutex.Unlock()
+	//defer fc.mutex.Unlock()
 	fc.countdownMap[deployment.Metadata.Name] = defaultcountdown
-	fc.IncreaseReplica(deployment.Metadata.Name)
+	//fc.IncreaseReplica(deployment.Metadata.Name)
+	fc.requestMap[deployment.Metadata.Name] += 1
+	fmt.Println("request/s:",fc.requestMap[deployment.Metadata.Name])
+	fc.mutex.Unlock()
+
+	if fc.requestMap[deployment.Metadata.Name] >= 3{
+		fc.IncreaseReplica(deployment.Metadata.Name)
+	}
+	if fc.requestMap[deployment.Metadata.Name] >= 6{
+		fc.IncreaseReplica(deployment.Metadata.Name)
+	}
 }
 
 func (fc *FunctionController) countdown () {
@@ -93,6 +106,7 @@ func (fc *FunctionController) countdown () {
 		fc.mutex.Lock()
 		for f,c := range fc.countdownMap{
 			fc.countdownMap[f] = c - 1
+			fc.requestMap[f] = 0
 			fmt.Println("countdown",f, fc.countdownMap[f],"replicas:",fc.replicaMap[f])
 			//scale to 0, delete function
 			if fc.countdownMap[f] == 0 {
@@ -113,6 +127,16 @@ func (fc *FunctionController) ScaleTo0 (deploymentname string) error {
 	delete(fc.countdownMap, deploymentname)
 	fc.replicaMap[deploymentname] = 0
 	return nil
+}
+
+func (fc *FunctionController)IncreaseReplica(deploymentname string) {
+	fmt.Println("increase replica",deploymentname)
+	fc.replicaMap[deploymentname] += 1
+}
+
+func (fc *FunctionController)DecreaseReplica(deploymentname string) {
+	fmt.Println("decrease replica",deploymentname)
+	fc.replicaMap[deploymentname] -= 1
 }
 /*
 func (fc *FunctionController) scaler () {
@@ -139,15 +163,6 @@ func FindFunctionByName (functionname string) Function {
 	return Function{}
 }
 */
-func (fc *FunctionController)IncreaseReplica(deploymentname string) {
-	fmt.Println("increase replica",deploymentname)
-	fc.replicaMap[deploymentname] += 1
-}
-
-func (fc *FunctionController)DecreaseReplica(deploymentname string) {
-	fmt.Println("decrease replica",deploymentname)
-	fc.replicaMap[deploymentname] -= 1
-}
 /*
 func GetFunctionPods (functionname string) ([]core.Pod,error) {
 	params := make(map[string]string)

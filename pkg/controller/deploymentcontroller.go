@@ -13,6 +13,7 @@ import (
 	"minik8s.io/pkg/clientutil"
 	apiurl "minik8s.io/pkg/apiserver/util/url"
 	"time"
+	"minik8s.io/pkg/controller"
 )
 
 //const (
@@ -38,7 +39,7 @@ func NewDeploymentController(ctx context.Context) (*DeploymentController, error)
 	dc := &DeploymentController{
 		queue:   new(queue.Queue),
 		d2pMap: make(map[interface{}]interface{}),	//deploymentname: []podname
-		p2dMap:	make(map[interface{}]interface{}),
+		p2dMap:	make(map[interface{}]interface{}),	//podname:	deploymentname
 		isApplying: 0,
 	}
 	print("new deployment controller\n")
@@ -46,6 +47,7 @@ func NewDeploymentController(ctx context.Context) (*DeploymentController, error)
 }
 
 func (dc *DeploymentController) Run(ctx context.Context) {
+	dc.restart()			//restart from crash
 	go dc.register()		//register list watch handler
 	//go dc.replicaWatcher()	//supervise pod replica numbers
 	go dc.worker(ctx)		//main thread processing messages
@@ -340,4 +342,45 @@ func GetPods() ([]core.Pod,error) {
 		return nil,err
 	}
 	return pods,nil
+}
+
+
+
+func (dc *DeploymentController) restart(){
+	//get all deployments
+	var deploymentSet []core.Deployment
+	bytes,err := clientutil.HttpGetAll("Deployment")
+	if err != nil{
+		fmt.Println(err)
+		fmt.Println("dc restart get deployments fail")
+		return
+	}
+	err = json.Unmarshal(bytes, &deploymentSet)
+	if err != nil{
+		fmt.Println(err)
+		fmt.Println("dc restart unmarshal deployments fail")
+		return
+	}
+	//get all pods of one deployment and record into d2pmap and p2dmap
+	for _,d := range deploymentSet{
+		pods,err := controller.GetReplicaPods(d.Metadata.Name)
+		/*
+		params := make(map[string]string)
+		params["namespace"] = "default"
+		params["prefix"] = d.Metadata.Name
+		bytes,err := clientutil.HttpGetWithPrefix("Pod",params)
+		var pods []core.Pod
+		err = json.Unmarshal(bytes, &pods)
+		if err != nil{
+			fmt.Println(err)
+			fmt.Println("dc restart get replica pods fail")
+		}
+		*/
+		podnameSet := make([]string,0)
+		for _,p := range pods{
+			podnameSet = append(podnameSet, p.Name)
+			dc.p2dMap[p.Name] = d.Metadata.Name
+		}
+		dc.d2pMap[d.Metadata.Name] = podnameSet
+	}
 }

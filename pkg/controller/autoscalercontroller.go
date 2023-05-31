@@ -30,6 +30,7 @@ func NewAutoscalerController(ctx context.Context) (*AutoscalerController, error)
 
 func (ac *AutoscalerController) Run (ctx context.Context) {
 	print("ac run\n")
+	ac.restart()
 	go ac.register()
 	go ac.startworker()
 	<-ctx.Done()
@@ -351,4 +352,24 @@ func GetPodMetrics(podname string, nodeIP string) (stats.PodStats,error) {
 		return stats.PodStats{}, err
 	}
 	return status,nil
+}
+
+func (ac *AutoscalerController) restart () {
+	//get all autoscalers
+	var autoscalerSet []core.Autoscaler
+	bytes,err := clientutil.HttpGetAll("Autoscaler")
+	if err != nil{
+		fmt.Println(err)
+		fmt.Println("ac restart get autoscalers fail")
+		return
+	}
+	err = json.Unmarshal(bytes, &autoscalerSet)
+	if err != nil{
+		fmt.Println(err)
+		fmt.Println("ac restart unmarshal autoscalers fail")
+		return
+	}
+	ac.autoscalerList = autoscalerSet
+	//wait for autoscaler controller to restart
+	time.Sleep(time.Second)
 }
