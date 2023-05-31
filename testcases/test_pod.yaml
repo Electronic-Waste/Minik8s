@@ -3,7 +3,6 @@ metadata:
   name: tttttTest
   labels:
     app: test-pod
-    node: vmeet2
     resourcePolicy: on
 
 spec:
