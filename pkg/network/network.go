@@ -33,7 +33,7 @@ func withCustomResolvConf(src string) func(context.Context, oci.Client, *contain
 		s.Mounts = append(s.Mounts, specs.Mount{
 			Destination: "/etc/resolv.conf",
 			Type:        "bind",
-			Source:      src,
+			Source:      "/run/systemd/resolve/resolv.conf",
 			Options:     []string{"bind", "rprivate"}, // writable
 		})
 		return nil
