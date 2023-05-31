@@ -58,7 +58,8 @@ func (s *Scheduler) Schedule(nodes []core.Node, pod core.Pod) core.Node {
 	if node, ok := s.MatchSchedule(nodes, pod); ok {
 		return node
 	} else {
-		if _, ok := pod.Labels["resourcePolicy"]; ok && strings.Compare(pod.Labels["resourcePolicy"], "on") == 0 {
+		if _, ok := pod.Labels["resourcepolicy"]; ok && strings.Compare(pod.Labels["resourcepolicy"], "on") == 0 {
+			fmt.Println("call memory schedule")
 			return s.MemSchedule(nodes, pod)
 		}
 		return s.RRSchedule(nodes, pod)
