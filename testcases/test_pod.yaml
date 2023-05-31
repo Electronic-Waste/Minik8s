@@ -1,8 +1,10 @@
 kind: Pod
 metadata:
-  name: Test
+  name: tttttTest
   labels:
     app: test-pod
+    resourcePolicy: on
+
 spec:
   volumes:
     - name: shared-data
@@ -10,7 +12,7 @@ spec:
 
   containers:
 
-    - name: m1
+    - name: tn1
       image: docker.io/library/golang:latest
       resources:
         limits:
@@ -25,7 +27,7 @@ spec:
       command:
         - bash
 
-    - name: m2
+    - name: tn2
       image: docker.io/library/golang:latest
       resources:
         limits:

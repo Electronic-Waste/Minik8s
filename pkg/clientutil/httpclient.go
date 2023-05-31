@@ -227,13 +227,29 @@ func HttpPlus(objType string, obj any, url string) (error, string) {
 		}
 		body, _ := ioutil.ReadAll(response.Body)
 		fmt.Printf("Response: %s\n", string(body))
+	case "Mem":
+		postURL := url
+		request, err := http.NewRequest("POST", postURL, bytes.NewReader(payload))
+		if err != nil {
+			log.Fatal(err)
+		}
+		response, err := client.Do(request)
+		if err != nil {
+			log.Fatal(err)
+		}
+		if response.StatusCode != http.StatusOK {
+			return errors.New("register fail"), ""
+		}
+		body, _ := ioutil.ReadAll(response.Body)
+		fmt.Printf("Response: %s\n", string(body))
+		res = string(body)
 	}
 
 	return nil, res
 }
 
-//get from kubelet
-func HttpGetPlus(objType string, url string) ([]byte,error) {
+// get from kubelet
+func HttpGetPlus(objType string, url string) ([]byte, error) {
 	client := http.Client{}
 	request, err := http.NewRequest("POST", url, nil)
 	if err != nil {
@@ -245,7 +261,7 @@ func HttpGetPlus(objType string, url string) ([]byte,error) {
 		log.Fatal(err)
 	}
 	if response.StatusCode != http.StatusOK {
-		return nil,errors.New("get plus fail")
+		return nil, errors.New("get plus fail")
 	}
 	data, err := ioutil.ReadAll(response.Body)
 	return data, nil
@@ -316,7 +332,7 @@ func HttpGet(objType string, params map[string]string) ([]byte, error) {
 		requestUrl = apiurl.Prefix + apiurl.NodesGetUrl + urlparam
 	case "jobs":
 		requestUrl = apiurl.Prefix + apiurl.JobGetUrl
-	case "metrics":	//params: name, nodeip
+	case "metrics": //params: name, nodeip
 		//requestUrl = apiurl.HttpScheme + apiurl.Vmeet1IP + apiurl.Port + apiurl.MetricsGetUrl + urlparam
 		requestUrl = apiurl.Prefix + apiurl.MetricsGetUrl + urlparam
 	}
@@ -356,7 +372,7 @@ func HttpGetWithPrefix(objType string, params map[string]string) ([]byte, error)
 			i++
 		}
 	}
-	fmt.Printf("httpclient get params: %s\n",urlparam)
+	fmt.Printf("httpclient get params: %s\n", urlparam)
 	var requestUrl string
 	switch objType {
 	case "Pod":
@@ -458,4 +474,3 @@ func HttpDel(objType string, params map[string]string) error {
 	}
 	return nil
 }
-

@@ -5,12 +5,12 @@ import (
 	"minik8s.io/pkg/kubelet/config"
 	// "minik8s.io/pkg/apis/core"
 	// "minik8s.io/pkg/util/listwatch"
-	"minik8s.io/pkg/kubeproxy"
 	"encoding/json"
 	"minik8s.io/pkg/kubelet/cadvisor"
 	kubetypes "minik8s.io/pkg/kubelet/types"
-	"os"
+	"minik8s.io/pkg/kubeproxy"
 	"net/http"
+	"os"
 	"time"
 	// "encoding/json"
 )
@@ -31,7 +31,7 @@ type Bootstrap interface {
 type Kubelet struct {
 	// TODO(wjl) : add some object need by kubelet to admin the Pod or Deployment
 	kubeProxyManager *kubeproxy.KubeproxyManager
-	cadvisor *cadvisor.CAdvisor
+	cadvisor         *cadvisor.CAdvisor
 }
 
 func (k *Kubelet) Run(update chan kubetypes.PodUpdate) {
@@ -42,9 +42,10 @@ func (k *Kubelet) Run(update chan kubetypes.PodUpdate) {
 
 	//bindWatchHandler()
 	PodMap := map[string]config.HttpHandler{
-		config.RunPodUrl: 		config.HandlePodRun,
-		config.DelPodRul: 		config.HandlePodDel,
-	    config.PodMetricsUrl:	k.HandlePodGetMetrics,
+		config.RunPodUrl:     config.HandlePodRun,
+		config.DelPodRul:     config.HandlePodDel,
+		config.PodMetricsUrl: k.HandlePodGetMetrics,
+		config.MemoryUrl:     config.HandleMemGet,
 	}
 	go k.PodRegister()
 	go config.Run(PodMap)
@@ -55,15 +56,15 @@ func (k *Kubelet) HandlePodGetMetrics(resp http.ResponseWriter, req *http.Reques
 	fmt.Println("kubelet get pod metrics")
 	vars := req.URL.Query()
 	podName := vars.Get("name")
-	stats,err := k.cadvisor.GetPodMetric(podName)
-	if err != nil{
+	stats, err := k.cadvisor.GetPodMetric(podName)
+	if err != nil {
 		resp.WriteHeader(http.StatusNotFound)
 		resp.Write([]byte(err.Error()))
 		return
 	}
-	data,err := json.Marshal(stats)
+	data, err := json.Marshal(stats)
 	fmt.Println(string(data))
-	if err != nil{
+	if err != nil {
 		resp.WriteHeader(http.StatusNotFound)
 		resp.Write([]byte(err.Error()))
 		return
@@ -73,9 +74,9 @@ func (k *Kubelet) HandlePodGetMetrics(resp http.ResponseWriter, req *http.Reques
 	resp.Write([]byte(data))
 }
 
-func (k *Kubelet) PodRegister () {
+func (k *Kubelet) PodRegister() {
 	timeout := time.Second * 10
-	for{
+	for {
 		time.Sleep(timeout)
 		k.cadvisor.RegisterAllPod()
 	}

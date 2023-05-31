@@ -8,6 +8,7 @@ import (
 	apiurl "minik8s.io/pkg/apiserver/util/url"
 	// "minik8s.io/pkg/podmanager"
 	"minik8s.io/pkg/util/listwatch"
+	"strings"
 )
 
 type Scheduler struct {
@@ -26,7 +27,7 @@ func (s *Scheduler) ApplyPodHanlder(msg *redis.Message) {
 	json.Unmarshal([]byte(msg.Payload), &Param)
 	Param.RunPod.ContainerConvert()
 	fmt.Printf("Scheduler receive msg: %s", msg.Payload)
-	node := s.RRSchedule(Param.NodeList, Param.RunPod)
+	node := s.Schedule(Param.NodeList, Param.RunPod)
 	Param.RunPod.Spec.RunningNode = node
 	// send back to api-server
 	body, err := json.Marshal(Param.RunPod)
@@ -40,15 +41,8 @@ func (s *Scheduler) UpdatePodHandler(msg *redis.Message) {
 
 }
 
-// func (s *Scheduler) DeletePodHandler(msg *redis.Message) {
-// 	podName := msg.Payload
-// 	fmt.Printf("kubelet receive del msg: %s", podName)
-// 	podmanager.DelPod(podName)
-// }
-
 func (s *Scheduler) BindWatchHandler() {
 	go listwatch.Watch("/pods/status/apply", s.ApplyPodHanlder)
-	// go listwatch.Watch("/pods/status/del", s.DeletePodHandler)
 	go listwatch.Watch("/pods/status/update", s.UpdatePodHandler)
 }
 
@@ -58,4 +52,16 @@ func (s *Scheduler) Run() {
 	scheduler := GetNewScheduler()
 	scheduler.BindWatchHandler()
 	<-stop
+}
+
+func (s *Scheduler) Schedule(nodes []core.Node, pod core.Pod) core.Node {
+	if node, ok := s.MatchSchedule(nodes, pod); ok {
+		return node
+	} else {
+		if _, ok := pod.Labels["resourcepolicy"]; ok && strings.Compare(pod.Labels["resourcepolicy"], "on") == 0 {
+			fmt.Println("call memory schedule")
+			return s.MemSchedule(nodes, pod)
+		}
+		return s.RRSchedule(nodes, pod)
+	}
 }
