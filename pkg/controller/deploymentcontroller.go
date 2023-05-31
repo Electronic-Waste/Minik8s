@@ -13,7 +13,6 @@ import (
 	"minik8s.io/pkg/clientutil"
 	apiurl "minik8s.io/pkg/apiserver/util/url"
 	"time"
-	"minik8s.io/pkg/controller"
 )
 
 //const (
@@ -199,10 +198,11 @@ func (dc *DeploymentController) syncDeployment(ctx context.Context, watchres lis
 		case "delete":
 			//client.addPod(pod)
 			//var nameSet []string
+			fmt.Println("dc delete deployment")
 			nameSet := dc.d2pMap[deployment.Metadata.Name].([]string)
 			for i := 0; i < len(nameSet); i++ {
 				podname := nameSet[i]
-				fmt.Println(podname)
+				fmt.Println("dc delete pod:",podname)
 				DelPod(podname)
 				delete(dc.p2dMap,podname)
 			}
@@ -345,7 +345,6 @@ func GetPods() ([]core.Pod,error) {
 }
 
 
-
 func (dc *DeploymentController) restart(){
 	//get all deployments
 	var deploymentSet []core.Deployment
@@ -363,7 +362,12 @@ func (dc *DeploymentController) restart(){
 	}
 	//get all pods of one deployment and record into d2pmap and p2dmap
 	for _,d := range deploymentSet{
-		pods,err := controller.GetReplicaPods(d.Metadata.Name)
+		pods,err := GetReplicaPods(d.Metadata.Name)
+		if err != nil{
+			fmt.Println(err)
+			fmt.Println("dc restart fail get replica pods of:",d.Metadata.Name)
+			continue
+		}
 		/*
 		params := make(map[string]string)
 		params["namespace"] = "default"
@@ -380,7 +384,9 @@ func (dc *DeploymentController) restart(){
 		for _,p := range pods{
 			podnameSet = append(podnameSet, p.Name)
 			dc.p2dMap[p.Name] = d.Metadata.Name
+			fmt.Println("dc add",p.Name,"to p2dMap")
 		}
 		dc.d2pMap[d.Metadata.Name] = podnameSet
+		fmt.Println("dc add",podnameSet,"to d2pMap")
 	}
 }
