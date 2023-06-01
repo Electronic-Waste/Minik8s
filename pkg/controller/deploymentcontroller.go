@@ -12,7 +12,9 @@ import (
 	"minik8s.io/pkg/util/tools/uid"
 	"minik8s.io/pkg/clientutil"
 	apiurl "minik8s.io/pkg/apiserver/util/url"
+	svlurl "minik8s.io/pkg/serverless/util/url"
 	"time"
+	"strings"
 )
 
 //const (
@@ -98,7 +100,7 @@ func (dc *DeploymentController) processNextWorkItem(ctx context.Context) {
 	key := dc.queue.Dequeue()
 	_ = dc.syncDeployment(ctx, key.(listwatch.WatchResult))
 	//wait for pods to be truly applied
-	time.Sleep(time.Second * 2)
+	//time.Sleep(time.Second * 30)
 	return
 }
 
@@ -114,20 +116,23 @@ func (dc *DeploymentController) syncDeployment(ctx context.Context, watchres lis
 	fmt.Println("sync deployment")
 	actiontype = watchres.ActionType
 	objecttype = watchres.ObjectType
-	fmt.Println("type: " + objecttype)
+	fmt.Println("type:",actiontype,objecttype)
 	switch objecttype {
 	case "Deployment":
-		deployment = core.Deployment{}
-		err = json.Unmarshal(watchres.Payload, &deployment)
-		if err != nil {
-			return err
-		}
+		var deploymentname string
 		//TODO: add selector
 		//if deployment.Spec.Selector == "" {
 		//	return nil
 		//}
 		switch actiontype {
 		case "apply":
+			deployment = core.Deployment{}
+			err = json.Unmarshal(watchres.Payload, &deployment)
+			if err != nil {
+				fmt.Println(err)
+				return err
+			}
+			deploymentname = deployment.Metadata.Name
 			fmt.Println("apply deployment pods")
 			//test duplicate deployment !!!test
 			_, isfound := dc.d2pMap[deployment.Metadata.Name]
@@ -165,10 +170,18 @@ func (dc *DeploymentController) syncDeployment(ctx context.Context, watchres lis
 			}
 			dc.d2pMap[deployment.Metadata.Name] = nameSet
 		case "update"://should only modify replicas
+			deployment = core.Deployment{}
+			err = json.Unmarshal(watchres.Payload, &deployment)
+			if err != nil {
+				fmt.Println(err)
+				return err
+			}
+			deploymentname = deployment.Metadata.Name
 			fmt.Println("update deployment")
 			nameSet := dc.d2pMap[deployment.Metadata.Name].([]string)
 			oldReplicas := len(nameSet)
 			newReplicas := deployment.Spec.Replicas
+			fmt.Println("dc update from",oldReplicas,"to",newReplicas)
 
 			pod := deployment.Spec.Template
 			//!!!test
@@ -202,17 +215,32 @@ func (dc *DeploymentController) syncDeployment(ctx context.Context, watchres lis
 				}
 			}
 		case "delete":
+			err = json.Unmarshal(watchres.Payload, &deploymentname)
+			if err != nil {
+				fmt.Println(err)
+				return err
+			}
 			//client.addPod(pod)
 			//var nameSet []string
 			fmt.Println("dc delete deployment")
-			nameSet := dc.d2pMap[deployment.Metadata.Name].([]string)
+			nameSet := dc.d2pMap[deploymentname].([]string)
 			for i := 0; i < len(nameSet); i++ {
 				podname := nameSet[i]
 				fmt.Println("dc delete pod:",podname)
 				DelPod(podname)
 				delete(dc.p2dMap,podname)
 			}
-			delete(dc.d2pMap,deployment.Metadata.Name)
+			delete(dc.d2pMap,deploymentname)
+		default:
+			fmt.Println("unknown action type")
+		}
+		//wait for pod to be started
+		//deploymentname := deployment.Metadata.Name
+		//long wait
+		if strings.HasPrefix(deploymentname, svlurl.DeploymentNamePrefix){
+			time.Sleep(time.Second * 30)
+		}else{	//short wait
+			time.Sleep(time.Second * 3)
 		}
 	}
 	//TODO: check the deployment status and do actions accordingly
@@ -222,7 +250,7 @@ func (dc *DeploymentController) syncDeployment(ctx context.Context, watchres lis
 func (dc *DeploymentController) replicaWatcher() {
 	fmt.Println("!!!watching replicas")
 	pods,err := GetPods()
-	fmt.Println("replica watcher get pods:", len(pods))
+	fmt.Println("replica watcher get all pods:", len(pods))
 	if err!=nil{
 		fmt.Println(err.Error())
 		return
@@ -242,12 +270,10 @@ func (dc *DeploymentController) replicaWatcher() {
 		if s == ""{
 			continue
 		}
-		//fmt.Println(i)
-		//fmt.Println(s)
 		deployment := core.Deployment{}
 		json.Unmarshal([]byte(s),&deployment)
 		deploymentSet = append(deploymentSet, deployment)
-		fmt.Println(deployment.Metadata.Name)
+		fmt.Println("rw get", deployment.Metadata.Name)
 	}
 	//fmt.Println("map:")
 	//for k,v := range dc.p2dMap{
@@ -284,6 +310,7 @@ func (dc *DeploymentController) replicaWatcher() {
 	for deploymentname,replica := range numMap {
 		for _,deployment := range deploymentSet{
 			if deployment.Metadata.Name == deploymentname{
+				fmt.Println("replica watcher deployment:", deploymentname,"has",replica,"replicas","should be",deployment.Spec.Replicas)
 				if replica < deployment.Spec.Replicas{
 					fmt.Println("start adding replicas")
 					//did := uid.NewUid()
@@ -313,13 +340,21 @@ func (dc *DeploymentController) replicaWatcher() {
 						AddPod(pod)
 					}
 					dc.d2pMap[deployment.Metadata.Name] = nameSet
+					//wait for pod to be started
+					deploymentname = deployment.Metadata.Name
+					//long wait
+					if strings.HasPrefix(deploymentname, svlurl.DeploymentNamePrefix){
+						time.Sleep(time.Second * 30)
+					}else{	//short wait
+						time.Sleep(time.Second * 3)
+					}
 				}
 			}
 		}
 	}
 }
 
-// just for test
+//this is an asynchronized method!
 func AddPod(pod core.Pod) {
 	fmt.Printf("add pod %s\n",pod.Name)
 	err := clientutil.HttpApply("Pod",pod)
@@ -327,7 +362,7 @@ func AddPod(pod core.Pod) {
 		fmt.Println(err)
 	}
 }
-
+//this is a synchronized method!
 func DelPod(podname string) {
 	fmt.Printf("del pod %s\n",podname)
 	params := make(map[string]string)

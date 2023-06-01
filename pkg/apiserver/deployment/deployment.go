@@ -156,6 +156,7 @@ func HandleUpdateDeploymentStatus(resp http.ResponseWriter, req *http.Request) {
 // uri: /deployments/status/del?namespace=...&name=...
 // @namespace: namespace requested; @name: deployment name
 func HandleDelDeploymentStatus(resp http.ResponseWriter, req *http.Request) {
+	fmt.Println("delete deployment")
 	vars := req.URL.Query()
 	namespace := vars.Get("namespace")
 	deploymentName := vars.Get("name")
@@ -174,7 +175,7 @@ func HandleDelDeploymentStatus(resp http.ResponseWriter, req *http.Request) {
 		return
 	}
 	// Success!
-	pubURL := path.Join(url.DeploymentStatus, "del", namespace, deploymentName)
+	pubURL := url.DeploymentStatusDelURL
 	watchres := listwatch.WatchResult{}
 	watchres.ActionType = "delete"
 	watchres.ObjectType = "Deployment"

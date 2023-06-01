@@ -2,9 +2,9 @@ package serverless
 
 import(
 	"net/http"
-	//"context"
 	"minik8s.io/pkg/serverless/util/url"
-	//"minik8s.io/pkg/serverless/functioncontroller"
+	"context"
+	"minik8s.io/pkg/serverless/functioncontroller"
 )
 
 type Knative struct {
@@ -18,10 +18,10 @@ func NewKnative() *Knative {
 }
 
 func (k *Knative) Run() {
-	//ctx := context.Background()
 	//start controller
-	//functioncontroller,_ := functioncontroller.NewFunctionController()
-	//go functioncontroller.Run(ctx)
+	ctx := context.Background()
+	functioncontroller,_ := functioncontroller.NewFunctionController()
+	go functioncontroller.Run(ctx)
 
 
 	http.HandleFunc(url.FunctionRegisterURL, k.HandleFuncRegister)

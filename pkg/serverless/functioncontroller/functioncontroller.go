@@ -20,7 +20,7 @@ var(
 	FunctionRegisterUrl string = url.FunctionRegisterURL
 	FunctionDeleteUrl string = url.FunctionDeleteURL
 	FunctionTriggerUrl	string = url.FunctionTriggerURL
-	defaultcountdown int = 30
+	defaultcountdown int = 50
 )
 
 type FunctionController struct{
@@ -46,7 +46,7 @@ func (fc *FunctionController) Run (ctx context.Context) {
 	fmt.Println("fc running")
 	go fc.register()
 	//go fc.scaler()
-	//sgo fc.countdown()
+	go fc.countdown()
 	<-ctx.Done()
 }
 
@@ -69,7 +69,7 @@ func (fc *FunctionController) registerlistener (msg *redis.Message) {
 	fmt.Println("fc register functionname:",functionname)
 	fc.mutex.Lock()
 	defer fc.mutex.Unlock()
-	fc.replicaMap[functionname] = 0
+	fc.replicaMap[functionname] = 1
 	fc.deploymentMap[functionname] = url.DeploymentNamePrefix + functionname
 	fc.countdownMap[functionname] = defaultcountdown
 	fc.requestMap[functionname] = 0
@@ -151,7 +151,7 @@ func (fc *FunctionController) ScaleTo0 (functionname string) error {
 		return err
 	}
 	//set replica to 0
-	deployment.Spec.Replicas = deployment.Spec.Replicas + 1
+	deployment.Spec.Replicas = 0
 	fmt.Println("fc set deployment",deployment.Metadata.Name,"to 0")
 	clientutil.HttpUpdate("Deployment",deployment)
 	return nil

@@ -63,7 +63,7 @@ func HandleGetAllPodStatus(resp http.ResponseWriter, req *http.Request) {
 		geturl := url.HttpScheme + n.Spec.NodeIp + config.Port + config.GetAllPodUrl
 		fmt.Println(geturl)
 		bytes,err := clientutil.HttpGetPlus("Pod", geturl)
-		fmt.Println("get from nodes:",string(bytes))
+		//fmt.Println("get from nodes:",string(bytes))
 		pods := []core.Pod{}
 		err = json.Unmarshal(bytes, &pods)
 		if err != nil{
@@ -72,7 +72,8 @@ func HandleGetAllPodStatus(resp http.ResponseWriter, req *http.Request) {
 			resp.Write([]byte(err.Error()))
 			return
 		}
-		fmt.Println("get pods from",n.Spec.NodeIp,"get",pods)
+		//fmt.Println("get pods from",n.Spec.NodeIp,"get",pods)
+		fmt.Println("get pods from",n.Spec.NodeIp)
 		allpods = append(allpods, pods...)
 		//!!!test
 		break
