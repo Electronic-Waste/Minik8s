@@ -71,7 +71,7 @@ func (fc *FunctionController) registerlistener (msg *redis.Message) {
 	defer fc.mutex.Unlock()
 	fc.replicaMap[functionname] = 1
 	fc.deploymentMap[functionname] = url.DeploymentNamePrefix + functionname
-	fc.countdownMap[functionname] = defaultcountdown
+	fc.countdownMap[functionname] = defaultcountdown + 30
 	fc.requestMap[functionname] = 0
 }
 
@@ -94,6 +94,8 @@ func (fc *FunctionController) triggerlistener (msg *redis.Message) {
 	if fc.replicaMap[functionname] == 0 {
 		fmt.Println("scale from 0")
 		fc.IncreaseReplica(functionname)
+		//wait for pod to start
+		time.Sleep(time.Second * 30)
 	}
 	//if too many requests, add replicas 
 	if fc.requestMap[functionname] >= 3{

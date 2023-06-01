@@ -102,6 +102,7 @@ func (k *Knative) TriggerFunction(funcName string, params []byte) (string, error
 	}
 
 	// 3. Choose the serving pod with round-robin policy & Send request
+	fmt.Println("trigger: pod len:",len(pods),"and rrcount:",k.rrCount)
 	targetPod := pods[k.rrCount % len(pods)]
 	k.rrCount++
 	targetPodIP := strings.Replace(targetPod.Status.PodIp, "\"", "", -1)

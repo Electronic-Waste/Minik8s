@@ -310,7 +310,7 @@ func (dc *DeploymentController) replicaWatcher() {
 				}
 			}
 		}else{
-			fmt.Println("pod", pod.Name,"fail")
+			fmt.Println("pod", pod.Name,"is failed")
 		}
 	}
 	for deploymentname,replica := range numMap {
@@ -397,6 +397,7 @@ func GetPods() ([]core.Pod,error) {
 //!!!test
 func (dc *DeploymentController) restart(){
 	//get all deployments
+	fmt.Println("dc restart")
 	var strSet []string
 	var deploymentSet []core.Deployment
 	bytes,err := clientutil.HttpGetAll("Deployment")
