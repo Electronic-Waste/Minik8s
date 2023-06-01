@@ -10,7 +10,7 @@ spec:
 
   containers:
 
-  - name: con
+  - name: manager
     image: docker.io/library/golang:latest
     resources:
       limits:

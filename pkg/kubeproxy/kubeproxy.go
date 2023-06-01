@@ -275,6 +275,10 @@ func (manager *KubeproxyManager) CreateDNS(hostName string, paths []core.DNSSubp
 	if err != nil {
 		return err
 	}
+	err = manager.nginxController.ReloadNginxService()
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
