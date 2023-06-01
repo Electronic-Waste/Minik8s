@@ -135,13 +135,13 @@ func (cfg *sourceFile) run(fileCache *FileCache) {
 	//polling to check container status
 	
 	go func () {
-		timeout := time.Second * 30
+		timeout := time.Second * 10
 		for {
 			fmt.Println("check pod status")
 			for _,podname := range fileCache.PodMap2{
 				if !podmanager.IsPodRunning(podname) {
 					fmt.Println("pod not running",podname)
-					podmanager.DelSimpleContainer(podname)
+					podmanager.DelPod(podname)
 				} else if !podmanager.IsCrashContainer(podname) {
 					fmt.Println("contain crash",podname)
 					podmanager.DelSimpleContainer(podname)
