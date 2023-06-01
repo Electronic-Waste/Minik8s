@@ -39,6 +39,8 @@ func DeleteHandler(resourceKind, resourceName string) error {
 		err = deleteAutoscaler(resourceName)
 	case "node":
 		err = deleteNode(resourceName)
+	default:
+		fmt.Println("unknown type")
 	}
 	return err
 }

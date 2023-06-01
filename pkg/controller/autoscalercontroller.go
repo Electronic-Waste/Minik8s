@@ -132,7 +132,8 @@ func (ac *AutoscalerController) startworker () {
 //polling to get deployments
 func (ac *AutoscalerController) worker (autoscaler core.Autoscaler) {
 	timeout := time.Second * time.Duration(int64(autoscaler.Spec.ScaleInterval))
-	if timeout == 0{
+	if timeout <= 3{
+		fmt.Println("scale speed too fast")
 		timeout = time.Second * 15
 	}
 	for {

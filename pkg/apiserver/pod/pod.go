@@ -237,6 +237,7 @@ func HandleDelPodStatus(resp http.ResponseWriter, req *http.Request) {
 	etcdURL := path.Join(url.PodStatus, namespace, podName)
 	data, err := etcd.Get(etcdURL)
 	if err != nil {
+		fmt.Println("HandleDelPodStatus etcd get fail")
 		resp.WriteHeader(http.StatusInternalServerError)
 		resp.Write([]byte(err.Error()))
 		return
@@ -246,6 +247,7 @@ func HandleDelPodStatus(resp http.ResponseWriter, req *http.Request) {
 	err = etcd.Del(etcdURL)
 	// Error occur in etcd: return error to client
 	if err != nil {
+		fmt.Println("HandleDelPodStatus etcd delete fail")
 		resp.WriteHeader(http.StatusInternalServerError)
 		resp.Write([]byte(err.Error()))
 		return
@@ -254,8 +256,15 @@ func HandleDelPodStatus(resp http.ResponseWriter, req *http.Request) {
 	fmt.Printf("del pod name is %s\n", pod.Name)
 	clientutil.HttpPlus("Pod", pod, url.HttpScheme+pod.Spec.RunningNode.Spec.MasterIp+config.Port+config.DelPodRul)
 
+	bytes, err := json.Marshal(podName)
+	if err != nil{
+		fmt.Println(err)
+		resp.WriteHeader(http.StatusInternalServerError)
+		resp.Write([]byte(err.Error()))
+		return
+	}
 	pubURL := url.PodStatusDelURL
-	listwatch.Publish(pubURL, podName)
+	listwatch.Publish(pubURL, bytes)
 
 	resp.WriteHeader(http.StatusOK)
 	fmt.Println("http del success")
