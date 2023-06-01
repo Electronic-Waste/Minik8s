@@ -25,6 +25,9 @@ var (
 		"DNSName", "Host", "SubPath", "ServiceName",
 		"TargetPort", "DNSStatus", 
 	}
+	FormatFunc = []string {
+		"FunctionName", "Status",
+	}
 )
 
 var (
@@ -173,6 +176,23 @@ func GetHandler(resourceKind string) error {
 		maps := core.JobMaps{}
 		json.Unmarshal(bytes, &maps)
 		FormatPrinting(FormatJobs, maps)
+	case "func":
+		bytes, err := clientutil.HttpGetAll("Function")
+		if err != nil {
+			return err
+		}
+		var strs []string
+		err = json.Unmarshal(bytes, &strs)
+		if err != nil {
+			return err
+		}
+		funcList := []core.Function{}
+		for _, str := range strs {
+			function := core.Function{}
+			json.Unmarshal([]byte(str), &function)
+			funcList = append(funcList, function)
+		}
+		FormatPrinting(FormatFunc, funcList)
 	}
 	return nil
 }
@@ -211,6 +231,11 @@ func FormatPrinting(formarStr []string, any interface{}) {
 		maps := any.(core.JobMaps)
 		for _, Map := range maps.Maps {
 			fmt.Printf("\n%s    %s", Map.JobName, Map.PodName)
+		}
+	case []core.Function:
+		funcList := any.([]core.Function)
+		for _, function := range funcList {
+			fmt.Printf("\n%s\t\t%s", function.Name, "READY")
 		}
 	}
 	fmt.Println("")
