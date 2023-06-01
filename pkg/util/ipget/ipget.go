@@ -2,9 +2,9 @@ package ipget
 
 import (
 	"fmt"
-	"strings"
-	"os/exec"
 	"net"
+	"os/exec"
+	"strings"
 
 	"minik8s.io/pkg/kubeproxy/path"
 )
@@ -24,15 +24,15 @@ func GetHostIP() (string, error) {
 		}
 		blocks := strings.Split(line, " ")
 		if blocks[1] == matchStr {
-			targetLine = lines[i + 2]
-			break;
+			targetLine = lines[i+2]
+			break
 		}
- 	}
+	}
 	blocks := strings.Split(targetLine, " ")
 	var ipNet string
 	for i, block := range blocks {
 		if block == "inet" {
-			ipNet = blocks[i + 1]
+			ipNet = blocks[i+1]
 		}
 	}
 	ip, _, _ := net.ParseCIDR(ipNet)
@@ -54,17 +54,17 @@ func GetFlannelIP() (string, error) {
 		}
 		blocks := strings.Split(line, " ")
 		if blocks[1] == matchStr {
-			targetLine = lines[i + 2]
-			break;
+			targetLine = lines[i+2]
+			break
 		}
- 	}
-	 blocks := strings.Split(targetLine, " ")
-	 var ipNet string
-	 for i, block := range blocks {
-		 if block == "inet" {
-			 ipNet = blocks[i + 1]
-		 }
-	 }
-	 ip, _, _ := net.ParseCIDR(ipNet)
-	 return ip.String(), nil
+	}
+	blocks := strings.Split(targetLine, " ")
+	var ipNet string
+	for i, block := range blocks {
+		if block == "inet" {
+			ipNet = blocks[i+1]
+		}
+	}
+	ip, _, _ := net.ParseCIDR(ipNet)
+	return ip.String(), nil
 }

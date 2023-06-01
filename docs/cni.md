@@ -9,9 +9,15 @@
     tar xzf flannel-vx.y.z-linux-amd64.tar.gz -C /opt/flannel
     cd /opt/flannel && ls 
     ```
+-   往etcd存配置信息
+    ```
+    /opt/etcd-v3.4.26/etcdctl --endpoints http://127.0.0.1:2379 put /coreos.com/network/config '{"Network": "10.0.0.0/16", "Su
+bnetLen": 24, "SubnetMin": "10.0.1.0","SubnetMax": "10.0.20.0", "Backend": {"Type": "vxlan"}}'
+    ```
 -   启动flannel(在每个node节点都要跑)
     ```
-    flanneld  --ip-masq --kube-subnet-mgr=false --etcd-endpoints=http://127.0.0.1:2379 
+    ./flanneld  --ip-masq --kube-subnet-mgr=false --etcd-endpoints=http://127.0.0.1:2379 
+    nohup ./flanneld  --ip-masq --kube-subnet-mgr=false --etcd-endpoints=http://127.0.0.1:2379 &
     ```
 -   配置新的flannel的cni配置
     ```

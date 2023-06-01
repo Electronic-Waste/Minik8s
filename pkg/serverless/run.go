@@ -26,6 +26,8 @@ func (k *Knative) Run() {
 
 	http.HandleFunc(url.FunctionRegisterURL, k.HandleFuncRegister)
 	http.HandleFunc(url.FunctionTriggerURL, k.HandleFuncTrigger)
+	http.HandleFunc(url.FunctionUpdateURL, k.HandleFuncUpdate)
+	http.HandleFunc(url.FunctionDelURL, k.HandleFuncDel)
 	http.HandleFunc(url.WorkflowTriggerURL, k.HandleWorkflowTrigger)
 
 	// Start Server

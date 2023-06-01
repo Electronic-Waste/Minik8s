@@ -8,5 +8,9 @@ const SandBox_Image = "registry.aliyuncs.com/google_containers/pause:3.9"
 const NerdctlDataRoot = "/var/lib/nerdctl"
 
 // that is the directory which put the pod config file
-const SysPodDir = "/root/minik8s/minik8s/data"
+const SysPodDir = "/root/minik8s/minik8s/data/"
 const SlurmConfigDir = "/root/minik8s/minik8s/scripts/data/"
+const ConfigDir = "/root/minik8s/minik8s/testcases/"
+const API = "apiserver.yaml"
+const CONTROLLER = "controller_manager.yaml"
+const SCH = "scheduler.yaml"

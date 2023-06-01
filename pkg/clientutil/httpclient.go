@@ -382,6 +382,9 @@ func HttpUpdate(objType string, obj any) error {
 	case "Pod":
 		requestUrl = apiurl.Prefix + apiurl.PodStatusUpdateURL + urlparam
 		fmt.Println("http update pod")
+	case "Function":
+		requestUrl = svlurl.ManagerPrefix + svlurl.FunctionUpdateURL
+		fmt.Println("http update function")
 	}
 	request, err := http.NewRequest("POST", requestUrl, bytes.NewReader(payload))
 	if err != nil {
@@ -510,6 +513,8 @@ func HttpGetAll(objType string) ([]byte, error) {
 		requestUrl = apiurl.Prefix + apiurl.ServiceGetAllURL
 	case "DNS":
 		requestUrl = apiurl.Prefix + apiurl.DNSGetAllURL
+	case "Function":
+		requestUrl = apiurl.Prefix + apiurl.FunctionGetAllURL
 	}
 	request, err := http.NewRequest("GET", requestUrl, nil)
 	if err != nil {
@@ -556,6 +561,10 @@ func HttpDel(objType string, params map[string]string) error {
 		requestUrl = apiurl.Prefix + apiurl.PodStatusDelURL + urlparam
 	case "DNS":
 		requestUrl = apiurl.Prefix + apiurl.DNSDelURL + urlparam
+	case "Knative-Function":
+		requestUrl = apiurl.Prefix + apiurl.FunctionDelURL + urlparam
+	case "Kubectl-Function":
+		requestUrl = svlurl.ManagerPrefix + svlurl.FunctionDelURL + urlparam
 	}
 	fmt.Println("http delete", requestUrl)
 	request, err := http.NewRequest("DELETE", requestUrl, nil)
@@ -568,7 +577,8 @@ func HttpDel(objType string, params map[string]string) error {
 		//return errors.New("")
 	}
 	if response.StatusCode != http.StatusOK {
-		return errors.New("del fail")
+		content, _ := ioutil.ReadAll(response.Body)
+		return fmt.Errorf("del fail: %s\n", string(content))
 	}
 	return nil
 }

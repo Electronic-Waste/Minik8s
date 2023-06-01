@@ -17,6 +17,8 @@ const (
 	REMOVE
 	// UPDATE signifies pods have been updated in this source.
 	UPDATE
+	// CHECK is the heartbeat to check the control plane life line
+	CHECK
 	// RECONCILE signifies pods that have unexpected status in this source,
 	// kubelet should reconcile status with this source.
 	RECONCILE
