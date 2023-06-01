@@ -40,7 +40,6 @@ var postHandlerMap = map[string]HttpHandler{
 	url.DNSApplyURL:				dns.HandleApplyDNS,
 	url.FunctionRegisterURL:		function.HandleRegisterFunction,
 	url.FunctionUpdateURL:			function.HandleUpdateFunction,
-url.NodeDelUrl:                node.HandleNodeDel,
 }
 
 var getHandlerMap = map[string]HttpHandler{

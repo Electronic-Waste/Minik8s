@@ -61,9 +61,9 @@
 
 ### 使用
 
-`./bin/kubectl apply <service.yaml>` 创建Service服务
-`./bin/kubectl get service` 查看创建的Service的状态、ClusterIP以及Port等信息
-`./bin/kubectl delete <serviceName>` 删除name为serviceName的Service服务
+`./bin/kubectl apply <service.yaml>` 创建Service服务  
+`./bin/kubectl get service` 查看创建的Service的状态、ClusterIP以及Port等信息  
+`./bin/kubectl delete <serviceName>` 删除name为serviceName的Service服务  
 
 ### 使用效果
 > Apply Service后，可以通过虚拟IP访问服务，同时IPtables规则也会修改，具体效果如下所示

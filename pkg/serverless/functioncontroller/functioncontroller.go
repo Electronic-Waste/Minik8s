@@ -100,6 +100,7 @@ func (fc *FunctionController) triggerlistener (msg *redis.Message) {
 	//if too many requests, add replicas 
 	if fc.requestMap[functionname] >= 3{
 		fc.IncreaseReplica(functionname)
+		time.Sleep(time.Second * 30)
 	}
 }
 
