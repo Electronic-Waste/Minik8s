@@ -15,12 +15,19 @@ import (
 type HttpHandler func(http.ResponseWriter, *http.Request)
 
 var (
+<<<<<<< HEAD
 	//PodAddWatchUrl string = "/Pod/Metrics"
 
 	Port          string = ":3000"
 	PodPrefix     string = "/Pod"
 	RunPodUrl     string = PodPrefix + "/run"
 	DelPodRul     string = PodPrefix + "/del"
+=======
+	Port      string = ":3000"
+	PodPrefix string = "/Pod"
+	RunPodUrl string = PodPrefix + "/run"
+	DelPodRul string = PodPrefix + "/del"
+>>>>>>> error(autoscaler):kubelet bug
 	PodMetricsUrl string = PodPrefix + "/metrics"
 	MemoryUrl     string = PodPrefix + "/memory"
 )
@@ -88,6 +95,7 @@ func HandleMemGet(resp http.ResponseWriter, req *http.Request) {
 
 func Run(PodMap map[string]HttpHandler) error {
 	for url, handler := range PodMap {
+		fmt.Println("kubelet http server: ",url)
 		http.HandleFunc(url, handler)
 	}
 

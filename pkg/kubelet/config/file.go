@@ -70,6 +70,7 @@ func register (fileCache *FileCache){
 		func(msg *redis.Message){
 			var Param core.ScheduleParam
 			json.Unmarshal([]byte(msg.Payload), &Param)
+			fmt.Println("filecache apply pod: ",Param.RunPod.Name)
 			fileCache.PodMap[Param.RunPod.Name] = Param.RunPod.Name
 		})
 	//need no update handler

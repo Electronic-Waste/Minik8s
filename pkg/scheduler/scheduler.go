@@ -25,6 +25,7 @@ func GetNewScheduler() *Scheduler {
 func (s *Scheduler) ApplyPodHanlder(msg *redis.Message) {
 	var Param core.ScheduleParam
 	json.Unmarshal([]byte(msg.Payload), &Param)
+
 	fmt.Printf("Scheduler receive msg: %s", msg.Payload)
 	node := s.Schedule(Param.NodeList, Param.RunPod)
 	Param.RunPod.Spec.RunningNode = node

@@ -350,7 +350,7 @@ func HttpGetPlus(objType string, url string) ([]byte, error) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	fmt.Println("http get pod metrics")
+	fmt.Println("http get pod metrics",url)
 	response, err := client.Do(request)
 	if err != nil {
 		log.Fatal(err)
@@ -414,7 +414,7 @@ func HttpGet(objType string, params map[string]string) ([]byte, error) {
 			i++
 		}
 	}
-	//fmt.Printf("httpclient get params: %s\n",urlparam)
+	fmt.Printf("httpclient get params: %s\n",urlparam)
 	var requestUrl string
 	switch objType {
 	case "Autoscaler":
