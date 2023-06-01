@@ -39,6 +39,83 @@ func (k *Knative) HandleFuncTrigger(resp http.ResponseWriter, req *http.Request)
 	resp.Write([]byte(result))
 }
 
+// Knative handle workflow trigger
+// uri: /workflow/trigger
+// body: core.Workflow in JSON form
+func (k *Knative) HandleWorkflowTrigger(resp http.ResponseWriter, req *http.Request) {
+	fmt.Println("HandleWorkflowTrigger receive msg!")
+	body, _ := ioutil.ReadAll(req.Body)
+
+	// 1. Parse body to core.Workflow
+	workflow := core.Workflow{}
+	json.Unmarshal(body, &workflow)
+	workflowNodes := workflow.Nodes
+	startFuncName := workflow.StartAt
+	params := workflow.Params
+	if len(workflowNodes) == 0 || startFuncName == "" {
+		resp.WriteHeader(http.StatusBadRequest)
+		resp.Write([]byte("Invalid workflow!"))
+		return
+	}
+
+	// 2. Execute with control workflow DAG
+	var result string
+	var resultParams map[string]int
+	triggerFuncName := startFuncName
+	triggerParams, err := json.Marshal(params)
+	if err != nil {
+		resp.WriteHeader(http.StatusInternalServerError)
+		resp.Write([]byte(err.Error()))
+		return
+	}
+	for {
+		workflowNode := workflowNodes[triggerFuncName]
+		if workflowNode.Type == "Task" {
+			result, err = k.TriggerFunction(triggerFuncName, triggerParams)
+			if err != nil {
+				resp.WriteHeader(http.StatusInternalServerError)
+				resp.Write([]byte(err.Error()))
+				return
+			}
+			fmt.Printf("Workflow get result: %s\n", result)
+			// If Next does not exists, stop workflow and return result
+			// Else update triggerFuncName and triggerParams, trigger next function
+			if (workflowNode.Next == "") {
+				resp.WriteHeader(http.StatusOK)
+				resp.Write([]byte(result))
+				return
+			} else {
+				triggerFuncName = workflowNode.Next
+				triggerParams = []byte(result)
+			}
+		} else if workflowNode.Type == "Choice" {
+			hasOneChoiceMatch := false
+			json.Unmarshal(triggerParams, &resultParams)
+			for _, workflowChoice := range workflowNode.Choices {
+				isMatch := true
+				for key, val := range resultParams {
+					expectedVal, ok := workflowChoice.Conditions[key]
+					// If do not have key of val != expectedVal, the match ends
+					if !ok || val != expectedVal {
+						isMatch = false
+						break
+					}
+				}
+				if isMatch {
+					triggerFuncName = workflowChoice.Next
+					hasOneChoiceMatch = true
+					break
+				}
+ 			}
+			if !hasOneChoiceMatch {
+				resp.WriteHeader(http.StatusInternalServerError)
+				resp.Write([]byte(fmt.Sprint("Workflow branch error: could not find target branch")))
+				return
+			}
+		}
+	}
+}
+
 func (k *Knative) TriggerFunction(funcName string, params []byte) (string, error) {
 	// 1. Query corresponding pod
 	podNamePrefix := svlurl.DeploymentNamePrefix + funcName

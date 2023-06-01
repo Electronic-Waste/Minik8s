@@ -643,3 +643,29 @@ type Job2Pod struct {
 type JobMaps struct {
 	Maps []Job2Pod
 }
+
+
+// Workflow is a DAG control flow gragh executed by serverless function
+type Workflow struct {
+	Metadata meta.ObjectMeta 		`json:"metadata,omitempty" yaml:"metadata,omitempty"`
+
+	StartAt	string 					`json:"startAt" yaml:"startAt"`
+
+	Params	map[string]int			`json:"params" yaml:"params"`
+
+	Nodes	map[string]WorkflowNode `json:"nodes" yaml:"nodes"`
+}
+
+type WorkflowNode struct {
+	Type string	`json:"type" yaml:"type"`
+
+	Next string `json:"next,omitempty" yaml:"next,omitempty"`
+
+	Choices	[]WorkflowChoice	`json:"choices,omitemtpy" yaml:"choices,omitempty"`
+}
+
+type WorkflowChoice struct {
+	Conditions map[string]int	`json:"conditions,omitempty" yaml:"conditions,omitempty"`
+
+	Next string `json:"next,omitempty" yaml:"next,omitempty"`
+}

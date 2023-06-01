@@ -142,6 +142,23 @@ func HttpApply(objType string, obj any) error {
 		if response.StatusCode != http.StatusOK {
 			return errors.New("apply fail")
 		}
+	case "Workflow":
+		workflow := obj.(core.Workflow)
+		// send http request to knative
+		request, err := http.NewRequest("POST", svlurl.ManagerPrefix + svlurl.WorkflowTriggerURL, bytes.NewReader(payload))
+		if err != nil {
+			log.Fatal(err)
+		}
+		fmt.Printf("http apply workflow name is %s\n", workflow.Metadata.Name)
+		response, err := client.Do(request)
+		if err != nil {
+			log.Fatal(err)
+		}
+		if response.StatusCode != http.StatusOK {
+			return fmt.Errorf("Apply workflow failed: %v\n", err)
+		}
+		body, _ := ioutil.ReadAll(response.Body)
+		fmt.Printf("Workflow finished successfully! Result is: %s\n", string(body))
 	}
 	return nil
 }

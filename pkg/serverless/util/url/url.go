@@ -16,6 +16,9 @@ const (
 	FunctionRegisterURL			= Function + "/register"
 	FunctionTriggerURL			= Function + "/trigger"
 
+	Workflow					= "/workflow"
+	WorkflowTriggerURL			= Workflow + "/trigger"
+
 	DeploymentNamePrefix		= "deployment-svl-"
 	PodNamePrefix 				= "pod-svl-"
 	VolumeNamePrefix			= "vol-svl-"

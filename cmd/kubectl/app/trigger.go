@@ -10,10 +10,10 @@ import (
 
 var (
 	triggerCmd = &cobra.Command{
-		Use:     "trigger <funName> -d <json>",
+		Use:     "trigger <funName> <json>",
 		Short:   "Trigger a function in Knative",
 		Long:    "Trigger a function in Knative",
-		Example: `trigger add '{"x":1,"y":2}'`,
+		Example: `trigger Add '{"x":1,"y":2}'`,
 		Run: func(cmd *cobra.Command, args []string) {
 			fmt.Println("trigger called")
 			//fmt.Println(args[0])
