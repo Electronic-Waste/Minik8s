@@ -238,13 +238,16 @@ func (dc *DeploymentController) syncDeployment(ctx context.Context, watchres lis
 		}
 		//wait for pod to be started
 		//deploymentname := deployment.Metadata.Name
-		//long wait
-		if strings.HasPrefix(deploymentname, svlurl.DeploymentNamePrefix){
-			fmt.Println("long wait")
-			time.Sleep(time.Second * 30)
-		}else{	//short wait
-			fmt.Println("short wait")
-			time.Sleep(time.Second * 5)
+		
+		if actiontype != "delete"{
+			//long wait
+			if strings.HasPrefix(deploymentname, svlurl.DeploymentNamePrefix){
+				fmt.Println("long wait")
+				time.Sleep(time.Second * 30)
+			}else{	//short wait
+				fmt.Println("short wait")
+				time.Sleep(time.Second * 5)
+			}
 		}
 	}
 	//TODO: check the deployment status and do actions accordingly
