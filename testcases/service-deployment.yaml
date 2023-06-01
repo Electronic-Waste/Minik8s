@@ -1,0 +1,15 @@
+kind: Service
+metadata:
+  name: serviceDeploymentTest
+spec:
+  ports:
+  - name: go1-port
+    protocol: TCP
+    port: 8080
+    targetPort: 8080
+  - name: go2-port
+    protocol: TCP
+    port: 80
+    targetPort: 80
+  selector:
+    app: deploymentServiceTest
