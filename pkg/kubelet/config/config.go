@@ -152,6 +152,11 @@ func (p *PodStorage) Merge(source string, update interface{}) error {
 		{
 			fmt.Println("not support types")
 		}
+	case types.CHECK:
+		{
+			fmt.Println("check the controller plane")
+
+		}
 	}
 	return nil
 }

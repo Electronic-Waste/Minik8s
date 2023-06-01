@@ -11,10 +11,10 @@ import (
 	"os"
 	"time"
 
-	"minik8s.io/pkg/util/listwatch"
-	apiurl "minik8s.io/pkg/apiserver/util/url"
-	"github.com/go-redis/redis/v8"
 	"encoding/json"
+	"github.com/go-redis/redis/v8"
+	apiurl "minik8s.io/pkg/apiserver/util/url"
+	"minik8s.io/pkg/util/listwatch"
 )
 
 // design : maintain a cache as the total pod in the dir
@@ -52,33 +52,35 @@ type sourceFile struct {
 
 // map from file name to pod name
 type FileCache struct {
-	PodMap map[string]string
+	PodMap  map[string]string
+	PodMap2 map[string]string
 }
 
 func NewSourceFile(ch chan interface{}) {
 	cfg := newSourceFile(ch, constant.SysPodDir)
 	// init the cache
 	fileCache := FileCache{
-		PodMap: make(map[string]string),
+		PodMap:  make(map[string]string),
+		PodMap2: make(map[string]string),
 	}
 	go register(&fileCache)
 	cfg.run(&fileCache)
 }
 
-func register (fileCache *FileCache){
-	go listwatch.Watch(apiurl.PodStatusApplyURL, 
-		func(msg *redis.Message){
+func register(fileCache *FileCache) {
+	go listwatch.Watch(apiurl.PodStatusApplfileCacheyURL,
+		func(msg *redis.Message) {
 			var Param core.ScheduleParam
 			json.Unmarshal([]byte(msg.Payload), &Param)
-			fileCache.PodMap[Param.RunPod.Name] = Param.RunPod.Name
+			fileCache.PodMap2[Param.RunPod.Name] = Param.RunPod.Name
 		})
 	//need no update handler
 	//go listwatch.Watch(apiurl.PodStatusUpdateURL,)
-	go listwatch.Watch(apiurl.PodStatusDelURL, 
-		func(msg *redis.Message){
+	go listwatch.Watch(apiurl.PodStatusDelURL,
+		func(msg *redis.Message) {
 			var podname string
 			json.Unmarshal([]byte(msg.Payload), &podname)
-			delete(fileCache.PodMap, podname)
+			delete(fileCache.PodMap2, podname)
 		})
 }
 
@@ -91,7 +93,7 @@ func newSourceFile(ch chan interface{}, path string) *sourceFile {
 }
 
 func (cfg *sourceFile) run(fileCache *FileCache) {
-	go func () {
+	go func() {
 		// start to receive message from sourceFile
 		select {
 		case e := <-cfg.watch:
@@ -128,23 +130,6 @@ func (cfg *sourceFile) run(fileCache *FileCache) {
 			}
 		}
 	}()
-	//polling to check container status
-	/*
-	go func () {
-		timeout := time.Second * 10
-		for {
-			fmt.Println("check pod status")
-			for _,podname := range fileCache.PodMap{
-				if podmanager.IsPodRunning(podname) {
-					podmanager.DelPod(podname)
-				} else if podmanager.IsCrashContainer(podname) {
-					podmanager.DelSimpleContainer(podname)
-				}
-			}
-			time.Sleep(timeout)
-		}
-	}()
-	*/
 	cfg.startWatch(fileCache)
 }
 
