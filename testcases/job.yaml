@@ -8,4 +8,4 @@ spec:
   cpu_per_task: 6
   gpu-num: 1
   file: result
-  codePath: /root/minik8s/minik8s/scripts/data/test.cu
+  codePath: /root/minik8s/minik8s/scripts/data/add.cu
