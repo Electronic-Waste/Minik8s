@@ -71,10 +71,6 @@
 ![service-result](./docs/img/service-result.png)
 
 
-<<<<<<< HEAD
-
-=======
->>>>>>> err(serverless/sjq): error register
 ## Function功能
 
 ### 启动
