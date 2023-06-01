@@ -69,6 +69,7 @@
 
 ![service-result](./docs/img/service-result.png)
 
+
 ## GPU Usage
 ### Start Up
 > ./bin/kubelet
@@ -81,3 +82,37 @@
 -   after job finish
 ![pod-result](./docs/img/pod-run2.png)
 > run `cat /root/minik8s/minik8s/scripts/data/result.out` can get the job's result
+
+## Function Abstraction
+### Setup
+- First, we need to pull python image to build up our environment
+```
+$ nerdctl pull python:3.8.10
+```
+
+- Then, we need to run other supporting components for serverless function
+```
+$ ./bin/apiserver
+$ ./bin/scheduler
+$ ./bin/kubelet
+$ ./bin/kube-controller-manager
+$ ./bin/knative
+```
+
+### Run Serverless Function
+- Register Function
+> We need register a function to Knative first
+```
+$ ./bin/kubectl register <path-to-python-file>
+```
+
+- Trigger Function
+> After registration, we can invoke function 
+
+```
+$ ./bin/kubectl trigger <funcName> <data>
+```
+> - "funcName" in the prefix of python file name. For example, if we have a python file named as "func.py", then its "funcName" is "func".
+> 
+> - "data" is a JSON string, and its value should be determined by the function. A valid data form is like '{"x":1,"y":2}' (for "Add.py" in ./testcases). By the way, if the function do not need params, we should set "data" to ''(empty string).
+

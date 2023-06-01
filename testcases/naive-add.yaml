@@ -1,0 +1,11 @@
+kind: Workflow
+metadata:
+  name: test-workflow
+startAt: add
+params:
+  "x": 333
+  "y": 333
+nodes:
+  add:
+    Type: Task
+    

@@ -9,6 +9,7 @@ import (
 	"log"
 	"minik8s.io/pkg/apis/core"
 	apiurl "minik8s.io/pkg/apiserver/util/url"
+	svlurl "minik8s.io/pkg/serverless/util/url"
 	"net/http"
 )
 
@@ -61,8 +62,7 @@ func HttpApply(objType string, obj any) error {
 			return errors.New("apply fail")
 		}
 	case "Service":
-		var service core.Service
-		json.Unmarshal([]byte(payload), &service)
+		service := obj.(core.Service)
 		// fmt.Printf("httpclient: service is : %v\n", service)
 		// fmt.Printf("httpclinet: service name is : %v\n", service.Name)
 		postURL := apiurl.Prefix + apiurl.ServiceApplyURL + fmt.Sprintf("?namespace=default&name=%s", service.Name)
@@ -79,8 +79,6 @@ func HttpApply(objType string, obj any) error {
 		if response.StatusCode != http.StatusOK {
 			return errors.New("apply fail")
 		}
-		body, _ := ioutil.ReadAll(response.Body)
-		fmt.Printf("Response: %s\n", string(body))
 	case "DNS":
 		var dns core.DNS
 		json.Unmarshal([]byte(payload), &dns)
@@ -97,8 +95,6 @@ func HttpApply(objType string, obj any) error {
 		if response.StatusCode != http.StatusOK {
 			return errors.New("apply fail")
 		}
-		body, _ := ioutil.ReadAll(response.Body)
-		fmt.Printf("Response: %s\n", string(body))
 	case "Node":
 		var node core.Node
 		json.Unmarshal([]byte(payload), &node)
@@ -116,6 +112,21 @@ func HttpApply(objType string, obj any) error {
 		}
 		body, _ := ioutil.ReadAll(response.Body)
 		fmt.Printf("Response: %s\n", string(body))
+	case "Function":
+		function := obj.(core.Function)
+		postURL := apiurl.Prefix + apiurl.FunctionRegisterURL
+		request, err := http.NewRequest("POST", postURL, bytes.NewReader(payload))
+		if err != nil {
+			log.Fatal(err)
+		}
+		fmt.Println("http register function: ", function.Name)
+		response, err := client.Do(request)
+		if err != nil {
+			log.Fatal(err)
+		}
+		if response.StatusCode != http.StatusOK {
+			return errors.New("apply function fail")
+		}
 	case "Job":
 		job := obj.(core.Job)
 		// send http request to apiserver
@@ -131,9 +142,94 @@ func HttpApply(objType string, obj any) error {
 		if response.StatusCode != http.StatusOK {
 			return errors.New("apply fail")
 		}
+	case "Workflow":
+		workflow := obj.(core.Workflow)
+		// send http request to knative
+		request, err := http.NewRequest("POST", svlurl.ManagerPrefix + svlurl.WorkflowTriggerURL, bytes.NewReader(payload))
+		if err != nil {
+			log.Fatal(err)
+		}
+		fmt.Printf("http apply workflow name is %s\n", workflow.Metadata.Name)
+		response, err := client.Do(request)
+		if err != nil {
+			log.Fatal(err)
+		}
+		if response.StatusCode != http.StatusOK {
+			return fmt.Errorf("Apply workflow failed: %v\n", err)
+		}
+		body, _ := ioutil.ReadAll(response.Body)
+		fmt.Printf("Workflow finished successfully! Result is: %s\n", string(body))
 	}
-
 	return nil
+}
+
+// return: error
+// @obj: the obj to be registered
+func HttpRegister(obj any) error {
+	client := http.Client{}
+	payload, _ := json.Marshal(obj)
+	switch obj.(type) {
+	case core.Function:
+		registerURL := svlurl.ManagerPrefix + svlurl.FunctionRegisterURL
+		request, err := http.NewRequest("POST", registerURL, bytes.NewReader(payload))
+		if err != nil {
+			return err
+		}
+		response, err := client.Do(request)
+		if err != nil {
+			return err
+		}
+		if response.StatusCode != http.StatusOK {
+			body, _ := ioutil.ReadAll(response.Body)
+			return fmt.Errorf("register function failed: %d -> %s\n", response.StatusCode, string(body))
+		}
+	}
+	return nil
+}
+
+// return: result string
+// @triggerType: the type of apiObj that is triggerred
+// @url: the target function url
+// @data: the data params
+func HttpTrigger(triggerType string, url string, data any) (string, error) {
+	fmt.Println("http trigger")
+	client := http.Client{}
+	var result string
+	switch triggerType {
+	case "Knative-Function":
+		payload := data.([]byte)
+		request, err := http.NewRequest("POST", url, bytes.NewReader(payload))
+		if err != nil {
+			log.Fatal(err)
+		}
+		response, err := client.Do(request)
+		if err != nil {
+			log.Fatal(err)
+		}
+		if response.StatusCode != http.StatusOK {
+			return "", fmt.Errorf("trigger failed!\n")
+		}
+		body, _ := ioutil.ReadAll(response.Body)
+		fmt.Printf("Response: %s\n", string(body))
+		result = string(body)
+	case "Kubectl-Function":
+		jsonString := data.(string)
+		request, err := http.NewRequest("POST", url, bytes.NewReader([]byte(jsonString)))
+		if err != nil {
+			log.Fatal(err)
+		}
+		response, err := client.Do(request)
+		if err != nil {
+			log.Fatal(err)
+		}
+		if response.StatusCode != http.StatusOK {
+			return "", fmt.Errorf("trigger failed!\n")
+		}
+		body, _ := ioutil.ReadAll(response.Body)
+		fmt.Printf("Response: %s\n", string(body))
+		result = string(body)
+	}
+	return result, nil
 }
 
 func HttpPlus(objType string, obj any, url string) (error, string) {
@@ -173,8 +269,7 @@ func HttpPlus(objType string, obj any, url string) (error, string) {
 		fmt.Printf("Response: %s\n", string(body))
 		res = string(body)
 	case "Service":
-		var service core.Service
-		json.Unmarshal([]byte(payload), &service)
+		service := obj.(core.Service)
 		// fmt.Printf("httpclient: service is : %v\n", service)
 		// fmt.Printf("httpclinet: service name is : %v\n", service.Name)
 		postURL := url + fmt.Sprintf("?namespace=default&name=%s", service.Name)

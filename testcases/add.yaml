@@ -1,0 +1,24 @@
+kind: Workflow
+metadata:
+  name: test-workflow
+startAt: add
+params:
+  x: 444
+  y: 444
+nodes:
+  add:
+    Type: Task
+    Next: judge
+  judge:
+    Type: Choice
+    choices:
+    - conditions:
+      - res: 666
+      next: printok
+    - conditions:
+      - res: 888
+      next: printfail
+  printok:
+    Type: Task
+  printfail:
+    Type: Task

@@ -8,7 +8,6 @@ const (
 	HttpScheme    string = "http://"
 	HostURL       string = url.MasterNodeIP
 	Port          string = ":8080"
-	SchedulerPort string = "1234"
 
 	Prefix string = HttpScheme + HostURL + Port
 
@@ -63,6 +62,14 @@ const (
 
 	Metrics       string = "/metrics"
 	MetricsGetUrl string = Metrics + "/get"
+
+	Function			string = "/func"
+	FunctionRegisterURL	string = Function + "/register"
+	FunctionTriggerURL 	string = Function + "/trigger"
+	FunctionGetAllURL	string = Function + "/getall"
+	FunctionGetURL		string = Function + "/get"
+	FunctionUpdateURL	string = Function + "/update"
+	FunctionDelURL		string = Function + "/del"
 
 	Vmeet1IP string = url.Vmeet1IP
 	Vmeet2IP string = url.Vmeet2IP
