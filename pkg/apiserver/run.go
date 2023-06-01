@@ -38,6 +38,7 @@ var postHandlerMap = map[string]HttpHandler{
 	url.JobMapUrl:                 job.HandleMapJob,
 	url.DNSApplyURL:				dns.HandleApplyDNS,
 	url.FunctionRegisterURL:		function.HandleRegisterFunction,
+	url.FunctionUpdateURL:			function.HandleUpdateFunction,
 }
 
 var getHandlerMap = map[string]HttpHandler{
@@ -55,6 +56,8 @@ var getHandlerMap = map[string]HttpHandler{
 	url.DNSGetURL:					dns.HandleGetDNS,
 	url.DNSGetAllURL:				dns.HandleGetAllDNS,
 	url.MetricsGetUrl:				pod.HandleGetPodMetrics,
+	url.FunctionGetURL:				function.HandleGetFunction,
+	url.FunctionGetAllURL:			function.HandleGetAllFunction,
 }
 
 var deleteHandlerMap = map[string]HttpHandler{
@@ -63,6 +66,7 @@ var deleteHandlerMap = map[string]HttpHandler{
 	url.AutoscalerStatusDelURL: autoscaler.HandleDelAutoscalerStatus,
 	url.ServiceDelURL:          service.HandleDelService,
 	url.DNSDelURL:				dns.HandleDelDNS,
+	url.FunctionDelURL:			function.HandleDelFunction,
 }
 
 var nodeHandlerMap = map[string]HttpHandler{

@@ -170,6 +170,51 @@ func HttpRegister(obj any) error {
 	return nil
 }
 
+// return: result string
+// @triggerType: the type of apiObj that is triggerred
+// @url: the target function url
+// @data: the data params
+func HttpTrigger(triggerType string, url string, data any) (string, error) {
+	fmt.Println("http trigger")
+	client := http.Client{}
+	var result string
+	switch triggerType {
+	case "Knative-Function":
+		payload := data.([]byte)
+		request, err := http.NewRequest("POST", url, bytes.NewReader(payload))
+		if err != nil {
+			log.Fatal(err)
+		}
+		response, err := client.Do(request)
+		if err != nil {
+			log.Fatal(err)
+		}
+		if response.StatusCode != http.StatusOK {
+			return "", fmt.Errorf("trigger failed!\n")
+		}
+		body, _ := ioutil.ReadAll(response.Body)
+		fmt.Printf("Response: %s\n", string(body))
+		result = string(body)
+	case "Kubectl-Function":
+		jsonString := data.(string)
+		request, err := http.NewRequest("POST", url, bytes.NewReader([]byte(jsonString)))
+		if err != nil {
+			log.Fatal(err)
+		}
+		response, err := client.Do(request)
+		if err != nil {
+			log.Fatal(err)
+		}
+		if response.StatusCode != http.StatusOK {
+			return "", fmt.Errorf("trigger failed!\n")
+		}
+		body, _ := ioutil.ReadAll(response.Body)
+		fmt.Printf("Response: %s\n", string(body))
+		result = string(body)
+	}
+	return result, nil
+}
+
 func HttpPlus(objType string, obj any, url string) (error, string) {
 	fmt.Println("http plus: ",url)
 	client := http.Client{}

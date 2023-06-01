@@ -1,4 +1,4 @@
-package register
+package serverless
 
 import(
 	"os"
@@ -14,7 +14,10 @@ import(
 	"minik8s.io/pkg/clientutil"
 )
 
-func HandleFuncRegister(resp http.ResponseWriter, req *http.Request) {
+// Knative handle function registration
+// uri: /func/register
+// body: core.Function in JSON form
+func (k *Knative) HandleFuncRegister(resp http.ResponseWriter, req *http.Request) {
 	fmt.Println("HandleFuncRegister receive msg!")
 	body, _ := ioutil.ReadAll(req.Body)
 
