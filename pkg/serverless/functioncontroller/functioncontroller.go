@@ -18,7 +18,7 @@ import(
 var(
 	FunctionStatus	 string = url.Function
 	FunctionRegisterUrl string = url.FunctionRegisterURL
-	FunctionDeleteUrl string = url.FunctionDeleteURL
+	FunctionDelUrl string = url.FunctionDelURL
 	FunctionTriggerUrl	string = url.FunctionTriggerURL
 	defaultcountdown int = 50
 )
@@ -54,7 +54,7 @@ func (fc *FunctionController) register () {
 	//fmt.Println("fc register")
 	go listwatch.Watch(FunctionRegisterUrl, fc.registerlistener)
 	go listwatch.Watch(FunctionTriggerUrl, fc.triggerlistener)
-	go listwatch.Watch(FunctionDeleteUrl, fc.deletelistener)
+	go listwatch.Watch(FunctionDelUrl, fc.deletelistener)
 }
 
 func (fc *FunctionController) registerlistener (msg *redis.Message) {

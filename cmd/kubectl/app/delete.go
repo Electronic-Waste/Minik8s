@@ -39,6 +39,8 @@ func DeleteHandler(resourceKind, resourceName string) error {
 		err = deleteAutoscaler(resourceName)
 	case "node":
 		err = deleteNode(resourceName)
+	case "func":
+		err = deleteFunc(resourceName)
 	default:
 		fmt.Println("unknown type")
 	}
@@ -89,6 +91,13 @@ func deleteDNS(dnsName string) error {
 	params["namespace"] = "default"
 	params["name"] = dnsName
 	return clientutil.HttpDel("DNS", params)
+}
+
+func deleteFunc(funcName string) error {
+	fmt.Println("del func")
+	params := make(map[string]string)
+	params["name"] = funcName
+	return clientutil.HttpDel("Kubectl-Function", params)
 }
 
 func init() {
