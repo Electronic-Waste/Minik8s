@@ -9,10 +9,10 @@ import (
 	"net/http"
 	"path"
 	// "github.com/go-redis/redis/v8"
-	"minik8s.io/pkg/util/listwatch"
 	"minik8s.io/pkg/apis/core"
 	"minik8s.io/pkg/apiserver/etcd"
 	"minik8s.io/pkg/apiserver/util/url"
+	"minik8s.io/pkg/util/listwatch"
 )
 
 // Return certain pod's status
@@ -55,31 +55,29 @@ func HandleGetAllPodStatus(resp http.ResponseWriter, req *http.Request) {
 	}
 	nodeList := core.NodeList{}
 	json.Unmarshal(bytes, &nodeList)
-	fmt.Println("nodelist:",nodeList)
+	fmt.Println("nodelist:", nodeList)
 
 	var allpods []core.Pod
 
-	for _,n := range nodeList.NodeArray{
+	for _, n := range nodeList.NodeArray {
 		geturl := url.HttpScheme + n.Spec.NodeIp + config.Port + config.GetAllPodUrl
 		fmt.Println(geturl)
-		bytes,err := clientutil.HttpGetPlus("Pod", geturl)
+		bytes, err := clientutil.HttpGetPlus("Pod", geturl)
 		//fmt.Println("get from nodes:",string(bytes))
 		pods := []core.Pod{}
 		err = json.Unmarshal(bytes, &pods)
-		if err != nil{
+		if err != nil {
 			fmt.Println(err)
 			resp.WriteHeader(http.StatusNotFound)
 			resp.Write([]byte(err.Error()))
 			return
 		}
 		//fmt.Println("get pods from",n.Spec.NodeIp,"get",pods)
-		fmt.Println("get pods from",n.Spec.NodeIp)
+		fmt.Println("get pods from", n.Spec.NodeIp)
 		allpods = append(allpods, pods...)
-		//!!!test
-		break
 	}
-	data,err := json.Marshal(allpods)
-	if err != nil{
+	data, err := json.Marshal(allpods)
+	if err != nil {
 		fmt.Println(err)
 		return
 	}
@@ -87,27 +85,27 @@ func HandleGetAllPodStatus(resp http.ResponseWriter, req *http.Request) {
 	resp.Header().Set("Content-Type", "application/json")
 	resp.Write(data)
 	/*
-	etcdPrefix := url.PodStatus
-	var podStatusArr []string
-	podStatusArr, err := etcd.GetWithPrefix(etcdPrefix)
-	// Error occur in etcd: return error to client
-	if err != nil {
-		resp.WriteHeader(http.StatusNotFound)
-		resp.Write([]byte(err.Error()))
-		return
-	}
-	var jsonVal []byte
-	jsonVal, err = json.Marshal(podStatusArr)
-	// Error occur in json parsing: return error to client
-	if err != nil {
-		resp.WriteHeader(http.StatusInternalServerError)
-		resp.Write([]byte(err.Error()))
-		return
-	}
-	resp.WriteHeader(http.StatusOK)
-	resp.Header().Set("Content-Type", "application/json")
-	resp.Write(jsonVal)
-	// return
+		etcdPrefix := url.PodStatus
+		var podStatusArr []string
+		podStatusArr, err := etcd.GetWithPrefix(etcdPrefix)
+		// Error occur in etcd: return error to client
+		if err != nil {
+			resp.WriteHeader(http.StatusNotFound)
+			resp.Write([]byte(err.Error()))
+			return
+		}
+		var jsonVal []byte
+		jsonVal, err = json.Marshal(podStatusArr)
+		// Error occur in json parsing: return error to client
+		if err != nil {
+			resp.WriteHeader(http.StatusInternalServerError)
+			resp.Write([]byte(err.Error()))
+			return
+		}
+		resp.WriteHeader(http.StatusOK)
+		resp.Header().Set("Content-Type", "application/json")
+		resp.Write(jsonVal)
+		// return
 	*/
 }
 
@@ -257,7 +255,7 @@ func HandleDelPodStatus(resp http.ResponseWriter, req *http.Request) {
 	clientutil.HttpPlus("Pod", pod, url.HttpScheme+pod.Spec.RunningNode.Spec.MasterIp+config.Port+config.DelPodRul)
 
 	bytes, err := json.Marshal(podName)
-	if err != nil{
+	if err != nil {
 		fmt.Println(err)
 		resp.WriteHeader(http.StatusInternalServerError)
 		resp.Write([]byte(err.Error()))
@@ -270,8 +268,7 @@ func HandleDelPodStatus(resp http.ResponseWriter, req *http.Request) {
 	fmt.Println("http del success")
 }
 
-
-func HandleGetPodMetrics(resp http.ResponseWriter, req *http.Request){
+func HandleGetPodMetrics(resp http.ResponseWriter, req *http.Request) {
 	fmt.Println("handle get pod metrics")
 	vars := req.URL.Query()
 	podName := vars.Get("name")
@@ -279,7 +276,7 @@ func HandleGetPodMetrics(resp http.ResponseWriter, req *http.Request){
 
 	geturl := url.HttpScheme + nodeip + config.Port + config.PodMetricsUrl + "?name=" + podName
 
-	bytes,err := clientutil.HttpGetPlus("Metrics", geturl)
+	bytes, err := clientutil.HttpGetPlus("Metrics", geturl)
 	if err != nil {
 		fmt.Println(err)
 	}
