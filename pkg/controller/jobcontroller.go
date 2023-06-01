@@ -59,8 +59,10 @@ func (jc *JobController) HandleRunJob(resp http.ResponseWriter, req *http.Reques
 
 	job := core.Job{}
 	json.Unmarshal(body, &job)
+	fmt.Printf("get job is \n%v\n", job)
 	dir, filePath, codeFile, err := jc.genConfig(job)
 	if err != nil {
+		fmt.Println(err)
 		resp.WriteHeader(http.StatusInternalServerError)
 		resp.Write([]byte(err.Error()))
 		return
@@ -68,6 +70,7 @@ func (jc *JobController) HandleRunJob(resp http.ResponseWriter, req *http.Reques
 	// config the Pod message
 	var pod core.Pod
 	pod.Name = "job-" + uid.NewUid()
+	pod.Labels = map[string]string{"node": "vmeet2"}
 	job.Status.PodName = pod.Name
 	// send back to api-server
 	err, _ = clientutil.HttpPlus("Job", job, apiurl.Prefix+apiurl.JobMapUrl)

@@ -51,6 +51,7 @@ const (
 	Node             string = "/node"
 	NodeRergisterUrl string = Node + "/register"
 	NodesGetUrl      string = Node + "/getall"
+	NodeDelUrl       string = Node + "/del"
 
 	Job         string = "/job"
 	JobApplyUrl string = Job + "/apply"
@@ -60,8 +61,8 @@ const (
 	Sched         string = "/sched"
 	SchedApplyURL        = Sched + "/apply"
 
-	Metrics 		string = "/metrics"
-	MetricsGetUrl 	string = Metrics + "/get"
+	Metrics       string = "/metrics"
+	MetricsGetUrl string = Metrics + "/get"
 
 	Vmeet1IP string = url.Vmeet1IP
 	Vmeet2IP string = url.Vmeet2IP
