@@ -76,7 +76,7 @@ func HandleGetAllPodStatus(resp http.ResponseWriter, req *http.Request) {
 		fmt.Println("get pods from",n.Spec.NodeIp)
 		allpods = append(allpods, pods...)
 		//!!!test
-		break
+		//break
 	}
 	data,err := json.Marshal(allpods)
 	if err != nil{

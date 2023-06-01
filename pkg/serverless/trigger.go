@@ -177,6 +177,7 @@ func (k *Knative) TriggerFunction(funcName string, params []byte) (string, error
 			}
 		}
 	}
+	time.Sleep(time.Second * 20)
 
 	// 3. Choose the serving pod with round-robin policy & Send request
 	fmt.Println("trigger: pod len:",len(pods),"and rrcount:",k.rrCount)
