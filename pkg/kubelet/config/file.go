@@ -134,7 +134,7 @@ func (cfg *sourceFile) run(fileCache *FileCache) {
 						delete(fileCache.PodMap, e.fileName)
 						cfg.update <- podUpdate
 					} else if e.eventType == podModify {
-						fmt.Println("don't support modify")
+						fmt.Println("unsupport modify")
 					}
 				}
 			case <-cfg.ticker.C:
