@@ -92,7 +92,7 @@ func (dc *DeploymentController) worker(ctx context.Context) {
 			//print("worker pending\n")
 			dc.replicaWatcher()
 		}
-		time.Sleep(time.Second)
+		time.Sleep(time.Second * 2)
 	}
 }
 
@@ -196,6 +196,7 @@ func (dc *DeploymentController) syncDeployment(ctx context.Context, watchres lis
 				for i := 0; i < num; i++{
 					pid := uid.NewUid()
 					podname := prefix + "-" + pid
+					dc.p2dMap[podname] = deployment.Metadata.Name
 					dc.d2pMap[deployment.Metadata.Name] = append(nameSet, podname)
 					pod.Name = podname
 					for i,_ := range pod.Spec.Containers{
@@ -210,6 +211,7 @@ func (dc *DeploymentController) syncDeployment(ctx context.Context, watchres lis
 				for i := 0; i < num; i++{
 					podname := nameSet[0]
 					dc.d2pMap[deployment.Metadata.Name] = nameSet[1:]
+					delete(dc.p2dMap, podname)
 					DelPod(podname)
 					fmt.Println("deployment update delete pod")
 				}
@@ -238,9 +240,11 @@ func (dc *DeploymentController) syncDeployment(ctx context.Context, watchres lis
 		//deploymentname := deployment.Metadata.Name
 		//long wait
 		if strings.HasPrefix(deploymentname, svlurl.DeploymentNamePrefix){
+			fmt.Println("long wait")
 			time.Sleep(time.Second * 30)
 		}else{	//short wait
-			time.Sleep(time.Second * 3)
+			fmt.Println("short wait")
+			time.Sleep(time.Second * 5)
 		}
 	}
 	//TODO: check the deployment status and do actions accordingly
@@ -250,7 +254,7 @@ func (dc *DeploymentController) syncDeployment(ctx context.Context, watchres lis
 func (dc *DeploymentController) replicaWatcher() {
 	fmt.Println("!!!watching replicas")
 	pods,err := GetPods()
-	fmt.Println("replica watcher get all pods:", len(pods))
+	fmt.Println("replica watcher get all pods:", pods)
 	if err!=nil{
 		fmt.Println(err.Error())
 		return
@@ -286,7 +290,7 @@ func (dc *DeploymentController) replicaWatcher() {
 		if pod.Status.Phase != core.PodFailed{
 			deploymentname,ok := dc.p2dMap[pod.Name]
 			if ok == true{
-				//fmt.Println("pod: " + pod.Name + ", deployment: deploymentname")
+				fmt.Println("pod:", pod.Name, "deployment:", deploymentname)
 				replica,ok := numMap[deploymentname.(string)]
 				if ok{
 					replica++
@@ -305,6 +309,8 @@ func (dc *DeploymentController) replicaWatcher() {
 					dc.d2pMap[deploymentname.(string)] = nameSet
 				}
 			}
+		}else{
+			fmt.Println("pod", pod.Name,"fail")
 		}
 	}
 	for deploymentname,replica := range numMap {
@@ -344,9 +350,11 @@ func (dc *DeploymentController) replicaWatcher() {
 					deploymentname = deployment.Metadata.Name
 					//long wait
 					if strings.HasPrefix(deploymentname, svlurl.DeploymentNamePrefix){
+						fmt.Println("long wait")
 						time.Sleep(time.Second * 30)
 					}else{	//short wait
-						time.Sleep(time.Second * 3)
+						fmt.Println("short wait")
+						time.Sleep(time.Second * 5)
 					}
 				}
 			}

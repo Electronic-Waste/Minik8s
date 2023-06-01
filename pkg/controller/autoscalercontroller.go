@@ -224,6 +224,14 @@ func (ac *AutoscalerController) worker (autoscaler core.Autoscaler) {
 			fmt.Println("Utilization: ",cpuvalue.Utilization," ",memoryvalue.Utilization)
 			flag1 := cpuvalue.Metrics > cpuvalue.Utilization
 			flag2 := memoryvalue.Metrics > memoryvalue.Utilization
+			if flag1 == true || flag2 == true{
+				fmt.Println("cpu and memory increase replicas")
+				IncreaseReplicas(deployment,maxreplicas,minreplicas)
+			}else {
+				fmt.Println("cpu and memory decrease replicas")
+				DecreaseReplicas(deployment,maxreplicas,minreplicas)
+			}
+			/*
 			if flag1 == flag2{
 				if flag1 == true{
 					fmt.Println("cpu and memory increase replicas")
@@ -233,8 +241,8 @@ func (ac *AutoscalerController) worker (autoscaler core.Autoscaler) {
 					DecreaseReplicas(deployment,maxreplicas,minreplicas)
 				}
 			}else if flag1 == true{	//cpu increase but memory decrease
-				fmt.Println("cpu (memory) decrease replicas")
-				DecreaseReplicas(deployment,maxreplicas,minreplicas)
+				fmt.Println("cpu (memory) increase replicas")
+				IncreaseReplicas(deployment,maxreplicas,minreplicas)
 			}else{	//cpu decrease but memory increase
 				if memoryvalue.Metrics > 80{
 					DecreaseReplicas(deployment,maxreplicas,minreplicas)
@@ -242,6 +250,7 @@ func (ac *AutoscalerController) worker (autoscaler core.Autoscaler) {
 					IncreaseReplicas(deployment,maxreplicas,minreplicas)
 				}
 			}
+			*/
 		}
 	}
 }
@@ -378,9 +387,9 @@ func (ac *AutoscalerController) restart () {
 		autoscaler := core.Autoscaler{}
 		json.Unmarshal([]byte(s),&autoscaler)
 		autoscalerSet = append(autoscalerSet, autoscaler)
-		fmt.Println(autoscaler.Metadata.Name)
+		fmt.Println("ac restart",autoscaler.Metadata.Name)
 	}
 	ac.autoscalerList = autoscalerSet
 	//wait for autoscaler controller to restart
-	time.Sleep(time.Second)
+	//time.Sleep(time.Second)
 }

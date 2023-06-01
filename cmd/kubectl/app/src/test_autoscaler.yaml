@@ -2,7 +2,7 @@ kind: HorizontalPodAutoscaler
 metadata: 
   name: autoscaler_test
 spec:
-  maxReplicas: 4
+  maxReplicas: 3
   minReplicas: 1
   scaleIntervel: 10
   scaleTargetRef:
