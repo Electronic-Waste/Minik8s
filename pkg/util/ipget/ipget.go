@@ -54,7 +54,7 @@ func GetFlannelIP() (string, error) {
 		}
 		blocks := strings.Split(line, " ")
 		if blocks[1] == matchStr {
-			targetLine = lines[i + 4]
+			targetLine = lines[i + 2]
 			break;
 		}
  	}

@@ -50,7 +50,7 @@ func HandleRegisterFunction(resp http.ResponseWriter, req *http.Request) {
 // Get all functions
 // uri: /func/getall
 func HandleGetAllFunction(resp http.ResponseWriter, req *http.Request) {
-
+	
 }
 
 // Get a function with function name
