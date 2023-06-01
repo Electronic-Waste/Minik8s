@@ -155,7 +155,27 @@ func (p *PodStorage) Merge(source string, update interface{}) error {
 	case types.CHECK:
 		{
 			fmt.Println("check the controller plane")
-
+			pods, err := podmanager.GetPods()
+			if err != nil {
+				return err
+			}
+			is_find := false
+			for _, p := range mes.Pods {
+				for _, podVal := range pods {
+					if strings.Compare(p.Name, podVal.Name) == 0 {
+						is_find = true
+						if strings.Compare(podVal.Status.Phase, core.PodRunning) == 0 {
+							continue
+						} else {
+							podmanager.DelPod(p.Name)
+							podmanager.RunSysPod(p.Name)
+						}
+					}
+				}
+				if !is_find {
+					podmanager.DelSimpleContainer(p.Name)
+				}
+			}
 		}
 	}
 	return nil

@@ -48,6 +48,9 @@ type sourceFile struct {
 
 	// listening path
 	path string
+
+	// timer
+	ticker *time.Ticker
 }
 
 // map from file name to pod name
@@ -68,7 +71,7 @@ func NewSourceFile(ch chan interface{}) {
 }
 
 func register(fileCache *FileCache) {
-	go listwatch.Watch(apiurl.PodStatusApplfileCacheyURL,
+	go listwatch.Watch(apiurl.PodStatusApplyURL,
 		func(msg *redis.Message) {
 			var Param core.ScheduleParam
 			json.Unmarshal([]byte(msg.Payload), &Param)
@@ -89,6 +92,8 @@ func newSourceFile(ch chan interface{}, path string) *sourceFile {
 		update: ch,
 		watch:  make(chan *watchEvent, eventBufferLen),
 		path:   path,
+		// every 10 seconds to check for control plane
+		ticker: time.NewTicker(10 * time.Second),
 	}
 }
 
@@ -127,6 +132,35 @@ func (cfg *sourceFile) run(fileCache *FileCache) {
 				} else if e.eventType == podModify {
 					fmt.Println("don't support modify")
 				}
+			}
+		case <-cfg.ticker:
+			{
+				// List All Config Pod and send to check
+				files, err := ListAllConfig(cfg.path)
+				if err != nil {
+					fmt.Println("error in List config")
+					return
+				}
+				podSet := []*core.Pod{}
+				for _, file := range files {
+					// parse to Pod Object
+					pod, err := core.ParsePod(file)
+					if err != nil {
+						if err.Error() == "error file type" {
+							continue
+						} else {
+							fmt.Println(err)
+							return
+						}
+					}
+					podSet = append(podSet, pod)
+					fileCache.PodMap[file] = pod.Name
+				}
+				podUpdate := types.PodUpdate{}
+				podUpdate.Op = types.CHECK
+				podUpdate.Source = types.FileSource
+				podUpdate.Pods = podSet
+				cfg.update <- podUpdate
 			}
 		}
 	}()
