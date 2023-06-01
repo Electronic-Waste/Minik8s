@@ -126,6 +126,17 @@ func ApplyHandler(path string) error {
 			fmt.Printf("Error in sending service to apiserver: %v", err)
 			return err
 		}
+	case "Workflow":
+		workflow := core.Workflow{}
+		err := viper.Unmarshal(&workflow)
+		if err != nil {
+			return fmt.Errorf("Error in unmarshaling workflow yaml file: %v", err)
+		}
+		fmt.Printf("printf workflow: %v\n", workflow)
+		err = applyWorkflow(workflow)
+		if err != nil {
+			return fmt.Errorf("Error in send workflow to knative: %v", err)
+		}
 	}
 	return nil
 }
@@ -159,6 +170,11 @@ func applyDNS(dns core.DNS) error {
 func applyAutoscaler(autoscaler core.Autoscaler) error {
 	fmt.Println("apply autoscaler")
 	return clientutil.HttpApply("Autoscaler", autoscaler)
+}
+
+func applyWorkflow(workflow core.Workflow) error {
+	fmt.Println("apply workflow")
+	return clientutil.HttpApply("Workflow", workflow)
 }
 
 func init() {

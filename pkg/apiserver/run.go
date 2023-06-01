@@ -19,6 +19,7 @@ import (
 	"minik8s.io/pkg/apiserver/etcd"
 	"minik8s.io/pkg/apiserver/pod"
 	"minik8s.io/pkg/apiserver/service"
+	"minik8s.io/pkg/apiserver/function"
 	"minik8s.io/pkg/apiserver/util/url"
 )
 
@@ -35,8 +36,9 @@ var postHandlerMap = map[string]HttpHandler{
 	url.ServiceUpdateURL:          service.HandleUpdateService,
 	url.JobApplyUrl:               job.HandleApplyJob,
 	url.JobMapUrl:                 job.HandleMapJob,
-	url.DNSApplyURL:               dns.HandleApplyDNS,
-	url.NodeDelUrl:                node.HandleNodeDel,
+	url.DNSApplyURL:				dns.HandleApplyDNS,
+	url.FunctionRegisterURL:		function.HandleRegisterFunction,
+	url.FunctionUpdateURL:			function.HandleUpdateFunction,
 }
 
 var getHandlerMap = map[string]HttpHandler{
@@ -51,9 +53,11 @@ var getHandlerMap = map[string]HttpHandler{
 	url.ServiceGetAllURL:          service.HandleGetAllServices,
 	url.NodesGetUrl:               node.HandleGetNodes,
 	url.JobGetUrl:                 job.HandleGetJob,
-	url.DNSGetURL:                 dns.HandleGetDNS,
-	url.DNSGetAllURL:              dns.HandleGetAllDNS,
-	url.MetricsGetUrl:             pod.HandleGetPodMetrics,
+	url.DNSGetURL:					dns.HandleGetDNS,
+	url.DNSGetAllURL:				dns.HandleGetAllDNS,
+	url.MetricsGetUrl:				pod.HandleGetPodMetrics,
+	url.FunctionGetURL:				function.HandleGetFunction,
+	url.FunctionGetAllURL:			function.HandleGetAllFunction,
 }
 
 var deleteHandlerMap = map[string]HttpHandler{
@@ -61,11 +65,13 @@ var deleteHandlerMap = map[string]HttpHandler{
 	url.DeploymentStatusDelURL: deployment.HandleDelDeploymentStatus,
 	url.AutoscalerStatusDelURL: autoscaler.HandleDelAutoscalerStatus,
 	url.ServiceDelURL:          service.HandleDelService,
-	url.DNSDelURL:              dns.HandleDelDNS,
+	url.DNSDelURL:					dns.HandleDelDNS,
+	url.FunctionDelURL:				function.HandleDelFunction,
 }
 
 var nodeHandlerMap = map[string]HttpHandler{
-	url.NodeRergisterUrl: node.HandleNodeRegister,
+	url.NodeRergisterUrl: 	node.HandleNodeRegister,
+	url.NodeDelUrl:			node.HandleNodeDel,
 }
 
 func bindWatchHandler() {
