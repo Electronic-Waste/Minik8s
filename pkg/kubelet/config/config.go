@@ -100,7 +100,7 @@ func (p *PodStorage) Merge(source string, update interface{}) error {
 			for _, pod := range mes.Pods {
 				// running core Pod
 				fmt.Printf("pod name is %s\n", pod.Name)
-				err := podmanager.RunPod(pod)
+				err := podmanager.RunSysPod(pod)
 				if err != nil {
 					fmt.Println(err)
 					return err
@@ -122,7 +122,7 @@ func (p *PodStorage) Merge(source string, update interface{}) error {
 					fmt.Println("Pod name crash in Pod adding in file source")
 				} else {
 					// run the pod
-					err := podmanager.RunPod(pod)
+					err := podmanager.RunSysPod(pod)
 					if err != nil {
 						fmt.Println(err)
 						return err
