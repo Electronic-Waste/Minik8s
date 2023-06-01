@@ -3,6 +3,7 @@ package podmanager
 import (
 	"bytes"
 	"context"
+	"encoding/json"
 	"fmt"
 	"github.com/containerd/containerd"
 	"github.com/containerd/containerd/errdefs"
@@ -13,14 +14,13 @@ import (
 	"golang.org/x/text/language"
 	"log"
 	"minik8s.io/pkg/apis/core"
+	apiurl "minik8s.io/pkg/apiserver/util/url"
 	"minik8s.io/pkg/cli/remote_cli"
 	"minik8s.io/pkg/idutil/containerwalker"
+	"minik8s.io/pkg/util/listwatch"
 	"os/exec"
 	"strings"
 	"time"
-	"minik8s.io/pkg/util/listwatch"
-	apiurl "minik8s.io/pkg/apiserver/util/url"
-	"encoding/json"
 )
 
 // here just finish some operation need by pod running and deleting
@@ -49,7 +49,7 @@ func RunPod(pod *core.Pod) error {
 	}
 	genPodIp(pod)
 
-	bytes,_ := json.Marshal(pod.Name)
+	bytes, _ := json.Marshal(pod.Name)
 	listwatch.Publish(apiurl.PodStatusRegisterMetricsUrl, bytes)
 
 	return nil
@@ -87,6 +87,10 @@ func genPodIp(pod *core.Pod) error {
 	err := cmd.Run()
 	outStr, errStr := string(stdout.Bytes()), string(stderr.Bytes())
 	fmt.Printf("out:\n%s\nerr:\n%s\n", outStr, errStr)
+	if err != nil {
+		log.Fatalf("cmd.Run() failed with %s\n", err)
+		return err
+	}
 	ip := outStr[1 : len(outStr)-2]
 	pod.Status.PodIp = ip
 	if err != nil {
@@ -122,7 +126,7 @@ func DelSimpleContainer(name string) error {
 }
 
 func DelPod(name string) error {
-	bytes,_ := json.Marshal(name)
+	bytes, _ := json.Marshal(name)
 	listwatch.Publish(apiurl.PodStatusUnregisterMetricsUrl, bytes)
 
 	err := DelSimpleContainer(name)

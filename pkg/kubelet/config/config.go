@@ -84,6 +84,7 @@ func (p *PodStorage) Merge(source string, update interface{}) error {
 		{
 			// check Pod is running or not first
 			// running all Pod when types is SET
+			p.storeLock.Lock()
 			for _, p := range mes.Pods {
 				if !podmanager.IsPodRunning(p.Name) && !podmanager.IsCrashContainer(p.Name) {
 
@@ -95,7 +96,6 @@ func (p *PodStorage) Merge(source string, update interface{}) error {
 			}
 
 			// change the storage and Pod status
-			p.storeLock.RLock()
 			p.storage[mes.Source] = make(map[string]*core.Pod)
 			for _, pod := range mes.Pods {
 				// running core Pod
@@ -109,12 +109,12 @@ func (p *PodStorage) Merge(source string, update interface{}) error {
 				// update storage
 				p.storage[mes.Source][pod.Name] = pod
 			}
-			p.storeLock.RUnlock()
+			p.storeLock.Unlock()
 		}
 	case types.ADD:
 		{
 			// run a new Pod
-			p.storeLock.RLock()
+			p.storeLock.Lock()
 			// do some error handling
 			// check for exist Pod name
 			for _, pod := range mes.Pods {
@@ -130,19 +130,19 @@ func (p *PodStorage) Merge(source string, update interface{}) error {
 					p.storage[mes.Source][pod.Name] = pod
 				}
 			}
-			p.storeLock.RUnlock()
+			p.storeLock.Unlock()
 		}
 	case types.DELETE:
 		{
 			// delete a Pod
-			p.storeLock.RLock()
+			p.storeLock.Lock()
 			for _, pod := range mes.Pods {
 				if podmanager.IsPodRunning(pod.Name) {
 					podmanager.DelPod(pod.Name)
 				}
 				delete(p.storage[mes.Source], pod.Name)
 			}
-			p.storeLock.RUnlock()
+			p.storeLock.Unlock()
 		}
 	case types.REMOVE:
 		{
@@ -150,10 +150,12 @@ func (p *PodStorage) Merge(source string, update interface{}) error {
 		}
 	case types.UPDATE:
 		{
-			fmt.Println("not support types")
+			// a Pod be updated
+			fmt.Println("unsupport function")
 		}
 	case types.CHECK:
 		{
+			p.storeLock.Lock()
 			fmt.Println("check the controller plane")
 			pods, err := podmanager.GetPods()
 			if err != nil {
@@ -179,6 +181,7 @@ func (p *PodStorage) Merge(source string, update interface{}) error {
 				is_find = false
 			}
 			fmt.Println("finish check")
+			p.storeLock.Unlock()
 		}
 	}
 	return nil
