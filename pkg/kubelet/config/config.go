@@ -164,18 +164,21 @@ func (p *PodStorage) Merge(source string, update interface{}) error {
 				for _, podVal := range pods {
 					if strings.Compare(p.Name, podVal.Name) == 0 {
 						is_find = true
-						if strings.Compare(podVal.Status.Phase, core.PodRunning) == 0 {
+						if strings.Compare(string(podVal.Status.Phase), "Running") == 0 {
 							continue
 						} else {
 							podmanager.DelPod(p.Name)
-							podmanager.RunSysPod(p.Name)
+							podmanager.RunSysPod(p)
 						}
 					}
 				}
 				if !is_find {
 					podmanager.DelSimpleContainer(p.Name)
+					podmanager.RunSysPod(p)
 				}
+				is_find = false
 			}
+			fmt.Println("finish check")
 		}
 	}
 	return nil

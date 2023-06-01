@@ -100,67 +100,70 @@ func newSourceFile(ch chan interface{}, path string) *sourceFile {
 func (cfg *sourceFile) run(fileCache *FileCache) {
 	go func() {
 		// start to receive message from sourceFile
-		select {
-		case e := <-cfg.watch:
-			{
-				if e.eventType == podAdd {
-					// this code is only for file adding
-					podUpdate := types.PodUpdate{}
-					podUpdate.Op = types.ADD
-					podUpdate.Source = types.FileSource
-					pod, err := core.ParsePod(e.fileName)
-					if err != nil {
-						if err.Error() == "error file type" {
-							fmt.Println("is not yaml file")
-						} else {
-							fmt.Println(err)
+		for {
+			select {
+			case e := <-cfg.watch:
+				{
+					if e.eventType == podAdd {
+						// this code is only for file adding
+						podUpdate := types.PodUpdate{}
+						podUpdate.Op = types.ADD
+						podUpdate.Source = types.FileSource
+						pod, err := core.ParsePod(e.fileName)
+						if err != nil {
+							if err.Error() == "error file type" {
+								fmt.Println("is not yaml file")
+							} else {
+								fmt.Println(err)
+							}
 						}
-					}
-					fileCache.PodMap[e.fileName] = pod.Name
-					podUpdate.Pods = append(podUpdate.Pods, pod)
+						fileCache.PodMap[e.fileName] = pod.Name
+						podUpdate.Pods = append(podUpdate.Pods, pod)
 
-					cfg.update <- podUpdate
-				} else if e.eventType == podDelete {
-					pod := core.Pod{}
-					pod.Name = fileCache.PodMap[e.fileName]
-					podUpdate := types.PodUpdate{}
-					podUpdate.Op = types.DELETE
-					podUpdate.Pods = append(podUpdate.Pods, &pod)
-					podUpdate.Source = types.FileSource
-					delete(fileCache.PodMap, e.fileName)
-					cfg.update <- podUpdate
-				} else if e.eventType == podModify {
-					fmt.Println("don't support modify")
-				}
-			}
-		case <-cfg.ticker:
-			{
-				// List All Config Pod and send to check
-				files, err := ListAllConfig(cfg.path)
-				if err != nil {
-					fmt.Println("error in List config")
-					return
-				}
-				podSet := []*core.Pod{}
-				for _, file := range files {
-					// parse to Pod Object
-					pod, err := core.ParsePod(file)
-					if err != nil {
-						if err.Error() == "error file type" {
-							continue
-						} else {
-							fmt.Println(err)
-							return
-						}
+						cfg.update <- podUpdate
+					} else if e.eventType == podDelete {
+						pod := core.Pod{}
+						pod.Name = fileCache.PodMap[e.fileName]
+						podUpdate := types.PodUpdate{}
+						podUpdate.Op = types.DELETE
+						podUpdate.Pods = append(podUpdate.Pods, &pod)
+						podUpdate.Source = types.FileSource
+						delete(fileCache.PodMap, e.fileName)
+						cfg.update <- podUpdate
+					} else if e.eventType == podModify {
+						fmt.Println("don't support modify")
 					}
-					podSet = append(podSet, pod)
-					fileCache.PodMap[file] = pod.Name
 				}
-				podUpdate := types.PodUpdate{}
-				podUpdate.Op = types.CHECK
-				podUpdate.Source = types.FileSource
-				podUpdate.Pods = podSet
-				cfg.update <- podUpdate
+			case <-cfg.ticker.C:
+				{
+					// List All Config Pod and send to check
+					fmt.Println("tick a time")
+					files, err := ListAllConfig(cfg.path)
+					if err != nil {
+						fmt.Println("error in List config")
+						return
+					}
+					podSet := []*core.Pod{}
+					for _, file := range files {
+						// parse to Pod Object
+						pod, err := core.ParsePod(file)
+						if err != nil {
+							if err.Error() == "error file type" {
+								continue
+							} else {
+								fmt.Println(err)
+								return
+							}
+						}
+						podSet = append(podSet, pod)
+						fileCache.PodMap[file] = pod.Name
+					}
+					podUpdate := types.PodUpdate{}
+					podUpdate.Op = types.CHECK
+					podUpdate.Source = types.FileSource
+					podUpdate.Pods = podSet
+					cfg.update <- podUpdate
+				}
 			}
 		}
 	}()

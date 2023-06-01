@@ -16,7 +16,7 @@ spec:
       limits:
         cpu: "0.5"
       requests:
-        cpu: "0.6"
+        cpu: "0.5"
     volumeMounts:
       - name: shared-data
         mountPath: /mnt
