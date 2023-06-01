@@ -19,6 +19,7 @@ import (
 	"minik8s.io/pkg/apiserver/etcd"
 	"minik8s.io/pkg/apiserver/pod"
 	"minik8s.io/pkg/apiserver/service"
+
 	"minik8s.io/pkg/apiserver/function"
 	"minik8s.io/pkg/apiserver/util/url"
 )
@@ -82,7 +83,7 @@ func HitNode(msg *redis.Message) {
 	fmt.Printf("call HitNode\n")
 	pod := core.Pod{}
 	json.Unmarshal([]byte(msg.Payload), &pod)
-	fmt.Println(pod)
+	//fmt.Println(pod)
 	podName := pod.Name
 	namespace := "default"
 	etcdURL := path.Join(url.PodStatus, namespace, podName)
@@ -91,6 +92,7 @@ func HitNode(msg *redis.Message) {
 		fmt.Println(err)
 	}
 	// inform core kubelet to apply the Pod
+	fmt.Println("hit node: ",url.HttpScheme+pod.Spec.RunningNode.Spec.NodeIp+config.Port+config.RunPodUrl)
 	err, str := clientutil.HttpPlus("Pod", pod, url.HttpScheme+pod.Spec.RunningNode.Spec.NodeIp+config.Port+config.RunPodUrl)
 	if err != nil {
 		fmt.Println(err)

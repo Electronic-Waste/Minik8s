@@ -29,14 +29,14 @@
     ![本地路径](./docs/cni-test.png "相对路径演示")
 
 
-## Deployment Controller 流程
+## Controller 使用流程
 
 ### 启动
 
 `./bin/apiserver`启动apiserver  
 `./bin/kubelet`启动kubelet  
 `./bin/scheduler`启动scheduler  
-`./bin/kubeadm join --config=./testcases/vmeet2.yaml`加入集群  
+`./bin/kubeadm join --config=./testcases/vmeet1.yaml`加入集群  
 `./bin/kube-controller-manager`启动所有controller  
 
 ### 使用Deployment controller创建deployment实例  
@@ -44,9 +44,10 @@
 `./bin/kubectl apply <filename>`(expmple: `./bin/kubectl apply ./cmd/kubectl/app/src/test_deployment.yaml`)创建deployment实例  
 `nerdctl ps`可以看到启动了`replicas`数量的pod和container  
 
-## Autoscaler Controller 流程
+### 使用Autoscaler controller创建autoscaler实例 
 
-先启动Deployment Controller，然后执行`./bin/kubectl apply <filename>`(expmple: `./bin/kubectl apply ./cmd/kubectl/app/src/test_autoscaler.yaml`)创建autoscaler实例  
+执行`./bin/kubectl apply <filename>`(expmple: `./bin/kubectl apply ./cmd/kubectl/app/src/test_autoscaler.yaml`)创建autoscaler实例  
+
 
 ## Service功能
 
@@ -60,14 +61,31 @@
 
 ### 使用
 
-`./bin/kubectl apply <service.yaml>` 创建Service服务
-`./bin/kubectl get service` 查看创建的Service的状态、ClusterIP以及Port等信息
-`./bin/kubectl delete <serviceName>` 删除name为serviceName的Service服务
+`./bin/kubectl apply <service.yaml>` 创建Service服务  
+`./bin/kubectl get service` 查看创建的Service的状态、ClusterIP以及Port等信息  
+`./bin/kubectl delete <serviceName>` 删除name为serviceName的Service服务  
 
 ### 使用效果
 > Apply Service后，可以通过虚拟IP访问服务，同时IPtables规则也会修改，具体效果如下所示
 
 ![service-result](./docs/img/service-result.png)
+
+
+## Function功能
+
+### 启动
+`./bin/apiserver`启动apiserver  
+`./bin/kubeadm join --config=./testcases/vmeet1.yaml`加入集群  
+`./bin/kubelet`启动kubelet  
+`./bin/scheduler`启动scheduler  
+`./bin/kube-controller-manager`启动所有controller  
+`./bin/knative`启动knative
+
+### 注册
+`./bin/kubectl register ./pkg/serverless/app/func.py`
+
+### 使用
+`./bin/kubectl trigger func '{}'`
 
 
 ## GPU Usage
@@ -115,4 +133,3 @@ $ ./bin/kubectl trigger <funcName> <data>
 > - "funcName" in the prefix of python file name. For example, if we have a python file named as "func.py", then its "funcName" is "func".
 > 
 > - "data" is a JSON string, and its value should be determined by the function. A valid data form is like '{"x":1,"y":2}' (for "Add.py" in ./testcases). By the way, if the function do not need params, we should set "data" to ''(empty string).
-

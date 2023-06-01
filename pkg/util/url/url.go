@@ -3,7 +3,9 @@ package url
 const (
 	// !!!Important
 	// Change the following line if you want to use another node as master node
+
 	MasterNodeIP = Vmeet2IP
+
 
 	// We have three nodes:
 	Vmeet1IP = "192.168.1.5"

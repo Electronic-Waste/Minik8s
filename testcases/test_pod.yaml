@@ -1,10 +1,10 @@
 kind: Pod
 metadata:
-  name: tttttTest
+  name: Test
   labels:
     app: test-pod
+    node: vmeet1
     resourcePolicy: on
-
 spec:
   volumes:
     - name: shared-data

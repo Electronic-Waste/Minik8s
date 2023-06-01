@@ -233,14 +233,14 @@ func HttpTrigger(triggerType string, url string, data any) (string, error) {
 }
 
 func HttpPlus(objType string, obj any, url string) (error, string) {
-	fmt.Println("http apply")
+	fmt.Println("http plus: ",url)
 	client := http.Client{}
 	payload, _ := json.Marshal(obj)
 	var res string
 	switch objType {
 	case "Deployment":
-		urlparam := "?namespace=default"
-		request, err := http.NewRequest("POST", url+urlparam, bytes.NewReader(payload))
+		//urlparam := "?namespace=default"
+		request, err := http.NewRequest("POST", url, bytes.NewReader(payload))
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -257,14 +257,16 @@ func HttpPlus(objType string, obj any, url string) (error, string) {
 		if err != nil {
 			log.Fatal(err)
 		}
-		fmt.Println("http apply pod")
+		fmt.Println("http plus pod")
 		response, err := client.Do(request)
+		fmt.Println(response)
 		if err != nil {
-			log.Fatal(err)
+			fmt.Println(err)
 		}
 		if response.StatusCode != http.StatusOK {
 			return errors.New("apply fail"), ""
 		}
+		fmt.Println("http plus pod success")
 		body, _ := ioutil.ReadAll(response.Body)
 		fmt.Printf("Response: %s\n", string(body))
 		res = string(body)
@@ -350,7 +352,7 @@ func HttpGetPlus(objType string, url string) ([]byte, error) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	fmt.Println("http get pod metrics")
+	fmt.Println("http plus get",objType,"from",url)
 	response, err := client.Do(request)
 	if err != nil {
 		log.Fatal(err)
@@ -414,7 +416,6 @@ func HttpGet(objType string, params map[string]string) ([]byte, error) {
 			i++
 		}
 	}
-	//fmt.Printf("httpclient get params: %s\n",urlparam)
 	var requestUrl string
 	switch objType {
 	case "Autoscaler":
@@ -431,7 +432,7 @@ func HttpGet(objType string, params map[string]string) ([]byte, error) {
 		//requestUrl = apiurl.HttpScheme + apiurl.Vmeet1IP + apiurl.Port + apiurl.MetricsGetUrl + urlparam
 		requestUrl = apiurl.Prefix + apiurl.MetricsGetUrl + urlparam
 	}
-
+	fmt.Printf("httpclient get: %s\n",requestUrl)
 	request, err := http.NewRequest("GET", requestUrl, nil)
 	if err != nil {
 		log.Fatal(err)
@@ -467,7 +468,7 @@ func HttpGetWithPrefix(objType string, params map[string]string) ([]byte, error)
 			i++
 		}
 	}
-	fmt.Printf("httpclient get params: %s\n", urlparam)
+	//fmt.Printf("httpclient get params: %s\n",urlparam)
 	var requestUrl string
 	switch objType {
 	case "Pod":
@@ -495,6 +496,7 @@ func HttpGetWithPrefix(objType string, params map[string]string) ([]byte, error)
 // return: obj queried
 // @objType: type want to get
 func HttpGetAll(objType string) ([]byte, error) {
+	fmt.Println("http get all", objType)
 	client := http.Client{}
 	var requestUrl string
 	switch objType {
@@ -555,6 +557,7 @@ func HttpDel(objType string, params map[string]string) error {
 	case "DNS":
 		requestUrl = apiurl.Prefix + apiurl.DNSDelURL + urlparam
 	}
+	fmt.Println("http delete", requestUrl)
 	request, err := http.NewRequest("DELETE", requestUrl, nil)
 	if err != nil {
 		log.Fatal(err)

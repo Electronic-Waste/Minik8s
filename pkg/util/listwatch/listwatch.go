@@ -21,6 +21,7 @@ type WatchResult struct {
 // TODO(shaowang): Expand to multiple machines in the future
 var rdb = redis.NewClient(&redis.Options{
 	Addr:     fmt.Sprintf("%s:%s", url.RedisServerIP, url.RedisServerPort),
+
 	Password: "", // no password set
 	DB:       0,  // use default DB
 })

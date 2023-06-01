@@ -7,6 +7,7 @@ import (
 	"minik8s.io/pkg/apis/core"
 	"minik8s.io/pkg/clientutil"
 	"minik8s.io/pkg/podmanager"
+	"github.com/liushuochen/gotable"
 )
 
 var (
@@ -65,7 +66,23 @@ func GetHandler(resourceKind string) error {
 			json.Unmarshal([]byte(str), &service)
 			serviceList = append(serviceList, service)
 		}
-		FormatPrinting(FormatService, serviceList)
+		//FormatPrinting(FormatService, serviceList)
+		table,_ := gotable.Create("ServiceName","ClusterIP","PortName","Port","TargetPort","ServiceStatus")
+		rows := make([]map[string]string, 0)
+		for _, service := range serviceList {
+			for _, servicePort := range service.Spec.Ports{
+				row := make(map[string]string)
+				row["ServiceName"] = service.Name
+				row["ClusterIP"] = service.Spec.ClusterIP
+				row["PortName"] = servicePort.Name
+				row["Port"] = fmt.Sprintf("%d",servicePort.Port) 
+				row["TargetPort"] = fmt.Sprintf("%d",servicePort.TargetPort)
+				row["ServiceStatus"] = "READY"
+				rows = append(rows,row)
+			}
+		}
+		table.AddRows(rows)
+		fmt.Println(table)
 	case "dns":
 		bytes, err := clientutil.HttpGetAll("DNS")
 		if err != nil {
@@ -82,7 +99,23 @@ func GetHandler(resourceKind string) error {
 			json.Unmarshal([]byte(str), &dns)
 			dnsList = append(dnsList, dns)
 		}
-		FormatPrinting(FormatDNS, dnsList)
+		//FormatPrinting(FormatDNS, dnsList)
+		table,_ := gotable.Create("DNSName", "Host", "SubPath", "ServiceName","TargetPort", "DNSStatus")
+		rows := make([]map[string]string, 0)
+		for _, dns := range dnsList {
+			for _, subpath := range dns.Spec.Subpaths{
+				row := make(map[string]string)
+				row["DNSName"] = dns.Name
+				row["Host"] = dns.Spec.Host
+				row["SubPath"] = subpath.Path
+				row["ServiceName"] = subpath.Service
+				row["TargetPort"] = fmt.Sprintf("%d",subpath.Port)
+				row["DNSStatus"] = "READY"
+				rows = append(rows,row)
+			}
+		}
+		table.AddRows(rows)
+		fmt.Println(table)
 	case "nodes":
 		{
 			// deal with 'kubectl get nodes'
@@ -92,7 +125,19 @@ func GetHandler(resourceKind string) error {
 			}
 			nodeList := core.NodeList{}
 			json.Unmarshal(bytes, &nodeList)
-			FormatPrinting(FormatNodes, nodeList)
+			//FormatPrinting(FormatNodes, nodeList)
+			table,_ := gotable.Create("Name", "MasterIp", "NodeIp", "NodeStatus")
+			rows := make([]map[string]string, 0)
+			for _, node := range nodeList.NodeArray {
+				row := make(map[string]string)
+				row["Name"] = node.MetaData.Name
+				row["MasterIp"] = node.Spec.MasterIp
+				row["NodeIp"] = node.Spec.NodeIp
+				row["NodeStatus"] = "Ready"
+				rows = append(rows,row)
+			}
+			table.AddRows(rows)
+			fmt.Println(table)
 		}
 	case "pod":
 		//fmt.Println("get pods")
@@ -112,22 +157,34 @@ func GetHandler(resourceKind string) error {
 		//	_ = json.Unmarshal([]byte(s), &pod)
 		//	pods = append(pods, pod
 		//}
+
 		pods, _ := podmanager.GetPods()
-		output := "NAMESPACE\tKIND\tNAME\t\tSTATUS\t\n"
+		table,_ := gotable.Create("NAMESPACE","KIND","NAME","STATUS")
+		rows := make([]map[string]string, 0)
 		for _, p := range pods {
-			output += "default\t\t" + "Pod\t" + p.Name + "\t" + string(p.Status.Phase) + "\n"
+			row := make(map[string]string)
+			row["NAMESPACE"] = "default"
+			row["KIND"] = "Pod"
+			row["NAME"] = p.Name
+			row["STATUS"] = string(p.Status.Phase)
+			rows = append(rows,row)
 		}
-		fmt.Println(output)
+		table.AddRows(rows)
+		fmt.Println(table)
 	case "deployment":
 		//fmt.Println("get deployments")
 		bytes, err := clientutil.HttpGetAll("Deployment")
 		if err != nil {
 			return err
 		}
+		//fmt.Println("get deployment number: ", len(strs))
 		var strs []string
-		err = json.Unmarshal(bytes, &strs)
-		fmt.Println("get deployment number: ", len(strs))
 		var deployments []core.Deployment
+		err = json.Unmarshal(bytes, &strs)
+		if err != nil {
+			fmt.Println(err)
+			return err
+		}
 		for _, s := range strs {
 			if s == "" {
 				continue
@@ -136,11 +193,20 @@ func GetHandler(resourceKind string) error {
 			_ = json.Unmarshal([]byte(s), &deployment)
 			deployments = append(deployments, deployment)
 		}
-		output := "NAMESPACE\tKIND\tNAME\tSTATUS\t\n"
+
+		table,_ := gotable.Create("NAMESPACE","KIND","NAME","REPLICAS")
+		rows := make([]map[string]string, 0)
+
 		for _, d := range deployments {
-			output += "default\t\t" + "Deployment\t" + d.Metadata.Name + "\t" + "Running" + "\n"
+			row := make(map[string]string)
+			row["NAMESPACE"] = "default"
+			row["KIND"] = "Deployment"
+			row["NAME"] = d.Metadata.Name
+			row["REPLICAS"] = fmt.Sprintf("%d/%d",d.Spec.Replicas,d.Spec.Replicas)
+			rows = append(rows,row)
 		}
-		fmt.Println(output)
+		table.AddRows(rows)
+		fmt.Println(table)
 	case "autoscaler":
 		fmt.Println("get autoscalers")
 		bytes, err := clientutil.HttpGetAll("Autoscaler")
@@ -149,6 +215,10 @@ func GetHandler(resourceKind string) error {
 		}
 		var strs []string
 		err = json.Unmarshal(bytes, &strs)
+		if err != nil {
+			fmt.Println(err)
+			return err
+		}
 		fmt.Println("get autoscaler number: ", len(strs))
 		var autoscalers []core.Autoscaler
 		for _, s := range strs {
@@ -159,11 +229,19 @@ func GetHandler(resourceKind string) error {
 			_ = json.Unmarshal([]byte(s), &autoscaler)
 			autoscalers = append(autoscalers, autoscaler)
 		}
-		output := "NAMESPACE\tKIND\t\tNAME\t\tSTATUS\t\n"
+
+		table,_ := gotable.Create("NAMESPACE","KIND","NAME","TARGET")
+		rows := make([]map[string]string, 0)
 		for _, a := range autoscalers {
-			output += "default\t\t" + "Autoscaler\t" + a.Metadata.Name + "\t" + "Running" + "\n"
+			row := make(map[string]string)
+			row["NAMESPACE"] = "default"
+			row["KIND"] = "Autoscaler"
+			row["NAME"] = a.Metadata.Name
+			row["TARGET"] = a.Spec.ScaleTargetRef.Name
+			rows = append(rows,row)
 		}
-		fmt.Println(output)
+		table.AddRows(rows)
+		fmt.Println(table)
 	case "jobs":
 		// deal with 'kubectl get nodes'
 		bytes, err := clientutil.HttpGet("jobs", map[string]string{})
@@ -172,7 +250,19 @@ func GetHandler(resourceKind string) error {
 		}
 		maps := core.JobMaps{}
 		json.Unmarshal(bytes, &maps)
-		FormatPrinting(FormatJobs, maps)
+		//FormatPrinting(FormatJobs, maps)
+		table,_ := gotable.Create("Name", "Pod")
+		rows := make([]map[string]string, 0)
+		for _, Map := range maps.Maps {
+			row := make(map[string]string)
+			row["Name"] = Map.JobName
+			row["Pod"] = Map.PodName
+			rows = append(rows,row)
+		}
+		table.AddRows(rows)
+		fmt.Println(table)
+	default:
+		fmt.Println("unknown input type")
 	}
 	return nil
 }

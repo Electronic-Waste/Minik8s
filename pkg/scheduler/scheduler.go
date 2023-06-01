@@ -55,6 +55,7 @@ func (s *Scheduler) Run() {
 
 func (s *Scheduler) Schedule(nodes []core.Node, pod core.Pod) core.Node {
 	if node, ok := s.MatchSchedule(nodes, pod); ok {
+		fmt.Println("match schedule")
 		return node
 	} else {
 		if _, ok := pod.Labels["resourcepolicy"]; ok && strings.Compare(pod.Labels["resourcepolicy"], "on") == 0 {

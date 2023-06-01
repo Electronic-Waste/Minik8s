@@ -7,7 +7,7 @@ import (
 	"minik8s.io/pkg/apis/core"
 	"minik8s.io/pkg/constant"
 	"minik8s.io/pkg/kubelet/types"
-	// "minik8s.io/pkg/podmanager"
+	"minik8s.io/pkg/podmanager"
 	"os"
 	"time"
 
@@ -56,6 +56,7 @@ type sourceFile struct {
 // map from file name to pod name
 type FileCache struct {
 	PodMap  map[string]string
+
 	PodMap2 map[string]string
 }
 
@@ -63,8 +64,8 @@ func NewSourceFile(ch chan interface{}) {
 	cfg := newSourceFile(ch, constant.SysPodDir)
 	// init the cache
 	fileCache := FileCache{
-		PodMap:  make(map[string]string),
-		PodMap2: make(map[string]string),
+		PodMap: make(map[string]string),	//file map
+		PodMap2: make(map[string]string),	//pod map
 	}
 	go register(&fileCache)
 	cfg.run(&fileCache)
@@ -75,6 +76,7 @@ func register(fileCache *FileCache) {
 		func(msg *redis.Message) {
 			var Param core.ScheduleParam
 			json.Unmarshal([]byte(msg.Payload), &Param)
+			fmt.Println("filecache apply pod: ",Param.RunPod.Name)
 			fileCache.PodMap2[Param.RunPod.Name] = Param.RunPod.Name
 		})
 	//need no update handler
@@ -83,6 +85,7 @@ func register(fileCache *FileCache) {
 		func(msg *redis.Message) {
 			var podname string
 			json.Unmarshal([]byte(msg.Payload), &podname)
+			fmt.Println("filecache delete pod: ",podname)
 			delete(fileCache.PodMap2, podname)
 		})
 }
@@ -163,10 +166,14 @@ func (cfg *sourceFile) run(fileCache *FileCache) {
 					podUpdate.Source = types.FileSource
 					podUpdate.Pods = podSet
 					cfg.update <- podUpdate
+
+				} else if e.eventType == podModify {
+					fmt.Println("don't support modify")
 				}
 			}
 		}
 	}()
+
 	cfg.startWatch(fileCache)
 }
 

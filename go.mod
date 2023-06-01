@@ -16,6 +16,7 @@ require (
 	github.com/go-yaml/yaml v2.1.0+incompatible
 	github.com/google/uuid v1.3.0
 	github.com/lithammer/dedent v1.1.0
+	github.com/liushuochen/gotable v0.0.0-20221119160816-1113793e7092
 	github.com/opencontainers/go-digest v1.0.0
 	github.com/opencontainers/runtime-spec v1.1.0-rc.1
 	github.com/prometheus/client_golang v1.15.1

@@ -15,7 +15,9 @@ var (
 		Example: "delete pod go1",
 		Run: func(cmd *cobra.Command, args []string) {
 			fmt.Println("delete called")
-			if err := DeleteHandler(args[0], args[1]); err != nil {
+			if len(args) != 2{
+				fmt.Println("args missing!")
+			}else if err := DeleteHandler(args[0], args[1]); err != nil {
 				fmt.Println(err.Error())
 			}
 		},
@@ -37,6 +39,8 @@ func DeleteHandler(resourceKind, resourceName string) error {
 		err = deleteAutoscaler(resourceName)
 	case "node":
 		err = deleteNode(resourceName)
+	default:
+		fmt.Println("unknown type")
 	}
 	return err
 }

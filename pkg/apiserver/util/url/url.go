@@ -11,13 +11,16 @@ const (
 
 	Prefix string = HttpScheme + HostURL + Port
 
-	PodStatus                 string = "/pods/status"
-	PodStatusGetURL           string = PodStatus + "/get"
-	PodStatusGetAllURL        string = PodStatus + "/getall"
-	PodStatusDelURL           string = PodStatus + "/del"
-	PodStatusApplyURL         string = PodStatus + "/apply"
-	PodStatusUpdateURL        string = PodStatus + "/update"
-	PodStatusGetWithPrefixURL string = PodStatus + "/getwithprefix"
+	PodStatus                 	string = "/pods/status"
+	PodStatusGetURL           	string = PodStatus + "/get"
+	PodStatusGetAllURL        	string = PodStatus + "/getall"
+	PodStatusDelURL           	string = PodStatus + "/del"
+	PodStatusApplyURL         	string = PodStatus + "/apply"
+	PodStatusUpdateURL        	string = PodStatus + "/update"
+	PodStatusGetWithPrefixURL 	string = PodStatus + "/getwithprefix"
+	PodStatusGetMetricsUrl 	  	string = PodStatus + "/metrics"
+	PodStatusRegisterMetricsUrl 	string = PodStatus + "/metrics/register"
+	PodStatusUnregisterMetricsUrl 	string = PodStatus + "/metrics/unregister"
 
 	Service          string = "/service"
 	ServiceGetURL    string = Service + "/get"

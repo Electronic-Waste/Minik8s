@@ -12,6 +12,7 @@ import(
 	"minik8s.io/pkg/apis/meta"
 	svlurl "minik8s.io/pkg/serverless/util/url"
 	"minik8s.io/pkg/clientutil"
+	"minik8s.io/pkg/util/listwatch"
 )
 
 // Knative handle function registration
@@ -103,6 +104,13 @@ func (k *Knative) HandleFuncRegister(resp http.ResponseWriter, req *http.Request
 		resp.Write([]byte(err.Error()))
 		return
 	}
+	//publish to function controller
+	redismsg,err := json.Marshal(funcName)
+	if err != nil{
+		fmt.Println(err)
+		return
+	}
+	listwatch.Publish(svlurl.FunctionRegisterURL, redismsg)
 
 	// 4. Success
 	resp.WriteHeader(http.StatusOK)
@@ -151,7 +159,7 @@ func ConstructDeploymentWithFuncNameAndFilepath(funcName string) core.Deployment
 	}
 	deployment.Spec.Template.Name = svlurl.PodNamePrefix + funcName
 	deployment.Spec.Template.Labels = map[string]string{}
-	deployment.Spec.Template.Labels["node"]	= "vmeet3"	// Should delete after test!!!
+	deployment.Spec.Template.Labels["node"]	= "vmeet1"	// Should delete after test!!!
 	return deployment
 }
 
