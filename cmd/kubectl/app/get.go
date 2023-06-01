@@ -26,6 +26,9 @@ var (
 		"DNSName", "Host", "SubPath", "ServiceName",
 		"TargetPort", "DNSStatus", 
 	}
+	FormatFunc = []string {
+		"FunctionName", "Status",
+	}
 )
 
 var (
@@ -261,6 +264,33 @@ func GetHandler(resourceKind string) error {
 		}
 		table.AddRows(rows)
 		fmt.Println(table)
+	case "func":
+		bytes, err := clientutil.HttpGetAll("Function")
+		if err != nil {
+			return err
+		}
+		var strs []string
+		err = json.Unmarshal(bytes, &strs)
+		if err != nil {
+			return err
+		}
+		funcList := []core.Function{}
+		for _, str := range strs {
+			function := core.Function{}
+			json.Unmarshal([]byte(str), &function)
+			funcList = append(funcList, function)
+		}
+		FormatPrinting(FormatFunc, funcList)
+		table, _ := gotable.Create(FormatFunc...)
+		rows := make([]map[string]string, 0)
+		for _, function := range funcList {
+			row := make(map[string]string)
+			row["FunctionName"] = function.Name
+			row["Status"] = "READY"
+			rows = append(rows, row)
+		}
+		table.AddRows(rows)
+		fmt.Println(table)
 	default:
 		fmt.Println("unknown input type")
 	}
@@ -271,7 +301,6 @@ func FormatPrinting(formarStr []string, any interface{}) {
 	for _, str := range formarStr {
 		fmt.Printf("%s       ", str)
 	}
-
 
 	switch any.(type) {
 	case core.NodeList:
@@ -301,6 +330,11 @@ func FormatPrinting(formarStr []string, any interface{}) {
 		maps := any.(core.JobMaps)
 		for _, Map := range maps.Maps {
 			fmt.Printf("\n%s    %s", Map.JobName, Map.PodName)
+		}
+	case []core.Function:
+		funcList := any.([]core.Function)
+		for _, function := range funcList {
+			fmt.Printf("\n%s\t\t%s", function.Name, "READY")
 		}
 	}
 	fmt.Println("")

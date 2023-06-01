@@ -20,18 +20,12 @@ import (
 // that is a object that admin the control plane
 // Bootstrap is a bootstrapping interface for kubelet, targets the initialization protocol
 type Bootstrap interface {
-	//GetConfiguration() kubeletconfiginternal.KubeletConfiguration
-	//BirthCry()
-	//StartGarbageCollection()
-	//ListenAndServe()
-	//ListenAndServeReadOnly(address net.IP, port uint)
-	//ListenAndServePodResources()
 	Run(chan kubetypes.PodUpdate)
-	//RunOnce(<-chan kubetypes.PodUpdate) ([]RunPodResult, error)
 }
 
 type Kubelet struct {
-	// TODO(wjl) : add some object need by kubelet to admin the Pod or Deployment
+	// TODO : add some object need by kubelet to admin the Pod or Deployment
+
 	Cadvisor *cadvisor.CAdvisor
 	kubeProxyManager *kubeproxy.KubeproxyManager
 
@@ -128,6 +122,7 @@ func (k *Kubelet) syncLoop(update chan kubetypes.PodUpdate) {
 
 func (k *Kubelet) syncLoopIteration(update chan kubetypes.PodUpdate) error {
 	// add the logic to receive the message from channel and deal with it
+	time.Sleep(1 * time.Second)
 	return nil
 }
 
