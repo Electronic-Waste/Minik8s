@@ -16,7 +16,7 @@ const (
 	FunctionRegisterURL			= Function + "/register"
 	FunctionTriggerURL			= Function + "/trigger"
 	FunctionDeleteURL			= Function + "/delete"
-
+	
 	Workflow					= "/workflow"
 	WorkflowTriggerURL			= Workflow + "/trigger"
 

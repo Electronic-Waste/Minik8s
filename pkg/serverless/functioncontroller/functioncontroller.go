@@ -46,7 +46,7 @@ func (fc *FunctionController) Run (ctx context.Context) {
 	fmt.Println("fc running")
 	go fc.register()
 	//go fc.scaler()
-	go fc.countdown()
+	//sgo fc.countdown()
 	<-ctx.Done()
 }
 

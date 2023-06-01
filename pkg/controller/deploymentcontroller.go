@@ -90,7 +90,6 @@ func (dc *DeploymentController) worker(ctx context.Context) {
 			dc.processNextWorkItem(ctx)
 		} else {
 			//print("worker pending\n")
-			time.Sleep(time.Second * 4)
 			dc.replicaWatcher()
 		}
 		time.Sleep(time.Second * 2)
