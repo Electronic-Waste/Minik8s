@@ -15,6 +15,7 @@ const (
 	Function					= "/func"
 	FunctionRegisterURL			= Function + "/register"
 	FunctionTriggerURL			= Function + "/trigger"
+	FunctionDeleteURL			= Function + "/delete"
 
 	DeploymentNamePrefix		= "deployment-svl-"
 	PodNamePrefix 				= "pod-svl-"

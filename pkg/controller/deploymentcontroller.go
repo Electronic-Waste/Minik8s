@@ -88,7 +88,6 @@ func (dc *DeploymentController) worker(ctx context.Context) {
 			dc.processNextWorkItem(ctx)
 		} else {
 			//print("worker pending\n")
-			time.Sleep(time.Second * 4)
 			dc.replicaWatcher()
 		}
 		time.Sleep(time.Second)
@@ -136,14 +135,15 @@ func (dc *DeploymentController) syncDeployment(ctx context.Context, watchres lis
 				fmt.Println("cannot apply duplicate deployment")
 				return nil
 			}
-			//did := uid.NewUid()
-			prefix := deployment.Metadata.Name
+			
 			replicas := deployment.Spec.Replicas
 			//label := map[string]string{}
 			//label["app"] = "test"
 			var nameSet []string
 			var containerNameSet []string
 			pod := deployment.Spec.Template
+			//!!!test
+			prefix := deployment.Metadata.Name
 			fmt.Println("deployment apply pod:",pod)
 			for _,c := range pod.Spec.Containers{
 				containerNameSet = append(containerNameSet, c.Name)
@@ -171,13 +171,15 @@ func (dc *DeploymentController) syncDeployment(ctx context.Context, watchres lis
 			newReplicas := deployment.Spec.Replicas
 
 			pod := deployment.Spec.Template
+			//!!!test
+			prefix := deployment.Metadata.Name
 			var containerNameSet []string
 			for _,c := range pod.Spec.Containers{
 				containerNameSet = append(containerNameSet, c.Name)
 			}
 			if oldReplicas < newReplicas{
 				num := newReplicas - oldReplicas
-				prefix := deployment.Metadata.Name
+				
 				for i := 0; i < num; i++{
 					pid := uid.NewUid()
 					podname := prefix + "-" + pid
@@ -285,12 +287,13 @@ func (dc *DeploymentController) replicaWatcher() {
 				if replica < deployment.Spec.Replicas{
 					fmt.Println("start adding replicas")
 					//did := uid.NewUid()
-					prefix := deployment.Metadata.Name
 					num := deployment.Spec.Replicas - replica
 					var nameSet []string
 					
 					var containerNameSet []string
 					pod := deployment.Spec.Template
+					//!!!test
+					prefix := deployment.Metadata.Name
 					for _,c := range pod.Spec.Containers{
 						containerNameSet = append(containerNameSet, c.Name)
 					}

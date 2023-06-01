@@ -69,3 +69,20 @@
 > Apply Service后，可以通过虚拟IP访问服务，同时IPtables规则也会修改，具体效果如下所示
 
 ![service-result](./docs/img/service-result.png)
+
+
+## Function功能
+
+### 启动
+`./bin/apiserver`启动apiserver  
+`./bin/kubeadm join --config=./testcases/vmeet1.yaml`加入集群  
+`./bin/kubelet`启动kubelet  
+`./bin/scheduler`启动scheduler  
+`./bin/kube-controller-manager`启动所有controller  
+`./bin/knative`启动knative
+
+### 注册
+`./bin/kubectl register ./pkg/serverless/app/func.py`
+
+### 使用
+`./bin/kubectl trigger func '{}'`
