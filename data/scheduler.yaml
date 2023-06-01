@@ -1,0 +1,24 @@
+kind: Pod
+metadata:
+  name: scheduler
+spec:
+  volumes:
+  - name: shared-data
+    hostPath: /root/minik8s/minik8s/bin
+
+  containers:
+
+  - name: share
+    image: docker.io/library/golang:latest
+    resources:
+      limits:
+        cpu: "0.5"
+      requests:
+        cpu: "0.5"
+    volumeMounts:
+      - name: shared-data
+        mountPath: /mnt
+    ports:
+      - containerPort: 3000
+    command: 
+      - /mnt/scheduler

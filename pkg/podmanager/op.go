@@ -54,6 +54,28 @@ func RunPod(pod *core.Pod) error {
 	return nil
 }
 
+func RunSysPod(pod *core.Pod) error {
+	cli, err := remote_cli.NewRemoteRuntimeService(remote_cli.IdenticalErrorDelay)
+	if err != nil {
+		return err
+	}
+	err = cli.RunSysSandBox(pod.Name)
+	//time.Sleep(time.Second * 10)
+	if err != nil {
+		return err
+	}
+	// run core pod's container
+	ctx := namespaces.WithNamespace(context.Background(), "default")
+	for _, con := range pod.Spec.Containers {
+		err = cli.StartContainer(ctx, con, "container:"+pod.Name)
+		if err != nil {
+			return err
+		}
+	}
+	genPodIp(pod)
+	return nil
+}
+
 func genPodIp(pod *core.Pod) error {
 	// use cmd to generate a Ip for a Pod
 	// run cmd : nerdctl inspect -f '{{.NetworkSettings.IPAddress}}' test

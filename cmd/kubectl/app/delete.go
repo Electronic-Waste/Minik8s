@@ -3,6 +3,7 @@ package app
 import (
 	"fmt"
 	"github.com/spf13/cobra"
+	"minik8s.io/pkg/apiserver/util/url"
 	"minik8s.io/pkg/clientutil"
 )
 
@@ -36,6 +37,8 @@ func DeleteHandler(resourceKind, resourceName string) error {
 		err = deleteDeployment(resourceName)
 	case "autoscaler":
 		err = deleteAutoscaler(resourceName)
+	case "node":
+		err = deleteNode(resourceName)
 	}
 	return err
 }
@@ -46,6 +49,12 @@ func deletePod(resourceName string) error {
 	params["namespace"] = "default"
 	params["name"] = resourceName
 	return clientutil.HttpDel("Pod", params)
+}
+
+func deleteNode(nodeName string) error {
+	fmt.Printf("try to delete %s\n", nodeName)
+	err, _ := clientutil.HttpPlus("Node", nodeName, url.Prefix+url.NodeDelUrl)
+	return err
 }
 
 func deleteDeployment(resourceName string) error {

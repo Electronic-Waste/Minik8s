@@ -86,3 +86,17 @@
 
 ### 使用
 `./bin/kubectl trigger func '{}'`
+
+
+## GPU Usage
+### Start Up
+> ./bin/kubelet
+-   effect
+![gpu-up](./docs/img/GPU-up.png)
+### Apply Job using kubectl
+> ./bin/kubectl apply ./testcases/job.yaml
+-   effect
+![pod-result](./docs/img/pod-run1.png)
+-   after job finish
+![pod-result](./docs/img/pod-run2.png)
+> run `cat /root/minik8s/minik8s/scripts/data/result.out` can get the job's result

@@ -15,10 +15,11 @@ import (
 
 	"minik8s.io/pkg/apiserver/autoscaler"
 	"minik8s.io/pkg/apiserver/deployment"
+	"minik8s.io/pkg/apiserver/dns"
 	"minik8s.io/pkg/apiserver/etcd"
 	"minik8s.io/pkg/apiserver/pod"
 	"minik8s.io/pkg/apiserver/service"
-	"minik8s.io/pkg/apiserver/dns"
+
 	"minik8s.io/pkg/apiserver/function"
 	"minik8s.io/pkg/apiserver/util/url"
 )
@@ -39,6 +40,7 @@ var postHandlerMap = map[string]HttpHandler{
 	url.DNSApplyURL:				dns.HandleApplyDNS,
 	url.FunctionRegisterURL:		function.HandleRegisterFunction,
 	url.FunctionUpdateURL:			function.HandleUpdateFunction,
+	url.NodeDelUrl:                node.HandleNodeDel,
 }
 
 var getHandlerMap = map[string]HttpHandler{
@@ -110,7 +112,7 @@ func HitNode(msg *redis.Message) {
 func Run() {
 	// Initialize etcd client
 	etcd.InitializeEtcdKVStore()
-	
+
 	// Init clusterIPGen in service module
 	service.InitServiceController()
 
