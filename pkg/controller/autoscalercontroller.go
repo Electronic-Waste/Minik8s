@@ -30,6 +30,7 @@ func NewAutoscalerController(ctx context.Context) (*AutoscalerController, error)
 
 func (ac *AutoscalerController) Run (ctx context.Context) {
 	print("ac run\n")
+	ac.restart()
 	go ac.register()
 	go ac.startworker()
 	<-ctx.Done()
@@ -68,23 +69,6 @@ func (ac *AutoscalerController) applylistener (msg *redis.Message) {
 			return
 		}
 	}
-	
-	//start supervise
-	/*
-	pods, err := GetReplicaPods(autoscaler.Spec.ScaleTargetRef.Name)
-	if err != nil{
-		fmt.Println("GetReplicaPods:",err)
-		return
-	}
-	fmt.Println("ac supervise pods")
-	for _,pod := range pods{
-		err = ac.cadvisor.RegisterPod(pod.Name)
-		if err != nil {
-			fmt.Println(err)
-			return
-		}
-	}
-	*/
 	//add autoscaler
 	ac.autoscalerList = append(ac.autoscalerList, autoscaler)
 	fmt.Println("ac apply new autoscaler success")
@@ -148,8 +132,9 @@ func (ac *AutoscalerController) startworker () {
 //polling to get deployments
 func (ac *AutoscalerController) worker (autoscaler core.Autoscaler) {
 	timeout := time.Second * time.Duration(int64(autoscaler.Spec.ScaleInterval))
-	if timeout == 0{
-		timeout = time.Second * 5
+	if timeout <= 3{
+		fmt.Println("scale speed too fast")
+		timeout = time.Second * 15
 	}
 	for {
 		time.Sleep(timeout)
@@ -240,8 +225,16 @@ func (ac *AutoscalerController) worker (autoscaler core.Autoscaler) {
 			fmt.Println("Utilization: ",cpuvalue.Utilization," ",memoryvalue.Utilization)
 			flag1 := cpuvalue.Metrics > cpuvalue.Utilization
 			flag2 := memoryvalue.Metrics > memoryvalue.Utilization
+			if flag1 == true || flag2 == true{
+				fmt.Println("cpu and memory increase replicas")
+				IncreaseReplicas(deployment,maxreplicas,minreplicas)
+			}else {
+				fmt.Println("cpu and memory decrease replicas")
+				DecreaseReplicas(deployment,maxreplicas,minreplicas)
+			}
+			/*
 			if flag1 == flag2{
-				if flag1 == false{
+				if flag1 == true{
 					fmt.Println("cpu and memory increase replicas")
 					IncreaseReplicas(deployment,maxreplicas,minreplicas)
 				}else{
@@ -249,11 +242,8 @@ func (ac *AutoscalerController) worker (autoscaler core.Autoscaler) {
 					DecreaseReplicas(deployment,maxreplicas,minreplicas)
 				}
 			}else if flag1 == true{	//cpu increase but memory decrease
-				if cpuvalue.Metrics > 80{
-					DecreaseReplicas(deployment,maxreplicas,minreplicas)
-				}else{
-					IncreaseReplicas(deployment,maxreplicas,minreplicas)
-				}
+				fmt.Println("cpu (memory) increase replicas")
+				IncreaseReplicas(deployment,maxreplicas,minreplicas)
 			}else{	//cpu decrease but memory increase
 				if memoryvalue.Metrics > 80{
 					DecreaseReplicas(deployment,maxreplicas,minreplicas)
@@ -261,6 +251,7 @@ func (ac *AutoscalerController) worker (autoscaler core.Autoscaler) {
 					IncreaseReplicas(deployment,maxreplicas,minreplicas)
 				}
 			}
+			*/
 		}
 	}
 }
@@ -282,7 +273,6 @@ func (ac *AutoscalerController) calculateMetrics(autoscaler core.Autoscaler, sta
 				cpu := s.CPUPercentage
 				totalcpu += cpu
 			}
-			totalcpu *= 100
 			fmt.Println("cpu:", totalcpu)
 			compare := MetricsCompare{
 				Metrics: totalcpu,
@@ -295,7 +285,6 @@ func (ac *AutoscalerController) calculateMetrics(autoscaler core.Autoscaler, sta
 				memory := s.MemoryPercentage
 				totalmemory += memory
 			}
-			totalmemory *= 100
 			//if memory is too small, it will be NAN
 			if math.IsNaN(totalmemory){
 				totalmemory = 0
@@ -337,9 +326,9 @@ func GetReplicaPods(deploymentname string) ([]core.Pod,error) {
 	}
 	return pods,nil
 }
-
+//maxreplicas = -1 representing infinity
 func IncreaseReplicas(deployment core.Deployment, maxreplicas int, minreplicas int){
-	if deployment.Spec.Replicas == maxreplicas{
+	if maxreplicas != -1 && deployment.Spec.Replicas == maxreplicas{
 		fmt.Println("reach maxreplicas")
 		return
 	}
@@ -359,7 +348,7 @@ func DecreaseReplicas(deployment core.Deployment, maxreplicas int, minreplicas i
 }
 
 func GetPodMetrics(podname string, nodeIP string) (stats.PodStats,error) {
-	fmt.Println("GetPodMetrics")
+	fmt.Println("GetPodMetrics ",podname," ",nodeIP)
 	params := make(map[string]string)
 	params["name"] = podname
 	params["nodeip"] = nodeIP
@@ -373,4 +362,35 @@ func GetPodMetrics(podname string, nodeIP string) (stats.PodStats,error) {
 		return stats.PodStats{}, err
 	}
 	return status,nil
+}
+
+//!!!test
+func (ac *AutoscalerController) restart () {
+	//get all autoscalers
+	var strSet []string
+	var autoscalerSet []core.Autoscaler
+	bytes,err := clientutil.HttpGetAll("Autoscaler")
+	if err != nil{
+		fmt.Println(err)
+		fmt.Println("ac restart get autoscalers fail")
+		return
+	}
+	err = json.Unmarshal(bytes, &strSet)
+	if err != nil{
+		fmt.Println(err)
+		fmt.Println("ac restart unmarshal autoscalers fail")
+		return
+	}
+	for _,s := range strSet{
+		if s == ""{
+			continue
+		}
+		autoscaler := core.Autoscaler{}
+		json.Unmarshal([]byte(s),&autoscaler)
+		autoscalerSet = append(autoscalerSet, autoscaler)
+		fmt.Println("ac restart",autoscaler.Metadata.Name)
+	}
+	ac.autoscalerList = autoscalerSet
+	//wait for autoscaler controller to restart
+	//time.Sleep(time.Second)
 }

@@ -19,6 +19,7 @@ import (
 	"minik8s.io/pkg/apiserver/etcd"
 	"minik8s.io/pkg/apiserver/pod"
 	"minik8s.io/pkg/apiserver/service"
+
 	"minik8s.io/pkg/apiserver/function"
 	"minik8s.io/pkg/apiserver/util/url"
 )
@@ -39,6 +40,7 @@ var postHandlerMap = map[string]HttpHandler{
 	url.DNSApplyURL:				dns.HandleApplyDNS,
 	url.FunctionRegisterURL:		function.HandleRegisterFunction,
 	url.FunctionUpdateURL:			function.HandleUpdateFunction,
+url.NodeDelUrl:                node.HandleNodeDel,
 }
 
 var getHandlerMap = map[string]HttpHandler{
@@ -82,7 +84,7 @@ func HitNode(msg *redis.Message) {
 	fmt.Printf("call HitNode\n")
 	pod := core.Pod{}
 	json.Unmarshal([]byte(msg.Payload), &pod)
-	fmt.Println(pod)
+	//fmt.Println(pod)
 	podName := pod.Name
 	namespace := "default"
 	etcdURL := path.Join(url.PodStatus, namespace, podName)

@@ -62,6 +62,7 @@ func HandleNodeDel(resp http.ResponseWriter, req *http.Request) {
 
 func HandleGetNodes(resp http.ResponseWriter, req *http.Request) {
 	// get all node first
+	fmt.Println("handle get nodes")
 	NodeStrs, err := etcd.GetWithPrefix(apiurl.Node)
 	if err != nil {
 		resp.WriteHeader(http.StatusNotFound)

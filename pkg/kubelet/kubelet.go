@@ -12,14 +12,9 @@ import (
 	"net/http"
 	"os"
 	"time"
-<<<<<<< HEAD
-	// "encoding/json"
-=======
-	"encoding/json"
 	"github.com/go-redis/redis/v8"
 	"minik8s.io/pkg/util/listwatch"
 	apiurl "minik8s.io/pkg/apiserver/util/url"
->>>>>>> error(autoscaler):kubelet bug
 )
 
 // that is a object that admin the control plane
@@ -37,14 +32,10 @@ type Bootstrap interface {
 
 type Kubelet struct {
 	// TODO(wjl) : add some object need by kubelet to admin the Pod or Deployment
-<<<<<<< HEAD
-	kubeProxyManager *kubeproxy.KubeproxyManager
-	cadvisor         *cadvisor.CAdvisor
-=======
 	Cadvisor *cadvisor.CAdvisor
->>>>>>> error(autoscaler):kubelet bug
-}
+	kubeProxyManager *kubeproxy.KubeproxyManager
 
+}
 func (k *Kubelet) Run(update chan kubetypes.PodUpdate) {
 	// wait for new event caused by listening source
 
@@ -53,42 +44,33 @@ func (k *Kubelet) Run(update chan kubetypes.PodUpdate) {
 
 	//bindWatchHandler()
 	PodMap := map[string]config.HttpHandler{
-		config.RunPodUrl:     config.HandlePodRun,
-		config.DelPodRul:     config.HandlePodDel,
-		config.PodMetricsUrl: k.HandlePodGetMetrics,
+		config.RunPodUrl: 		config.HandlePodRun,
+		config.DelPodRul: 		config.HandlePodDel,
+	    config.PodMetricsUrl:	k.HandlePodGetMetrics,
+		config.GetAllPodUrl:	config.HandleGetAllPod,
 		config.MemoryUrl:     config.HandleMemGet,
 	}
-	go listwatch.Watch(apiurl.PodStatusGetMetricsUrl, k.PodRegister)
+	go listwatch.Watch(apiurl.PodStatusRegisterMetricsUrl, k.PodRegister)
+	go listwatch.Watch(apiurl.PodStatusUnregisterMetricsUrl, k.PodUnregister)
 	//go k.PodRegister()
 	go config.Run(PodMap)
 	k.syncLoop(update)
 }
 
 func (k *Kubelet) HandlePodGetMetrics(resp http.ResponseWriter, req *http.Request) {
-	fmt.Println("kubelet get pod metrics")
+	//fmt.Println("kubelet get pod metrics")
 	vars := req.URL.Query()
 	podName := vars.Get("name")
-<<<<<<< HEAD
-	stats, err := k.cadvisor.GetPodMetric(podName)
-	if err != nil {
-=======
 	fmt.Println("get pod: ", podName)
 	stats,err := k.Cadvisor.GetPodMetric(podName)
 	fmt.Println(stats)
 	if err != nil{
->>>>>>> error(autoscaler):kubelet bug
 		resp.WriteHeader(http.StatusNotFound)
 		resp.Write([]byte(err.Error()))
 		return
 	}
-<<<<<<< HEAD
 	data, err := json.Marshal(stats)
-	fmt.Println(string(data))
 	if err != nil {
-=======
-	data,err := json.Marshal(stats)
-	if err != nil{
->>>>>>> error(autoscaler):kubelet bug
 		resp.WriteHeader(http.StatusNotFound)
 		resp.Write([]byte(err.Error()))
 		return
@@ -98,14 +80,8 @@ func (k *Kubelet) HandlePodGetMetrics(resp http.ResponseWriter, req *http.Reques
 	resp.Write([]byte(data))
 }
 
-<<<<<<< HEAD
-func (k *Kubelet) PodRegister() {
-	timeout := time.Second * 10
-	for {
-		time.Sleep(timeout)
-		k.cadvisor.RegisterAllPod()
-=======
 func (k *Kubelet) PodRegister (msg *redis.Message) {
+	//fmt.Println("pod register")
 	time.Sleep(time.Millisecond * 500)
 	bytes := []byte(msg.Payload)
 	var podname string
@@ -119,7 +95,24 @@ func (k *Kubelet) PodRegister (msg *redis.Message) {
 	if err != nil {
 		fmt.Println(err)
 		return
->>>>>>> error(autoscaler):kubelet bug
+	}
+}
+
+func (k *Kubelet) PodUnregister (msg *redis.Message) {
+	//fmt.Println("pod unregister")
+	time.Sleep(time.Millisecond * 500)
+	bytes := []byte(msg.Payload)
+	var podname string
+	err := json.Unmarshal(bytes, &podname)
+	fmt.Println("unregister pod: ",podname)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	err = k.Cadvisor.UnRegisterPod(podname)
+	if err != nil {
+		fmt.Println(err)
+		return
 	}
 }
 

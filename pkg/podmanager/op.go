@@ -20,6 +20,8 @@ import (
 	"time"
 	"minik8s.io/pkg/util/listwatch"
 	apiurl "minik8s.io/pkg/apiserver/util/url"
+	"encoding/json"
+
 )
 
 // here just finish some operation need by pod running and deleting
@@ -48,7 +50,9 @@ func RunPod(pod *core.Pod) error {
 	}
 	genPodIp(pod)
 
-	listwatch.Publish(apiurl.PodStatusGetMetricsUrl, pod.Name)
+	bytes,_ := json.Marshal(pod.Name)
+	listwatch.Publish(apiurl.PodStatusRegisterMetricsUrl, bytes)
+
 
 	return nil
 }
@@ -120,6 +124,9 @@ func DelSimpleContainer(name string) error {
 }
 
 func DelPod(name string) error {
+	bytes,_ := json.Marshal(name)
+	listwatch.Publish(apiurl.PodStatusUnregisterMetricsUrl, bytes)
+
 	err := DelSimpleContainer(name)
 	if err != nil {
 		return err
@@ -128,6 +135,7 @@ func DelPod(name string) error {
 	// delete pause container
 	stopContainer(name)
 	delContainer(name)
+
 	return nil
 }
 

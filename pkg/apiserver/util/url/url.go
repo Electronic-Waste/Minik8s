@@ -19,6 +19,8 @@ const (
 	PodStatusUpdateURL        	string = PodStatus + "/update"
 	PodStatusGetWithPrefixURL 	string = PodStatus + "/getwithprefix"
 	PodStatusGetMetricsUrl 	  	string = PodStatus + "/metrics"
+	PodStatusRegisterMetricsUrl 	string = PodStatus + "/metrics/register"
+	PodStatusUnregisterMetricsUrl 	string = PodStatus + "/metrics/unregister"
 
 	Service          string = "/service"
 	ServiceGetURL    string = Service + "/get"

@@ -9,7 +9,7 @@ import(
 	"encoding/json"
 
 	svlurl "minik8s.io/pkg/serverless/util/url"
-	apiurl "minik8s.io/pkg/apiserver/util/url"
+	//apiurl "minik8s.io/pkg/apiserver/util/url"
 	"minik8s.io/pkg/clientutil"
 	"minik8s.io/pkg/apis/core"
 	"minik8s.io/pkg/util/listwatch"
@@ -117,6 +117,13 @@ func (k *Knative) HandleWorkflowTrigger(resp http.ResponseWriter, req *http.Requ
 }
 
 func (k *Knative) TriggerFunction(funcName string, params []byte) (string, error) {
+	//inform functioncontroller in the first place
+	redismsg,err := json.Marshal(funcName)
+	if err != nil{
+		fmt.Println(err)
+		return "",err
+	}
+	listwatch.Publish(svlurl.FunctionTriggerURL, redismsg)
 	// 1. Query corresponding pod
 	podNamePrefix := svlurl.DeploymentNamePrefix + funcName
 	podParams := make(map[string]string)
@@ -143,7 +150,12 @@ func (k *Knative) TriggerFunction(funcName string, params []byte) (string, error
 		// Publish to redis to inform watcher of missing pod
 		// - topic: /func/trigger
 		// - payload: function's name
-		listwatch.Publish(apiurl.FunctionTriggerURL, string(funcName))
+		redismsg,err := json.Marshal(funcName)
+		if err != nil{
+			fmt.Println(err)
+			return "",err
+		}
+		listwatch.Publish(svlurl.FunctionTriggerURL, redismsg)
 		
 		// Polling apiserver in 3s
 		for triggerCount := 0; len(pods) == 0; triggerCount++ {
@@ -167,6 +179,7 @@ func (k *Knative) TriggerFunction(funcName string, params []byte) (string, error
 	}
 
 	// 3. Choose the serving pod with round-robin policy & Send request
+	fmt.Println("trigger: pod len:",len(pods),"and rrcount:",k.rrCount)
 	targetPod := pods[k.rrCount % len(pods)]
 	k.rrCount++
 	targetPodIP := strings.Replace(targetPod.Status.PodIp, "\"", "", -1)
