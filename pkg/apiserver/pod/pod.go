@@ -58,8 +58,7 @@ func HandleGetAllPodStatus(resp http.ResponseWriter, req *http.Request) {
 	fmt.Println("nodelist:", nodeList)
 
 	var allpods []core.Pod
-
-	for _, n := range nodeList.NodeArray {
+	for _,n := range nodeList.NodeArray{
 		geturl := url.HttpScheme + n.Spec.NodeIp + config.Port + config.GetAllPodUrl
 		fmt.Println(geturl)
 		bytes, err := clientutil.HttpGetPlus("Pod", geturl)
@@ -76,8 +75,8 @@ func HandleGetAllPodStatus(resp http.ResponseWriter, req *http.Request) {
 		fmt.Println("get pods from", n.Spec.NodeIp)
 		allpods = append(allpods, pods...)
 	}
-	data, err := json.Marshal(allpods)
-	if err != nil {
+	data,err := json.Marshal(allpods)
+	if err != nil{
 		fmt.Println(err)
 		return
 	}

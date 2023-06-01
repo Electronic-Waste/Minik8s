@@ -73,6 +73,7 @@ func (k *Knative) HandleWorkflowTrigger(resp http.ResponseWriter, req *http.Requ
 		if workflowNode.Type == "Task" {
 			result, err = k.TriggerFunction(triggerFuncName, triggerParams)
 			if err != nil {
+				fmt.Println("workflow trigger fail")
 				resp.WriteHeader(http.StatusInternalServerError)
 				resp.Write([]byte(err.Error()))
 				return
@@ -177,6 +178,7 @@ func (k *Knative) TriggerFunction(funcName string, params []byte) (string, error
 			}
 		}
 	}
+	time.Sleep(time.Second * 20)
 
 	// 3. Choose the serving pod with round-robin policy & Send request
 	fmt.Println("trigger: pod len:",len(pods),"and rrcount:",k.rrCount)

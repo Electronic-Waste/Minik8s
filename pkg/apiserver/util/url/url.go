@@ -77,4 +77,6 @@ const (
 	Vmeet1IP string = url.Vmeet1IP
 	Vmeet2IP string = url.Vmeet2IP
 	Vmeet3IP string = url.Vmeet3IP
+
+	//flag int = 2  //0 for multi machine, 1 for vmeet1 only, 2 for vmeet2 only, 3 for vmeet3 only
 )
