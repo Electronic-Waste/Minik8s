@@ -15,6 +15,9 @@
 
 
 ## 2. 如何配置Nginx
+```
+$ mkdir -p /var/run/nginx
+```
 
 [nginx安装及其配置详细教程 - 知乎 (zhihu.com)](./img/nginx-conf-modification.png)
 
