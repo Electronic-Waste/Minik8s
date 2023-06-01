@@ -237,7 +237,6 @@ func (dc *DeploymentController) syncDeployment(ctx context.Context, watchres lis
 		}
 		//wait for pod to be started
 		//deploymentname := deployment.Metadata.Name
-		
 		if actiontype != "delete"{
 			//long wait
 			if strings.HasPrefix(deploymentname, svlurl.DeploymentNamePrefix){
