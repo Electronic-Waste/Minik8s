@@ -4,7 +4,7 @@ const (
 	// !!!Important
 	// Change the following line if you want to use another node as master node
 
-	MasterNodeIP = Vmeet2IP
+	MasterNodeIP = Vmeet1IP
 
 
 	// We have three nodes:

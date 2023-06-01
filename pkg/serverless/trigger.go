@@ -73,6 +73,7 @@ func (k *Knative) HandleWorkflowTrigger(resp http.ResponseWriter, req *http.Requ
 		if workflowNode.Type == "Task" {
 			result, err = k.TriggerFunction(triggerFuncName, triggerParams)
 			if err != nil {
+				fmt.Println("workflow trigger fail")
 				resp.WriteHeader(http.StatusInternalServerError)
 				resp.Write([]byte(err.Error()))
 				return

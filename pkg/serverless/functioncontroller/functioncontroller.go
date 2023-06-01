@@ -20,7 +20,7 @@ var(
 	FunctionRegisterUrl string = url.FunctionRegisterURL
 	FunctionDelUrl string = url.FunctionDelURL
 	FunctionTriggerUrl	string = url.FunctionTriggerURL
-	defaultcountdown int = 50
+	defaultcountdown int = 60
 )
 
 type FunctionController struct{

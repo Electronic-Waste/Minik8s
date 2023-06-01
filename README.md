@@ -82,10 +82,12 @@
 `./bin/knative`启动knative
 
 ### 注册
-`./bin/kubectl register ./pkg/serverless/app/func.py`
+`./bin/kubectl register ./testcases/add.py`
+`./bin/kubectl register ./testcases/printok.py`
+`./bin/kubectl register ./testcases/printfail.py`
 
 ### 使用
-`./bin/kubectl trigger func '{}'`
+`./bin/kubectl trigger add '{"x":3,"y":4}'`
 
 
 ## GPU Usage

@@ -31,8 +31,8 @@ func (k *Knative) Run() {
 	http.HandleFunc(url.WorkflowTriggerURL, k.HandleWorkflowTrigger)
 
 	// Start Server
-	go http.ListenAndServe(url.ManagerPort, nil)
-	<-ctx.Done()
+	http.ListenAndServe(url.ManagerPort, nil)
+	//<-ctx.Done()
 }
 
 
