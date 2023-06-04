@@ -1,0 +1,12 @@
+kind: DNS
+metadata:
+  name: test-dns
+spec:
+  host: minik8s.io
+  subpaths:
+  - path: /test1
+    service: servicePodTest
+    port: 80
+  - path: /test2
+    service: servicePodTest
+    port: 8080

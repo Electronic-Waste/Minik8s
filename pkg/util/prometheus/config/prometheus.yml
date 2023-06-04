@@ -1,0 +1,13 @@
+scrape_configs:
+  - job_name: host
+    # scrape the service every second
+    scrape_interval: 1s
+    # setup the static configs
+    static_configs:
+      - targets: ['localhost:9090']
+  - job_name: node
+    scrape_interval: 1s
+    scrape_timeout: 1s
+    metrics_path: "/metrics"
+    static_configs:
+      - targets: ['10.119.11.16:9100']

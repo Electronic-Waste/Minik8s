@@ -1,0 +1,6 @@
+kind: Node
+metadata:
+  name: vmeet1
+spec:
+  masterIp: 192.168.1.6
+  nodeIp: 192.168.1.5
