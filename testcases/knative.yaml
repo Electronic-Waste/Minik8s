@@ -1,6 +1,6 @@
 kind: Pod
 metadata:
-  name: scheduler
+  name: knative
 spec:
   volumes:
   - name: shared-data
@@ -8,17 +8,17 @@ spec:
 
   containers:
 
-  - name: share
+  - name: knative
     image: docker.io/library/golang:latest
     resources:
       limits:
-        memory: "600MiB"
+        cpu: "0.5"
       requests:
-        memory: "200MiB"
+        cpu: "0.5"
     volumeMounts:
       - name: shared-data
         mountPath: /mnt
     ports:
-      - containerPort: 3000
+      - containerPort: 8080
     command: 
-      - /mnt/scheduler
+      - /mnt/knative

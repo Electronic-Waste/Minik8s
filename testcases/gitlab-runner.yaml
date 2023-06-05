@@ -1,0 +1,6 @@
+kind: Node
+metadata:
+  name: gitlab-runner
+spec:
+  masterIp: 127.0.0.1
+  nodeIp: 127.0.0.1
