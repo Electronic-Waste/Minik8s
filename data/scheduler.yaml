@@ -12,7 +12,7 @@ spec:
     image: docker.io/library/golang:latest
     resources:
       limits:
-        memory: "500MiB"
+        memory: "600MiB"
       requests:
         memory: "200MiB"
     volumeMounts:

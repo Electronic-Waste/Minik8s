@@ -155,7 +155,11 @@ func (p *PodStorage) Merge(source string, update interface{}) error {
 			fmt.Println("hit update")
 			for _, p := range mes.Pods {
 				fmt.Printf("delete pod %s\n", p.Name)
-				podmanager.DelSysPod(p.Name)
+				if podmanager.IsPodRunning(p.Name) {
+					podmanager.DelSysPod(p.Name)
+				} else {
+					podmanager.DelSimpleContainer(p.Name)
+				}
 			}
 			p.storeLock.Unlock()
 		}
