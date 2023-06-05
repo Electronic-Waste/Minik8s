@@ -12,9 +12,9 @@ spec:
     image: docker.io/library/golang:latest
     resources:
       limits:
-        cpu: "0.5"
+        memory: "500MiB"
       requests:
-        cpu: "0.5"
+        memory: "200MiB"
     volumeMounts:
       - name: shared-data
         mountPath: /mnt

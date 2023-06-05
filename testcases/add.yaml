@@ -7,10 +7,10 @@ params:
   y: 444
 nodes:
   add:
-    Type: Task
-    Next: judge
+    type: Task
+    next: judge
   judge:
-    Type: Choice
+    type: Choice
     choices:
     - conditions:
       - res: 666
@@ -19,6 +19,6 @@ nodes:
       - res: 888
       next: printfail
   printok:
-    Type: Task
+    type: Task
   printfail:
-    Type: Task
+    type: Task

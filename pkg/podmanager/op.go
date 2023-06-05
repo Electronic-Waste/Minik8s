@@ -141,6 +141,19 @@ func DelPod(name string) error {
 	return nil
 }
 
+func DelSysPod(name string) error {
+	err := DelSimpleContainer(name)
+	if err != nil {
+		return err
+	}
+
+	// delete pause container
+	stopContainer(name)
+	delContainer(name)
+
+	return nil
+}
+
 // judge a Pod is running or not
 func IsPodRunning(name string) bool {
 	// just determine the pause container is running or not

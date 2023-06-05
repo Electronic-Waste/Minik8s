@@ -64,7 +64,7 @@ kubelet:
 	$(GO) build -o "${BIN}/${KUBELET}" "${PATH}/${KUBELET}/${KUBELET}.go"
 listener:
 	@echo "$(FOLD)"
-	$(GO) build -o "${BIN}/${LISTENER}" "${PATH}/${LISTENER}/${LISTENER}.go"oscaler
+	$(GO) build -o "${BIN}/${LISTENER}" "${PATH}/${LISTENER}/${LISTENER}.go"
 kube-controller-manager:
 	@echo "$(FOLD)"
 	$(GO) build -o "${BIN}/${CTLM}" "${PATH}/${CTLM}/${CTLM}.go"

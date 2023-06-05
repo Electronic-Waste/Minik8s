@@ -3,14 +3,12 @@ metadata:
   name: deployment_test
 spec: 
   replicas: 2
-  selector: test
   template: 
     kind: Pod
     metadata:
       name: test
       labels:
         app: deploymentServiceTest
-        #node: vmeet1
     spec:
       volumes:
       - name: shared-data
@@ -35,5 +33,5 @@ spec:
             mountPath: /go/src
         ports:
           - containerPort: 80
-        command: 
+        command:
           - bash
