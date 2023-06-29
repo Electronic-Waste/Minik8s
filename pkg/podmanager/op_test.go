@@ -18,7 +18,7 @@ func TestAllProcess(t *testing.T) {
 	pod.Spec.Containers = []core.Container{
 		{
 			Name:  "go1",
-			Image: "docker.io/library/golang:latest",
+			Image: "docker.io/library/pythonplus:latest",
 			VolumeMounts: []core.VolumeMount{
 				{
 					Name:      "shared-data",
@@ -51,10 +51,6 @@ func TestAllProcess(t *testing.T) {
 		t.Error(err)
 	}
 	fmt.Println("have start a new pod")
-	err = DelPod(pod.Name)
-	if err != nil {
-		t.Error(err)
-	}
 }
 
 func TestGetPod(t *testing.T) {

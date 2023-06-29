@@ -1,13 +1,16 @@
 package app
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
+	"github.com/liushuochen/gotable"
 	"github.com/spf13/cobra"
+	"log"
 	"minik8s.io/pkg/apis/core"
 	"minik8s.io/pkg/clientutil"
 	"minik8s.io/pkg/podmanager"
-	"github.com/liushuochen/gotable"
+	"os/exec"
 )
 
 var (
@@ -18,15 +21,15 @@ var (
 	FormatJobs = []string{
 		"Name", "Pod",
 	}
-	FormatService = []string {
+	FormatService = []string{
 		"ServiceName", "ClusterIP", "PortName",
 		"Port", "TargetPort", "ServiceStatus",
 	}
-	FormatDNS = []string {
+	FormatDNS = []string{
 		"DNSName", "Host", "SubPath", "ServiceName",
-		"TargetPort", "DNSStatus", 
+		"TargetPort", "DNSStatus",
 	}
-	FormatFunc = []string {
+	FormatFunc = []string{
 		"FunctionName", "Status",
 	}
 )
@@ -70,18 +73,18 @@ func GetHandler(resourceKind string) error {
 			serviceList = append(serviceList, service)
 		}
 		//FormatPrinting(FormatService, serviceList)
-		table,_ := gotable.Create("ServiceName","ClusterIP","PortName","Port","TargetPort","ServiceStatus")
+		table, _ := gotable.Create("ServiceName", "ClusterIP", "PortName", "Port", "TargetPort", "ServiceStatus")
 		rows := make([]map[string]string, 0)
 		for _, service := range serviceList {
-			for _, servicePort := range service.Spec.Ports{
+			for _, servicePort := range service.Spec.Ports {
 				row := make(map[string]string)
 				row["ServiceName"] = service.Name
 				row["ClusterIP"] = service.Spec.ClusterIP
 				row["PortName"] = servicePort.Name
-				row["Port"] = fmt.Sprintf("%d",servicePort.Port) 
-				row["TargetPort"] = fmt.Sprintf("%d",servicePort.TargetPort)
+				row["Port"] = fmt.Sprintf("%d", servicePort.Port)
+				row["TargetPort"] = fmt.Sprintf("%d", servicePort.TargetPort)
 				row["ServiceStatus"] = "READY"
-				rows = append(rows,row)
+				rows = append(rows, row)
 			}
 		}
 		table.AddRows(rows)
@@ -103,18 +106,18 @@ func GetHandler(resourceKind string) error {
 			dnsList = append(dnsList, dns)
 		}
 		//FormatPrinting(FormatDNS, dnsList)
-		table,_ := gotable.Create("DNSName", "Host", "SubPath", "ServiceName","TargetPort", "DNSStatus")
+		table, _ := gotable.Create("DNSName", "Host", "SubPath", "ServiceName", "TargetPort", "DNSStatus")
 		rows := make([]map[string]string, 0)
 		for _, dns := range dnsList {
-			for _, subpath := range dns.Spec.Subpaths{
+			for _, subpath := range dns.Spec.Subpaths {
 				row := make(map[string]string)
 				row["DNSName"] = dns.Name
 				row["Host"] = dns.Spec.Host
 				row["SubPath"] = subpath.Path
 				row["ServiceName"] = subpath.Service
-				row["TargetPort"] = fmt.Sprintf("%d",subpath.Port)
+				row["TargetPort"] = fmt.Sprintf("%d", subpath.Port)
 				row["DNSStatus"] = "READY"
-				rows = append(rows,row)
+				rows = append(rows, row)
 			}
 		}
 		table.AddRows(rows)
@@ -129,7 +132,7 @@ func GetHandler(resourceKind string) error {
 			nodeList := core.NodeList{}
 			json.Unmarshal(bytes, &nodeList)
 			//FormatPrinting(FormatNodes, nodeList)
-			table,_ := gotable.Create("Name", "MasterIp", "NodeIp", "NodeStatus")
+			table, _ := gotable.Create("Name", "MasterIp", "NodeIp", "NodeStatus")
 			rows := make([]map[string]string, 0)
 			for _, node := range nodeList.NodeArray {
 				row := make(map[string]string)
@@ -137,7 +140,7 @@ func GetHandler(resourceKind string) error {
 				row["MasterIp"] = node.Spec.MasterIp
 				row["NodeIp"] = node.Spec.NodeIp
 				row["NodeStatus"] = "Ready"
-				rows = append(rows,row)
+				rows = append(rows, row)
 			}
 			table.AddRows(rows)
 			fmt.Println(table)
@@ -162,7 +165,7 @@ func GetHandler(resourceKind string) error {
 		//}
 
 		pods, _ := podmanager.GetPods()
-		table,_ := gotable.Create("NAMESPACE","KIND","NAME","STATUS")
+		table, _ := gotable.Create("NAMESPACE", "KIND", "NAME", "STATUS")
 		rows := make([]map[string]string, 0)
 		for _, p := range pods {
 			row := make(map[string]string)
@@ -170,7 +173,7 @@ func GetHandler(resourceKind string) error {
 			row["KIND"] = "Pod"
 			row["NAME"] = p.Name
 			row["STATUS"] = string(p.Status.Phase)
-			rows = append(rows,row)
+			rows = append(rows, row)
 		}
 		table.AddRows(rows)
 		fmt.Println(table)
@@ -197,7 +200,7 @@ func GetHandler(resourceKind string) error {
 			deployments = append(deployments, deployment)
 		}
 
-		table,_ := gotable.Create("NAMESPACE","KIND","NAME","REPLICAS")
+		table, _ := gotable.Create("NAMESPACE", "KIND", "NAME", "REPLICAS")
 		rows := make([]map[string]string, 0)
 
 		for _, d := range deployments {
@@ -205,8 +208,8 @@ func GetHandler(resourceKind string) error {
 			row["NAMESPACE"] = "default"
 			row["KIND"] = "Deployment"
 			row["NAME"] = d.Metadata.Name
-			row["REPLICAS"] = fmt.Sprintf("%d/%d",d.Spec.Replicas,d.Spec.Replicas)
-			rows = append(rows,row)
+			row["REPLICAS"] = fmt.Sprintf("%d/%d", d.Spec.Replicas, d.Spec.Replicas)
+			rows = append(rows, row)
 		}
 		table.AddRows(rows)
 		fmt.Println(table)
@@ -233,7 +236,7 @@ func GetHandler(resourceKind string) error {
 			autoscalers = append(autoscalers, autoscaler)
 		}
 
-		table,_ := gotable.Create("NAMESPACE","KIND","NAME","TARGET")
+		table, _ := gotable.Create("NAMESPACE", "KIND", "NAME", "TARGET")
 		rows := make([]map[string]string, 0)
 		for _, a := range autoscalers {
 			row := make(map[string]string)
@@ -241,7 +244,7 @@ func GetHandler(resourceKind string) error {
 			row["KIND"] = "Autoscaler"
 			row["NAME"] = a.Metadata.Name
 			row["TARGET"] = a.Spec.ScaleTargetRef.Name
-			rows = append(rows,row)
+			rows = append(rows, row)
 		}
 		table.AddRows(rows)
 		fmt.Println(table)
@@ -254,13 +257,13 @@ func GetHandler(resourceKind string) error {
 		maps := core.JobMaps{}
 		json.Unmarshal(bytes, &maps)
 		//FormatPrinting(FormatJobs, maps)
-		table,_ := gotable.Create("Name", "Pod")
+		table, _ := gotable.Create("Name", "Pod")
 		rows := make([]map[string]string, 0)
 		for _, Map := range maps.Maps {
 			row := make(map[string]string)
 			row["Name"] = Map.JobName
 			row["Pod"] = Map.PodName
-			rows = append(rows,row)
+			rows = append(rows, row)
 		}
 		table.AddRows(rows)
 		fmt.Println(table)
@@ -312,8 +315,8 @@ func FormatPrinting(formarStr []string, any interface{}) {
 		serviceList := any.([]core.Service)
 		for _, service := range serviceList {
 			for _, servicePort := range service.Spec.Ports {
-				fmt.Printf("\n%s\t%s\t%s\t%d\t\t%d\t\t%s", 
-					service.Name, service.Spec.ClusterIP, servicePort.Name, 
+				fmt.Printf("\n%s\t%s\t%s\t%d\t\t%d\t\t%s",
+					service.Name, service.Spec.ClusterIP, servicePort.Name,
 					servicePort.Port, servicePort.TargetPort, "READY")
 			}
 		}
@@ -322,7 +325,7 @@ func FormatPrinting(formarStr []string, any interface{}) {
 		for _, dns := range dnsList {
 			for _, subpath := range dns.Spec.Subpaths {
 				fmt.Printf("\n%s\t%s\t%s\t%s\t\t%d\t%s",
-					dns.Name, dns.Spec.Host, subpath.Path, 
+					dns.Name, dns.Spec.Host, subpath.Path,
 					subpath.Service, subpath.Port, "READY")
 			}
 		}
@@ -341,6 +344,28 @@ func FormatPrinting(formarStr []string, any interface{}) {
 }
 
 func GetHandlerWithName(resourceKind, resourceName string) error {
+	switch resourceKind {
+	case "job":
+		err := getResult()
+		return err
+	}
+	return nil
+}
+
+func getResult() error {
+	// use cmd to build a pause container
+	// run cmd : nerdctl run -d  --name fake_k8s_pod_pause   registry.aliyuncs.com/google_containers/pause:3.9
+	cmd := exec.Command("cat", "/root/minik8s/minik8s/scripts/data/result.out")
+	var stdout, stderr bytes.Buffer
+	cmd.Stdout = &stdout
+	cmd.Stderr = &stderr
+	err := cmd.Run()
+	outStr, errStr := string(stdout.Bytes()), string(stderr.Bytes())
+	fmt.Printf("out:\n%s\nerr:\n%s\n", outStr, errStr)
+	if err != nil {
+		log.Fatalf("cmd.Run() failed with %s\n", err)
+		return err
+	}
 	return nil
 }
 

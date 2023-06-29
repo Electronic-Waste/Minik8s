@@ -89,7 +89,7 @@ func (p *PodStorage) Merge(source string, update interface{}) error {
 				if !podmanager.IsPodRunning(p.Name) && !podmanager.IsCrashContainer(p.Name) {
 
 				} else if podmanager.IsPodRunning(p.Name) {
-					podmanager.DelPod(p.Name)
+					podmanager.DelSysPod(p.Name)
 				} else if podmanager.IsCrashContainer(p.Name) {
 					podmanager.DelSimpleContainer(p.Name)
 				}
@@ -138,7 +138,7 @@ func (p *PodStorage) Merge(source string, update interface{}) error {
 			p.storeLock.Lock()
 			for _, pod := range mes.Pods {
 				if podmanager.IsPodRunning(pod.Name) {
-					podmanager.DelPod(pod.Name)
+					podmanager.DelSysPod(pod.Name)
 				}
 				delete(p.storage[mes.Source], pod.Name)
 			}
@@ -151,7 +151,17 @@ func (p *PodStorage) Merge(source string, update interface{}) error {
 	case types.UPDATE:
 		{
 			// a Pod be updated
-			fmt.Println("unsupport function")
+			p.storeLock.Lock()
+			fmt.Println("hit update")
+			for _, p := range mes.Pods {
+				fmt.Printf("delete pod %s\n", p.Name)
+				if podmanager.IsPodRunning(p.Name) {
+					podmanager.DelSysPod(p.Name)
+				} else {
+					podmanager.DelSimpleContainer(p.Name)
+				}
+			}
+			p.storeLock.Unlock()
 		}
 	case types.CHECK:
 		{
@@ -169,7 +179,7 @@ func (p *PodStorage) Merge(source string, update interface{}) error {
 						if strings.Compare(string(podVal.Status.Phase), "Running") == 0 {
 							continue
 						} else {
-							podmanager.DelPod(p.Name)
+							podmanager.DelSysPod(p.Name)
 							podmanager.RunSysPod(p)
 						}
 					}

@@ -1,17 +1,17 @@
 package serverless
 
-import(
-	"fmt"
-	"time"
-	"strings"
-	"net/http"
-	"io/ioutil"
+import (
 	"encoding/json"
+	"fmt"
+	"io/ioutil"
+	"net/http"
+	"strings"
+	"time"
 
 	svlurl "minik8s.io/pkg/serverless/util/url"
 	//apiurl "minik8s.io/pkg/apiserver/util/url"
-	"minik8s.io/pkg/clientutil"
 	"minik8s.io/pkg/apis/core"
+	"minik8s.io/pkg/clientutil"
 	"minik8s.io/pkg/util/listwatch"
 )
 
@@ -20,7 +20,7 @@ import(
 // body: params in JSON form
 func (k *Knative) HandleFuncTrigger(resp http.ResponseWriter, req *http.Request) {
 	fmt.Println("HandleFuncTrigger receive msg!")
-	vars :=  req.URL.Query()
+	vars := req.URL.Query()
 	funcName := vars.Get("name")
 	params, _ := ioutil.ReadAll(req.Body)
 	// Param miss: return error to client
@@ -29,7 +29,7 @@ func (k *Knative) HandleFuncTrigger(resp http.ResponseWriter, req *http.Request)
 		resp.Write([]byte("Name is missing"))
 		return
 	}
-	result, err := k.TriggerFunction(funcName, params)
+	result, err := k.TriggerFunction(funcName, params, 0)
 	if err != nil {
 		resp.WriteHeader(http.StatusInternalServerError)
 		resp.Write([]byte(err.Error()))
@@ -71,7 +71,7 @@ func (k *Knative) HandleWorkflowTrigger(resp http.ResponseWriter, req *http.Requ
 	for {
 		workflowNode := workflowNodes[triggerFuncName]
 		if workflowNode.Type == "Task" {
-			result, err = k.TriggerFunction(triggerFuncName, triggerParams)
+			result, err = k.TriggerFunction(triggerFuncName, triggerParams, 1)
 			if err != nil {
 				fmt.Println("workflow trigger fail")
 				resp.WriteHeader(http.StatusInternalServerError)
@@ -81,7 +81,7 @@ func (k *Knative) HandleWorkflowTrigger(resp http.ResponseWriter, req *http.Requ
 			fmt.Printf("Workflow get result: %s\n", result)
 			// If Next does not exists, stop workflow and return result
 			// Else update triggerFuncName and triggerParams, trigger next function
-			if (workflowNode.Next == "") {
+			if workflowNode.Next == "" {
 				resp.WriteHeader(http.StatusOK)
 				resp.Write([]byte(result))
 				return
@@ -107,7 +107,7 @@ func (k *Knative) HandleWorkflowTrigger(resp http.ResponseWriter, req *http.Requ
 					hasOneChoiceMatch = true
 					break
 				}
- 			}
+			}
 			if !hasOneChoiceMatch {
 				resp.WriteHeader(http.StatusInternalServerError)
 				resp.Write([]byte(fmt.Sprint("Workflow branch error: could not find target branch")))
@@ -117,12 +117,12 @@ func (k *Knative) HandleWorkflowTrigger(resp http.ResponseWriter, req *http.Requ
 	}
 }
 
-func (k *Knative) TriggerFunction(funcName string, params []byte) (string, error) {
+func (k *Knative) TriggerFunction(funcName string, params []byte, isWorkflow int) (string, error) {
 	//inform functioncontroller in the first place
-	redismsg,err := json.Marshal(funcName)
-	if err != nil{
+	redismsg, err := json.Marshal(funcName)
+	if err != nil {
 		fmt.Println(err)
-		return "",err
+		return "", err
 	}
 	listwatch.Publish(svlurl.FunctionTriggerURL, redismsg)
 	// 1. Query corresponding pod
@@ -146,18 +146,18 @@ func (k *Knative) TriggerFunction(funcName string, params []byte) (string, error
 		pods = append(pods, pod)
 	}
 
-	// 2. Judge whether has scalee-to-0 or not. If so, polling the apiserver
-	if (len(pods) == 0) {
+	// 2. Judge whether has scale-to-0 or not. If so, polling the apiserver
+	if len(pods) == 0 {
 		// Publish to redis to inform watcher of missing pod
 		// - topic: /func/trigger
 		// - payload: function's name
-		redismsg,err := json.Marshal(funcName)
-		if err != nil{
+		redismsg, err := json.Marshal(funcName)
+		if err != nil {
 			fmt.Println(err)
-			return "",err
+			return "", err
 		}
 		listwatch.Publish(svlurl.FunctionTriggerURL, redismsg)
-		
+
 		// Polling apiserver in 3s
 		for triggerCount := 0; len(pods) == 0; triggerCount++ {
 			fmt.Println("trigger time: ", triggerCount)
@@ -178,17 +178,23 @@ func (k *Knative) TriggerFunction(funcName string, params []byte) (string, error
 			}
 		}
 	}
-	time.Sleep(time.Second * 20)
+	time.Sleep(time.Second * 10)
 
 	// 3. Choose the serving pod with round-robin policy & Send request
-	fmt.Println("trigger: pod len:",len(pods),"and rrcount:",k.rrCount)
-	targetPod := pods[k.rrCount % len(pods)]
-	k.rrCount++
+	fmt.Println("\ntrigger: pod len:", len(pods), "and rrcount:", k.rrCount)
+	targetPod := pods[k.rrCount%len(pods)]
+	//k.rrCount++
 	targetPodIP := strings.Replace(targetPod.Status.PodIp, "\"", "", -1)
 	triggerURL := svlurl.HttpScheme + targetPodIP + ":8080"
 	result, err := clientutil.HttpTrigger("Knative-Function", triggerURL, params)
-	if err != nil {
-		return "", err
+	fmt.Println(triggerURL)
+	for err != nil {
+		targetPod = pods[k.rrCount%len(pods)]
+		//k.rrCount++
+		targetPodIP = strings.Replace(targetPod.Status.PodIp, "\"", "", -1)
+		triggerURL = svlurl.HttpScheme + targetPodIP + ":8080"
+		result, err = clientutil.HttpTrigger("Knative-Function", triggerURL, params)
+		time.Sleep(time.Second)
 	}
 	return result, nil
 }

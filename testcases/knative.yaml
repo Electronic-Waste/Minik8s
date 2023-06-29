@@ -1,6 +1,6 @@
 kind: Pod
 metadata:
-  name: apiserver
+  name: knative
 spec:
   volumes:
   - name: shared-data
@@ -8,7 +8,7 @@ spec:
 
   containers:
 
-  - name: api
+  - name: knative
     image: docker.io/library/golang:latest
     resources:
       limits:
@@ -21,4 +21,4 @@ spec:
     ports:
       - containerPort: 8080
     command: 
-      - /mnt/apiserver
+      - /mnt/knative

@@ -134,7 +134,15 @@ func (cfg *sourceFile) run(fileCache *FileCache) {
 						delete(fileCache.PodMap, e.fileName)
 						cfg.update <- podUpdate
 					} else if e.eventType == podModify {
-						fmt.Println("unsupport modify")
+						pod := core.Pod{}
+						pod.Name = fileCache.PodMap[e.fileName]
+						podUpdata := types.PodUpdate{}
+						podUpdata.Op = types.UPDATE
+						// first Pod is to delete
+						podUpdata.Pods = append(podUpdata.Pods, &pod)
+						newPod, _ := core.ParsePod(e.fileName)
+						fileCache.PodMap[e.fileName] = newPod.Name
+						cfg.update <- podUpdata
 					}
 				}
 			case <-cfg.ticker.C:

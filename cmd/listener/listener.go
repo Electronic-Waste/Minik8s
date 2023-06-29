@@ -10,7 +10,7 @@ import (
 func main() {
 	c := cadvisor.GetCAdvisor()
 	// detect for go1
-	err := c.RegisterPod("test")
+	err := c.RegisterPod("podTest")
 	if err != nil {
 		fmt.Println(err)
 		os.Exit(2)
@@ -28,10 +28,10 @@ func main() {
 	for {
 		select {
 		case <-stopper:
-			c.UnRegisterPod("test")
+			c.UnRegisterPod("podTest")
 			is_out = true
 		case <-t.C:
-			status, err := c.GetPodMetric("test")
+			status, err := c.GetPodMetric("podTest")
 			if err != nil {
 				fmt.Println(err)
 				os.Exit(2)

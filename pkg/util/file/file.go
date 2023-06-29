@@ -53,6 +53,10 @@ func genConfig() error {
 	if err != nil {
 		return err
 	}
+	_, err = copyFile(constant.ConfigDir+constant.KNATIVE, constant.SysPodDir+constant.KNATIVE)
+	if err != nil {
+		return err
+	}
 	return nil
 }
 func copyFile(srcFile, destFile string) (int, error) {

@@ -2,7 +2,7 @@ kind: Pod
 metadata:
   name: doublepodTest
   labels:
-    app: podTest
+    app: podAffTest
     node: vmeet2
 spec:
   volumes:
@@ -40,4 +40,7 @@ spec:
         - containerPort: 80
 
       command:
-        - bash
+        - /go/src/testtoo/test
+      args:
+        - m2
+      

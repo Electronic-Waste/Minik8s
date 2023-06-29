@@ -1,9 +1,9 @@
 kind: Pod
 metadata:
-  name: podTest
+  name: threepodTest
   labels:
     app: podAffTest
-    node: vmeet2
+    node: vmeet3
 spec:
   volumes:
     - name: shared-data
@@ -11,11 +11,11 @@ spec:
 
   containers:
 
-    - name: t1
+    - name: s1
       image: docker.io/library/golang:latest
       resources:
         limits:
-          cpu: "0.25"
+          cpu: "0.5"
         requests:
           cpu: "0.25"
       volumeMounts:
@@ -26,7 +26,7 @@ spec:
       command:
         - bash
 
-    - name: t2
+    - name: s2
       image: docker.io/library/golang:latest
       resources:
         limits:
@@ -42,4 +42,4 @@ spec:
       command:
         - /go/src/testtoo/test
       args:
-        - t2
+        - s2

@@ -12,4 +12,4 @@ spec:
     port: 80
     targetPort: 80
   selector:
-    app: test-pod-ws
+    app: podAffTest

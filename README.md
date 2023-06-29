@@ -75,7 +75,7 @@
 
 ### 启动
 `./bin/apiserver`启动apiserver  
-`./bin/kubeadm join --config=./testcases/vmeet1.yaml`加入集群  
+`./bin/kubeadm join --config=./testcases/vmeet2.yaml`加入集群  
 `./bin/kubelet`启动kubelet  
 `./bin/scheduler`启动scheduler  
 `./bin/kube-controller-manager`启动所有controller  
